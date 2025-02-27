@@ -1,8 +1,8 @@
-# TwitchLite Overlay
+# Compact Chat Overlay
 
 A lightweight, customizable Twitch chat overlay for streamers using OBS or other broadcasting software.
 
-![TwitchLite Overlay Screenshot](preview.png)
+![Compact Chat Overlay Screenshot](preview.png)
 
 [Click here for a live demo!](https://detekoi.github.io/compact-chat-overlay/)
 
