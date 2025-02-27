@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact Twitch Chat Overlay</title>
+    <style>
+        :root {
+            /* Default Theme */
+            --chat-bg-color: rgba(18, 18, 18, 0.8);
+            --chat-border-color: #9147ff;
+            --chat-text-color: #efeff1;
+            --username-color: #9147ff; /* Default if no color is specified */
+            --timestamp-color: #adadb8;
+            --font-size: 14px;
+            --chat-width: 300px;
+            --chat-max-height: 600px;
+            --chat-border-radius: 8px;
+            --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
+        }
+
+        /* Polar Bear Cafe Theme */
+        :root.polar-bear-cafe {
+            --chat-bg-color: rgba(245, 242, 230, 0.85);
+            --chat-border-color: #7E6852;
+            --chat-text-color: #4E3629;
+            --username-color: #508D69;
+            --timestamp-color: #ACA192;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: transparent;
+            overflow: hidden;
+        }
+
+        #config-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: var(--chat-bg-color);
+            border: 1px solid var(--chat-border-color);
+            border-radius: var(--chat-border-radius);
+            padding: 10px;
+            color: var(--chat-text-color);
+            z-index: 1000;
+            display: none;
+        }
+
+        #config-panel.visible {
+            display: block;
+        }
+
+        #config-panel h3 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .config-row {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .config-row label {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: var(--chat-border-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #772ce8;
+        }
+
+        #chat-container {
+            width: var(--chat-width);
+            max-height: var(--chat-max-height);
+            overflow-y: auto;
+            background-color: var(--chat-bg-color);
+            border: 2px solid var(--chat-border-color);
+            border-radius: var(--chat-border-radius);
+            padding: 10px;
+            font-size: var(--font-size);
+            color: var(--chat-text-color);
+            /* Enable dragging */
+            cursor: move;
+            /* Hide scrollbar */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #chat-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chat-message {
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-message .timestamp {
+            color: var(--timestamp-color);
+            font-size: 0.85em;
+            margin-right: 5px;
+        }
+
+        .chat-message .username {
+            color: var(--username-color);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .emote {
+            height: calc(var(--font-size) * 1.5);
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+
+        #channel-form {
+            margin-bottom: 15px;
+        }
+
+        #channel-input {
+            padding: 5px;
+            border: 1px solid var(--chat-border-color);
+            border-radius: 4px;
+            width: 70%;
+        }
+
+        #settings-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: transparent;
+            color: var(--timestamp-color);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 5px;
+            margin: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #chat-container:hover #settings-btn {
+            opacity: 1;
+        }
+
+        #settings-btn:hover {
+            color: var(--chat-text-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <button id="settings-btn">⚙️</button>
+        <div id="channel-form">
+            <input type="text" id="channel-input" placeholder="Enter Twitch channel name">
+            <button id="connect-btn">Connect</button>
+        </div>
+        <div id="chat-messages"></div>
+    </div>
+
+    <div id="config-panel">
+        <h3>Chat Settings</h3>
+        <div class="config-row">
+            <label for="bg-color">Background:</label>
+            <input type="color" id="bg-color" value="#121212">
+            <input type="range" id="bg-opacity" min="0" max="100" value="80">
+        </div>
+        <div class="config-row">
+            <label for="border-color">Border:</label>
+            <input type="color" id="border-color" value="#9147ff">
+        </div>
+        <div class="config-row">
+            <label for="text-color">Text:</label>
+            <input type="color" id="text-color" value="#efeff1">
+        </div>
+        <div class="config-row">
+            <label for="username-color">Username:</label>
+            <input type="color" id="username-color" value="#9147ff">
+        </div>
+        <div class="config-row">
+            <label for="override-username-colors">Override Twitch Colors:</label>
+            <input type="checkbox" id="override-username-colors">
+        </div>
+        <div class="config-row">
+            <label for="font-size">Font Size:</label>
+            <input type="range" id="font-size" min="10" max="24" value="14">
+            <span id="font-size-value">14px</span>
+        </div>
+        <div class="config-row">
+            <label for="chat-width">Width:</label>
+            <input type="range" id="chat-width" min="200" max="500" value="300">
+            <span id="chat-width-value">300px</span>
+        </div>
+                        <div class="config-row">
+            <label for="max-messages">Max Messages:</label>
+            <input type="number" id="max-messages" min="5" max="100" value="50">
+        </div>
+        <div class="config-row">
+            <label for="show-timestamps">Show Timestamps:</label>
+            <input type="checkbox" id="show-timestamps" checked>
+        </div>
+        <div class="config-row">
+            <label for="theme-select">Theme:</label>
+            <select id="theme-select">
+                <option value="default">Default</option>
+                <option value="polar-bear-cafe">Polar Bear Cafe</option>
+            </select>
+        </div>
+        
+        <div class="config-row" id="channel-actions" style="margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.3); padding-top: 15px;">
+            <label>Channel Actions:</label>
+            <div>
+                <button id="disconnect-btn" style="background-color: #aa5555; margin-top: 0;">Disconnect</button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 5px;">
+            <button id="save-config">Save Settings</button>
+            <button id="cancel-config" style="background-color: #555;">Cancel</button>
+            <button id="reset-config" style="background-color: #aa5555;">Reset to Default</button>
+        </div>
+    </div>
+
+    <script>
+        // Config and state variables
+        let config = {
+            bgColor: 'rgba(18, 18, 18, 0.8)',
+            borderColor: '#9147ff',
+            textColor: '#efeff1',
+            usernameColor: '#9147ff',
+            fontSize: 14,
+            chatWidth: 300,
+            maxMessages: 50,
+            showTimestamps: true
+        };
+        
+        let channel = '';
+        let socket = null;
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let maxMessagesCount = 50;
+
+        // DOM elements
+        const chatContainer = document.getElementById('chat-container');
+        const chatMessages = document.getElementById('chat-messages');
+        const channelInput = document.getElementById('channel-input');
+        const connectBtn = document.getElementById('connect-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const configPanel = document.getElementById('config-panel');
+        
+        // Make chat container draggable
+        chatContainer.addEventListener('mousedown', (e) => {
+            if (e.target === chatContainer || e.target.id === 'chat-messages') {
+                isDragging = true;
+                dragOffset.x = e.clientX - chatContainer.getBoundingClientRect().left;
+                dragOffset.y = e.clientY - chatContainer.getBoundingClientRect().top;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                chatContainer.style.position = 'absolute';
+                chatContainer.style.left = (e.clientX - dragOffset.x) + 'px';
+                chatContainer.style.top = (e.clientY - dragOffset.y) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Settings button
+        settingsBtn.addEventListener('click', () => {
+            // When opening settings, make sure the panel reflects current config
+            updateConfigPanelFromConfig();
+            configPanel.classList.toggle('visible');
+        });
+
+        // Connect to Twitch chat
+        connectBtn.addEventListener('click', connectToChat);
+        channelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') connectToChat();
+        });
+
+        function connectToChat() {
+            const newChannel = channelInput.value.trim().toLowerCase();
+            if (!newChannel) return;
+            
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            }
+            
+            channel = newChannel;
+            
+            // Hide the channel form after connection
+            document.getElementById('channel-form').style.display = 'none';
+            
+            chatMessages.innerHTML = '';
+            
+            // Create WebSocket connection to Twitch IRC
+            socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+            
+            socket.onopen = () => {
+                // Anonymous authentication
+                socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
+                socket.send('PASS SCHMOOPIIE');
+                socket.send('NICK justinfan12345');
+                socket.send(`JOIN #${channel}`);
+                
+                // Add channel info at the top
+                const channelInfo = document.createElement('div');
+                channelInfo.className = 'channel-info';
+                channelInfo.innerHTML = `<span class="connected-to">Connected to: <strong>${channel}</strong></span>`;
+                channelInfo.style.marginBottom = '10px';
+                channelInfo.style.fontSize = '0.9em';
+                channelInfo.style.opacity = '0.7';
+                chatMessages.appendChild(channelInfo);
+                
+                // Update the saved channel in the config and save it
+                if (config.lastChannel !== channel) {
+                    config.lastChannel = channel;
+                    localStorage.setItem('twitch-chat-overlay-config', JSON.stringify(config));
+                }
+                
+                addSystemMessage(`Connected to ${channel}'s chat`);
+            };
+            
+            socket.onmessage = (event) => {
+                const message = event.data;
+                
+                if (message.includes('PING')) {
+                    socket.send('PONG :tmi.twitch.tv');
+                    return;
+                }
+                
+                if (message.includes('PRIVMSG')) {
+                    parseMessage(message);
+                }
+            };
+            
+            socket.onclose = () => {
+                addSystemMessage(`Disconnected from ${channel}'s chat`);
+            };
+            
+            socket.onerror = (error) => {
+                addSystemMessage('Error connecting to Twitch chat');
+                console.error('WebSocket Error:', error);
+            };
+        }
+
+        function parseMessage(rawMessage) {
+            try {
+                console.log("Raw message:", rawMessage); // Debugging
+                
+                // Extract username
+                const userMatch = rawMessage.match(/@([^;]+;)*display-name=([^;]+)/);
+                const username = userMatch && userMatch[2] ? userMatch[2] : 'Anonymous';
+                
+                // Extract color if available - look more carefully for the color tag
+                let userColor = null;
+                const colorMatch = rawMessage.match(/color=#([0-9A-Fa-f]{6});/);
+                if (colorMatch && colorMatch[1]) {
+                    userColor = '#' + colorMatch[1];
+                }
+                
+                console.log("Username:", username, "Color:", userColor); // Debugging
+                
+                // If no color or it's #000000, assign a color based on username
+                if (!userColor || userColor === '#000000') {
+                    // Simple hash function to generate consistent colors for usernames
+                    let hash = 0;
+                    for (let i = 0; i < username.length; i++) {
+                        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    
+                    // Convert to RGB color - make sure the colors are vibrant
+                    const h = Math.abs(hash % 360);
+                    const s = 70 + (Math.abs((hash >> 8) % 30)); // 70-100%
+                    const l = 40 + (Math.abs((hash >> 16) % 20)); // 40-60%
+                    
+                    userColor = `hsl(${h}, ${s}%, ${l}%)`;
+                    console.log("Generated color for", username, ":", userColor); // Debugging
+                }
+                
+                // Extract message content
+                const msgMatch = rawMessage.match(/PRIVMSG #[^ ]+ :(.+)/);
+                if (!msgMatch) return;
+                
+                const msgContent = msgMatch[1];
+                
+                // Extract emotes if available
+                const emotesMatch = rawMessage.match(/emotes=([^;]*)/);
+                let emotes = {};
+                
+                if (emotesMatch && emotesMatch[1] && emotesMatch[1] !== '') {
+                    const emoteParts = emotesMatch[1].split('/');
+                    emoteParts.forEach(emotePart => {
+                        const [emoteId, positions] = emotePart.split(':');
+                        if (!positions) return;
+                        
+                        positions.split(',').forEach(position => {
+                            const [start, end] = position.split('-').map(Number);
+                            emotes[start] = {
+                                id: emoteId,
+                                end: end
+                            };
+                        });
+                    });
+                }
+                
+                // Add message to chat
+                addChatMessage(username, msgContent, emotes, userColor);
+            } catch (error) {
+                console.error('Error parsing message:', error);
+            }
+        }
+
+        function addChatMessage(username, message, emotes, userColor) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            
+            // Add timestamp if enabled
+            if (config.showTimestamps) {
+                const timestamp = document.createElement('span');
+                timestamp.className = 'timestamp';
+                
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                
+                timestamp.textContent = `[${hours}:${minutes}]`;
+                messageDiv.appendChild(timestamp);
+            }
+            
+            // Add username
+            const usernameSpan = document.createElement('span');
+            usernameSpan.className = 'username';
+            usernameSpan.textContent = username + ':';
+            // Use Twitch-provided color if override is disabled; otherwise, use the configured username color.
+            usernameSpan.style.color = config.overrideUsernameColors ? config.usernameColor : userColor;
+            messageDiv.appendChild(usernameSpan);
+            
+            // Process message with emotes
+            let messageHTML = ' ';
+            
+            if (Object.keys(emotes).length > 0) {
+                // Sort emote positions to replace from end to start (to not mess up indices)
+                const positions = Object.keys(emotes).map(Number).sort((a, b) => b - a);
+                
+                let processedMessage = message;
+                
+                positions.forEach(position => {
+                    const emote = emotes[position];
+                    const emoteCode = message.substring(position, emote.end + 1);
+                    const emoteImg = `<img class="emote" src="https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0" alt="${emoteCode}">`;
+                    
+                    processedMessage = processedMessage.substring(0, position) + 
+                                      emoteImg + 
+                                      processedMessage.substring(emote.end + 1);
+                });
+                
+                messageHTML += processedMessage;
+            } else {
+                messageHTML += message;
+            }
+            
+            // Add message content
+            const messageContent = document.createElement('span');
+            messageContent.innerHTML = messageHTML;
+            messageDiv.appendChild(messageContent);
+            
+            // Add message to container
+            chatMessages.appendChild(messageDiv);
+            
+            // Limit the number of messages
+            while (chatMessages.children.length > config.maxMessages) {
+                chatMessages.removeChild(chatMessages.firstChild);
+            }
+            
+            // Auto-scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addSystemMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.style.color = '#adadb8';
+            messageDiv.style.fontStyle = 'italic';
+            messageDiv.textContent = `System: ${message}`;
+            
+            chatMessages.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Configuration panel
+        const bgColorInput = document.getElementById('bg-color');
+        const bgOpacityInput = document.getElementById('bg-opacity');
+        const borderColorInput = document.getElementById('border-color');
+        const textColorInput = document.getElementById('text-color');
+        const usernameColorInput = document.getElementById('username-color');
+        const fontSizeInput = document.getElementById('font-size');
+        const fontSizeValue = document.getElementById('font-size-value');
+        const chatWidthInput = document.getElementById('chat-width');
+        const chatWidthValue = document.getElementById('chat-width-value');
+        const maxMessagesInput = document.getElementById('max-messages');
+        const showTimestampsInput = document.getElementById('show-timestamps');
+        const themeSelectInput = document.getElementById('theme-select');
+        const overrideUsernameColorsInput = document.getElementById('override-username-colors');
+        const saveConfigBtn = document.getElementById('save-config');
+        const resetConfigBtn = document.getElementById('reset-config');
+        const cancelConfigBtn = document.getElementById('cancel-config');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+
+        // Update visual preview as settings change
+        fontSizeInput.addEventListener('input', () => {
+            const value = fontSizeInput.value;
+            fontSizeValue.textContent = `${value}px`;
+            document.documentElement.style.setProperty('--font-size', `${value}px`);
+        });
+
+        chatWidthInput.addEventListener('input', () => {
+            const value = chatWidthInput.value;
+            chatWidthValue.textContent = `${value}px`;
+            document.documentElement.style.setProperty('--chat-width', `${value}px`);
+        });
+
+        bgColorInput.addEventListener('input', updateBgColor);
+        bgOpacityInput.addEventListener('input', updateBgColor);
+
+        function updateBgColor() {
+            const color = bgColorInput.value;
+            const opacity = bgOpacityInput.value / 100;
+            
+            // Convert hex to rgba
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            
+            const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            document.documentElement.style.setProperty('--chat-bg-color', bgColor);
+        }
+
+        borderColorInput.addEventListener('input', () => {
+            document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
+        });
+
+        textColorInput.addEventListener('input', () => {
+            document.documentElement.style.setProperty('--chat-text-color', textColorInput.value);
+        });
+
+        usernameColorInput.addEventListener('input', () => {
+            document.documentElement.style.setProperty('--username-color', usernameColorInput.value);
+        });
+
+        // Theme selection
+        themeSelectInput.addEventListener('change', () => {
+            const theme = themeSelectInput.value;
+            if (theme === 'polar-bear-cafe') {
+                document.documentElement.classList.add('polar-bear-cafe');
+            } else {
+                document.documentElement.classList.remove('polar-bear-cafe');
+            }
+        });
+        
+        // Username color override toggle
+        overrideUsernameColorsInput.addEventListener('change', () => {
+            if (overrideUsernameColorsInput.checked) {
+                document.documentElement.classList.add('override-username-colors');
+            } else {
+                document.documentElement.classList.remove('override-username-colors');
+            }
+        });
+
+        // Save configuration
+        saveConfigBtn.addEventListener('click', () => {
+            // Update config object
+            const r = parseInt(bgColorInput.value.slice(1, 3), 16);
+            const g = parseInt(bgColorInput.value.slice(3, 5), 16);
+            const b = parseInt(bgColorInput.value.slice(5, 7), 16);
+            const opacity = bgOpacityInput.value / 100;
+            
+            config = {
+                bgColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+                borderColor: borderColorInput.value,
+                textColor: textColorInput.value,
+                usernameColor: usernameColorInput.value,
+                fontSize: parseInt(fontSizeInput.value),
+                chatWidth: parseInt(chatWidthInput.value),
+                maxMessages: parseInt(maxMessagesInput.value),
+                showTimestamps: showTimestampsInput.checked,
+                overrideUsernameColors: overrideUsernameColorsInput.checked,
+                theme: themeSelectInput.value,
+                lastChannel: channel // Save the last channel
+            };
+            
+            // Apply theme
+            if (config.theme === 'polar-bear-cafe') {
+                document.documentElement.classList.add('polar-bear-cafe');
+            } else {
+                document.documentElement.classList.remove('polar-bear-cafe');
+            }
+            
+            // Update CSS variables if not using theme
+            if (config.theme === 'default') {
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                document.documentElement.style.setProperty('--username-color', config.usernameColor);
+            }
+            
+            document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+            
+            // Save to localStorage
+            localStorage.setItem('twitch-chat-overlay-config', JSON.stringify(config));
+            
+            // Hide config panel
+            configPanel.classList.remove('visible');
+            
+            addSystemMessage('Settings saved');
+        });
+        
+        // Cancel button - close panel without saving
+        cancelConfigBtn.addEventListener('click', () => {
+            // Restore values from current config
+            updateConfigPanelFromConfig();
+            
+            // Hide config panel
+            configPanel.classList.remove('visible');
+            
+            addSystemMessage('Settings changes canceled');
+        });
+
+        // Helper function to update config panel from current config
+        function updateConfigPanelFromConfig() {
+            // Handle color setting
+            const rgbaMatch = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+            if (rgbaMatch) {
+                const [, r, g, b, a] = rgbaMatch;
+                const hexColor = '#' + 
+                    parseInt(r).toString(16).padStart(2, '0') + 
+                    parseInt(g).toString(16).padStart(2, '0') + 
+                    parseInt(b).toString(16).padStart(2, '0');
+                
+                bgColorInput.value = hexColor;
+                bgOpacityInput.value = parseFloat(a) * 100;
+            }
+            
+            // Update form fields
+            borderColorInput.value = config.borderColor;
+            textColorInput.value = config.textColor;
+            usernameColorInput.value = config.usernameColor;
+            fontSizeInput.value = config.fontSize;
+            fontSizeValue.textContent = `${config.fontSize}px`;
+            chatWidthInput.value = config.chatWidth;
+            chatWidthValue.textContent = `${config.chatWidth}px`;
+            maxMessagesInput.value = config.maxMessages;
+            showTimestampsInput.checked = config.showTimestamps;
+            overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+            
+            // Theme select
+            themeSelectInput.value = config.theme || 'default';
+            
+            // Apply visual preview
+            document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+            
+            // Apply theme
+            if (config.theme === 'polar-bear-cafe') {
+                document.documentElement.classList.add('polar-bear-cafe');
+            } else {
+                document.documentElement.classList.remove('polar-bear-cafe');
+                // Only update these if not using theme
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                document.documentElement.style.setProperty('--username-color', config.usernameColor);
+            }
+            
+            // Update channel actions visibility based on connection state
+            const channelActions = document.getElementById('channel-actions');
+            if (channelActions) {
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    channelActions.style.display = 'flex';
+                    disconnectBtn.textContent = `Disconnect from ${channel}`;
+                } else {
+                    channelActions.style.display = 'none';
+                }
+            }
+        }
+        
+        // Disconnect button in settings
+        disconnectBtn.addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.close();
+                
+                // Show the channel form again
+                document.getElementById('channel-form').style.display = 'block';
+                channelInput.value = channel;
+                
+                // Clear the chat messages area
+                chatMessages.innerHTML = '';
+                
+                // Add system message
+                addSystemMessage(`Disconnected from ${channel}'s chat`);
+                addSystemMessage('Enter a channel name to connect');
+                
+                // Close the settings panel
+                configPanel.classList.remove('visible');
+            }
+        });
+        
+        // Reset to defaults
+        resetConfigBtn.addEventListener('click', () => {
+            const defaultConfig = {
+                bgColor: 'rgba(18, 18, 18, 0.8)',
+                borderColor: '#9147ff',
+                textColor: '#efeff1',
+                usernameColor: '#9147ff',
+                fontSize: 14,
+                chatWidth: 300,
+                maxMessages: 50,
+                showTimestamps: true
+            };
+            
+            // Update inputs
+            const rgbaMatch = defaultConfig.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+            if (rgbaMatch) {
+                const [, r, g, b, a] = rgbaMatch;
+                const hexColor = '#' + 
+                    parseInt(r).toString(16).padStart(2, '0') + 
+                    parseInt(g).toString(16).padStart(2, '0') + 
+                    parseInt(b).toString(16).padStart(2, '0');
+                
+                bgColorInput.value = hexColor;
+                bgOpacityInput.value = parseFloat(a) * 100;
+            }
+            
+            borderColorInput.value = defaultConfig.borderColor;
+            textColorInput.value = defaultConfig.textColor;
+            usernameColorInput.value = defaultConfig.usernameColor;
+            fontSizeInput.value = defaultConfig.fontSize;
+            fontSizeValue.textContent = `${defaultConfig.fontSize}px`;
+            chatWidthInput.value = defaultConfig.chatWidth;
+            chatWidthValue.textContent = `${defaultConfig.chatWidth}px`;
+            maxMessagesInput.value = defaultConfig.maxMessages;
+            showTimestampsInput.checked = defaultConfig.showTimestamps;
+            
+            // Update CSS variables
+            document.documentElement.style.setProperty('--chat-bg-color', defaultConfig.bgColor);
+            document.documentElement.style.setProperty('--chat-border-color', defaultConfig.borderColor);
+            document.documentElement.style.setProperty('--chat-text-color', defaultConfig.textColor);
+            document.documentElement.style.setProperty('--username-color', defaultConfig.usernameColor);
+            document.documentElement.style.setProperty('--font-size', `${defaultConfig.fontSize}px`);
+            document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}px`);
+            
+            config = defaultConfig;
+            
+            addSystemMessage('Settings reset to default');
+        });
+
+        // Load saved config on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedConfig = localStorage.getItem('twitch-chat-overlay-config');
+            
+            if (savedConfig) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    config = {...config, ...parsedConfig};
+                    
+                    // Remove debugging logs after finding the issue
+                    console.log("Loading saved config:", config);
+                    
+                    // Check if color override is active
+                    overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+                    if (config.overrideUsernameColors) {
+                        document.documentElement.classList.add('override-username-colors');
+                    } else {
+                        document.documentElement.classList.remove('override-username-colors');
+                    }
+                    
+                    // Update form fields and visual settings
+                    updateConfigPanelFromConfig();
+                    
+                    // If the channel was previously saved, auto-connect
+                    if (config.lastChannel) {
+                        channelInput.value = config.lastChannel;
+                        // Auto-connect after a short delay to ensure everything is loaded
+                        setTimeout(() => {
+                            connectToChat();
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.error('Error loading saved config:', e);
+                }
+            }
+            
+            addSystemMessage('Welcome to Twitch Chat Overlay');
+            
+            // Only show the connect message if we don't have a saved channel
+            if (!config.lastChannel) {
+                addSystemMessage('Enter a channel name to connect');
+            } else {
+                addSystemMessage(`Automatically connecting to ${config.lastChannel}...`);
+            }
+        });
+    </script>
+</body>
+</html>
