@@ -4,6 +4,8 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![TwitchLite Overlay Screenshot](preview.png)
 
+[Click here for a live demo!](https://detekoi.github.io/compact-chat-overlay/)
+
 ## Features
 
 - **Compact & Clean Interface**: Displays chat messages in a minimalist window that can be added as a browser source.
@@ -46,7 +48,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Width**: Change the width of the chat window
 - **Max Messages**: Control how many chat messages to show before removing older ones
 - **Show Timestamps**: Toggle message timestamps
-- **Theme**: Choose between Default or Polar Bear Cafe theme
+- **Theme**: Choose between Default or Polar Bear Cafe theme presets
 
 ## Customization Tips
 
