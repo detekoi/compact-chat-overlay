@@ -19,7 +19,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
   - Window width
   - Usernames - use original Twitch colors or pick a custom color
   - Multiple themes including Dark, Light, Natural, Transparent, Pink, and Cyberpunk
-- **Draggable Interface**: Position the chat window anywhere on your screen or in OBS.
+- **Simple Interface**: Clean design that integrates well with OBS and other broadcasting software.
 - **Auto-Connect**: Remembers your channel and automatically connects on startup.
 - **No Authentication Required**: Works anonymously without needing Twitch credentials.
 
