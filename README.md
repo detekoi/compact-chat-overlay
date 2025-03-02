@@ -37,25 +37,25 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ### Configuring the Overlay
 
-1. When first loaded, enter your Twitch channel name in the input field and click "Connect".
+1. When first loaded, enter your Twitch channel name in the input field and click "Connect."
 2. Access settings by hovering over the chat window and clicking the gear icon (⚙️).
 3. Customize the appearance using the available options.
 4. Click "Save Settings" to apply your changes.
 
-**Important OBS Tip**: To access the settings while in OBS, right-click the browser source in your Sources list (or right-click directly on the overlay in the preview window) and select "Interact". This will open an interactive window where you can hover over the chat to reveal the settings gear icon.
+**Important OBS Tip**: To access the settings while in OBS, right-click the browser source in your Sources list (or right-click directly on the overlay in the preview window) and select "Interact." This will open an interactive window where you can hover over the chat to reveal the settings gear icon.
 
 ### Settings Options
 
-- **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes
-- **Live Theme Preview**: See a miniature preview of your chat with all settings applied
-- **Background**: Adjust color and opacity with easy-to-use preset buttons
-- **Border**: Change the border color using theme-specific presets
-- **Text**: Set the message text color
-- **Username Colors**: Choose whether to use Twitch's colors or your custom color
-- **Font Size**: Adjust the text size with a slider
-- **Width**: Change the width of the chat window
-- **Max Messages**: Control how many chat messages to show before removing older ones
-- **Show Timestamps**: Toggle message timestamps on/off
+- **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
+- **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
+- **Background**: Adjust color and opacity with easy-to-use preset buttons.
+- **Border**: Change the border color using theme-specific presets.
+- **Text**: Set the message text color.
+- **Username Colors**: Choose whether to use Twitch's colors or your custom color.
+- **Font Size**: Adjust the text size with a slider.
+- **Width**: Change the width of the chat window.
+- **Max Messages**: Control how many chat messages to show before removing older ones.
+- **Show Timestamps**: Toggle message timestamps on/off.
 
 ## Customization Tips
 
