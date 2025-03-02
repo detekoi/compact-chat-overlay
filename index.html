@@ -796,12 +796,22 @@
             const value = fontSizeInput.value;
             fontSizeValue.textContent = `${value}px`;
             document.documentElement.style.setProperty('--font-size', `${value}px`);
+            updatePreviewFromCurrentSettings();
         });
 
         chatWidthInput.addEventListener('input', () => {
             const value = chatWidthInput.value;
             chatWidthValue.textContent = `${value}px`;
             document.documentElement.style.setProperty('--chat-width', `${value}px`);
+        });
+        
+        // Handle checkbox changes
+        overrideUsernameColorsInput.addEventListener('input', () => {
+            updatePreviewFromCurrentSettings();
+        });
+        
+        showTimestampsInput.addEventListener('input', () => {
+            updatePreviewFromCurrentSettings();
         });
 
         // Color preview boxes
@@ -848,6 +858,7 @@
                 }
                 
                 updateColorPreviews();
+                updatePreviewFromCurrentSettings();
             });
             
             // Set button background color to match its data-color
@@ -870,11 +881,13 @@
         bgColorInput.addEventListener('input', () => {
             updateBgColor();
             updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         });
         
         bgOpacityInput.addEventListener('input', () => {
             updateBgColor();
             updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         });
 
         function updateBgColor() {
@@ -893,16 +906,19 @@
         borderColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
             updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         });
 
         textColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-text-color', textColorInput.value);
             updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         });
 
         usernameColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--username-color', usernameColorInput.value);
             updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         });
 
         // Theme selection with carousel buttons
@@ -965,18 +981,58 @@
             config.theme = currentTheme.value;
         }
         
-        function updateThemePreview(theme) {
-            // Create a mini version of the chat with theme colors
-            themePreview.style.backgroundColor = theme.colors.bg;
-            themePreview.style.opacity = theme.colors.bgOpacity / 100;
-            themePreview.style.border = `2px solid ${theme.colors.border}`;
-            themePreview.style.color = theme.colors.text;
+        function updateThemePreview(theme, useCustomSettings = false) {
+            let backgroundColor, bgOpacity, borderColor, textColor, usernameColor, timestampColor;
+            let fontSize = fontSizeInput.value + 'px';
+            let showTimestamps = showTimestampsInput.checked;
+            let overrideColors = overrideUsernameColorsInput.checked;
             
-            // Add a username and text preview
-            themePreview.innerHTML = `<div style="padding: 5px; font-size: 12px;">
-                <span style="color: ${theme.colors.username}; font-weight: bold;">Username:</span>
+            if (useCustomSettings) {
+                // Use the current settings from the form controls
+                const r = parseInt(bgColorInput.value.slice(1, 3), 16);
+                const g = parseInt(bgColorInput.value.slice(3, 5), 16);
+                const b = parseInt(bgColorInput.value.slice(5, 7), 16);
+                backgroundColor = bgColorInput.value;
+                bgOpacity = bgOpacityInput.value / 100;
+                borderColor = borderColorInput.value;
+                textColor = textColorInput.value;
+                usernameColor = usernameColorInput.value;
+                timestampColor = "rgba(173, 173, 184, 0.8)"; // Light gray
+            } else {
+                // Use the theme's predefined colors
+                backgroundColor = theme.colors.bg;
+                bgOpacity = theme.colors.bgOpacity / 100;
+                borderColor = theme.colors.border;
+                textColor = theme.colors.text;
+                usernameColor = theme.colors.username;
+                timestampColor = theme.colors.timestamp;
+            }
+            
+            // Create a mini version of the chat with theme/custom colors
+            themePreview.style.backgroundColor = backgroundColor;
+            themePreview.style.opacity = bgOpacity;
+            themePreview.style.border = `2px solid ${borderColor}`;
+            themePreview.style.color = textColor;
+            
+            // Add a username and text preview with timestamp if enabled
+            const timestamp = showTimestamps ? 
+                `<span style="color: ${timestampColor}; font-size: 0.85em; margin-right: 5px;">[12:34]</span>` : 
+                '';
+                
+            // Generate a username with original or override color based on settings
+            const usernameColorDisplay = overrideColors ? usernameColor : '#ff4500'; // Simulated Twitch color
+            
+            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: 'Inter', sans-serif;">
+                ${timestamp}
+                <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
                 <span>Chat message</span>
             </div>`;
+        }
+        
+        // Update the preview whenever colors or settings change
+        function updatePreviewFromCurrentSettings() {
+            // Always use custom settings for this update
+            updateThemePreview(availableThemes[currentThemeIndex], true);
         }
         
         // Previous theme button
