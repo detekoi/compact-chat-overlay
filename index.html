@@ -83,7 +83,7 @@
 
         #config-panel {
             position: fixed;
-            top: 100px;
+            top: 10px;
             right: 10px;
             background-color: var(--config-bg-color);
             border: 1px solid var(--config-border-color);
@@ -369,11 +369,11 @@
             .theme-preview::after {
                 content: "Preview";
                 position: absolute;
-                top: 50%;
+                top: 16%;
                 left: 50%;
                 transform: translate(-50%, -50%);
                 font-size: 12px;
-                opacity: 0.7;
+                opacity: 0.3;
             }
         </style>
         
@@ -1286,18 +1286,52 @@
         
         // Cancel should restore previous settings
         cancelConfigBtn.addEventListener('click', () => {
-            if (tempConfig) {
-                // Restore original config if Reset was clicked
+            // Whether Reset was clicked or not, revert to last saved config
+            const savedConfig = localStorage.getItem('twitch-chat-overlay-config');
+            if (savedConfig) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    config = {...config, ...parsedConfig};
+                    
+                    // Update UI to reflect saved settings
+                    updateConfigPanelFromConfig();
+                    
+                    // Apply theme
+                    const themeIndex = availableThemes.findIndex(theme => theme.value === (config.theme || 'default'));
+                    currentThemeIndex = themeIndex >= 0 ? themeIndex : 0;
+                    
+                    // Apply the saved theme and colors to the actual chat
+                    applyTheme(config.theme);
+                    
+                    // Update CSS variables directly
+                    document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                    document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                    document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                    document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                    document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+                    document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+                    
+                    // Set override username colors
+                    if (config.overrideUsernameColors) {
+                        document.documentElement.classList.add('override-username-colors');
+                    } else {
+                        document.documentElement.classList.remove('override-username-colors');
+                    }
+                    
+                    // Reset tempConfig
+                    tempConfig = null;
+                    
+                    // Update preview to reflect restored settings
+                    updatePreviewFromCurrentSettings();
+                } catch (e) {
+                    console.error('Error restoring saved config:', e);
+                }
+            } else if (tempConfig) {
+                // Fallback to tempConfig if available
                 config = JSON.parse(JSON.stringify(tempConfig));
                 tempConfig = null;
-                
-                // Update UI to reflect original settings
                 updateConfigPanelFromConfig();
-                
-                // Apply theme and update preview
                 applyTheme(config.theme);
-                
-                // Update theme preview to reflect restored settings
                 updatePreviewFromCurrentSettings();
             }
             
