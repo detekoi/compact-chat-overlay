@@ -6,7 +6,7 @@
     <title>Compact Twitch Chat Overlay</title>
     <style>
         :root {
-            /* Default Theme */
+            /* Default Theme (Dark) */
             --chat-bg-color: rgba(18, 18, 18, 0.8);
             --chat-border-color: #9147ff;
             --chat-text-color: #efeff1;
@@ -17,15 +17,56 @@
             --chat-max-height: 600px;
             --chat-border-radius: 8px;
             --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
+            
+            /* Config Panel specific styles - not affected by chat themes */
+            --config-bg-color: rgba(35, 35, 35, 0.95);
+            --config-text-color: #ffffff;
+            --config-border-color: #9147ff;
         }
 
-        /* Polar Bear Cafe Theme */
-        :root.polar-bear-cafe {
+        /* Light Theme */
+        :root.light-theme {
+            --chat-bg-color: rgba(250, 250, 250, 0.85);
+            --chat-border-color: #6441a5;
+            --chat-text-color: #1a1a1a;
+            --username-color: #6441a5;
+            --timestamp-color: #737373;
+        }
+
+        /* Natural Theme (renamed from Polar Bear Cafe) */
+        :root.natural-theme {
             --chat-bg-color: rgba(245, 242, 230, 0.85);
             --chat-border-color: #7E6852;
             --chat-text-color: #4E3629;
             --username-color: #508D69;
             --timestamp-color: #ACA192;
+        }
+
+        /* Transparent Theme */
+        :root.transparent-theme {
+            --chat-bg-color: rgba(0, 0, 0, 0);
+            --chat-border-color: rgba(255, 255, 255, 0.2);
+            --chat-text-color: #ffffff;
+            --username-color: #ff9800;
+            --timestamp-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Pink Theme */
+        :root.pink-theme {
+            --chat-bg-color: rgba(255, 222, 236, 0.85);
+            --chat-border-color: #ff6bcb;
+            --chat-text-color: #8e2651;
+            --username-color: #b81670;
+            --timestamp-color: #d67bb2;
+        }
+
+        /* Cyberpunk Theme */
+        :root.cyberpunk-theme {
+            --chat-bg-color: rgba(12, 12, 40, 0.85);
+            --chat-border-color: #00ffb3;
+            --chat-text-color: #00ffea;
+            --username-color: #ff2e97;
+            --timestamp-color: #fffd88;
         }
 
         * {
@@ -44,13 +85,16 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: var(--chat-bg-color);
-            border: 1px solid var(--chat-border-color);
+            background-color: var(--config-bg-color);
+            border: 1px solid var(--config-border-color);
             border-radius: var(--chat-border-radius);
             padding: 10px;
-            color: var(--chat-text-color);
+            color: var(--config-text-color);
             z-index: 1000;
             display: none;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         #config-panel.visible {
@@ -74,17 +118,23 @@
         }
 
         button {
-            background-color: var(--chat-border-color);
+            background-color: var(--config-border-color);
             color: white;
             border: none;
             padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.2s ease;
         }
 
         button:hover {
             background-color: #772ce8;
+            filter: brightness(1.1);
+        }
+        
+        #config-panel .config-row label {
+            color: var(--config-text-color);
         }
 
         #chat-container {
@@ -226,8 +276,12 @@
         <div class="config-row">
             <label for="theme-select">Theme:</label>
             <select id="theme-select">
-                <option value="default">Default</option>
-                <option value="polar-bear-cafe">Polar Bear Cafe</option>
+                <option value="default">Dark (Default)</option>
+                <option value="light-theme">Light</option>
+                <option value="natural-theme">Natural</option>
+                <option value="transparent-theme">Transparent</option>
+                <option value="pink-theme">Pink</option>
+                <option value="cyberpunk-theme">Cyberpunk</option>
             </select>
         </div>
         
@@ -578,10 +632,19 @@
         // Theme selection
         themeSelectInput.addEventListener('change', () => {
             const theme = themeSelectInput.value;
-            if (theme === 'polar-bear-cafe') {
-                document.documentElement.classList.add('polar-bear-cafe');
-            } else {
-                document.documentElement.classList.remove('polar-bear-cafe');
+            
+            // First remove all theme classes
+            document.documentElement.classList.remove(
+                'light-theme', 
+                'natural-theme', 
+                'transparent-theme', 
+                'pink-theme', 
+                'cyberpunk-theme'
+            );
+            
+            // Then apply the selected theme if it's not default
+            if (theme !== 'default') {
+                document.documentElement.classList.add(theme);
             }
         });
         
@@ -617,10 +680,18 @@
             };
             
             // Apply theme
-            if (config.theme === 'polar-bear-cafe') {
-                document.documentElement.classList.add('polar-bear-cafe');
-            } else {
-                document.documentElement.classList.remove('polar-bear-cafe');
+            // First remove all theme classes
+            document.documentElement.classList.remove(
+                'light-theme', 
+                'natural-theme', 
+                'transparent-theme', 
+                'pink-theme', 
+                'cyberpunk-theme'
+            );
+            
+            // Then apply the selected theme if it's not default
+            if (config.theme !== 'default') {
+                document.documentElement.classList.add(config.theme);
             }
             
             // Update CSS variables if not using theme
@@ -689,11 +760,20 @@
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
             
             // Apply theme
-            if (config.theme === 'polar-bear-cafe') {
-                document.documentElement.classList.add('polar-bear-cafe');
+            // First remove all theme classes
+            document.documentElement.classList.remove(
+                'light-theme', 
+                'natural-theme', 
+                'transparent-theme', 
+                'pink-theme', 
+                'cyberpunk-theme'
+            );
+            
+            // Then apply the selected theme if it's not default
+            if (config.theme !== 'default') {
+                document.documentElement.classList.add(config.theme);
             } else {
-                document.documentElement.classList.remove('polar-bear-cafe');
-                // Only update these if not using theme
+                // Only update these if using default theme - the themed values come from CSS
                 document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
                 document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                 document.documentElement.style.setProperty('--chat-text-color', config.textColor);

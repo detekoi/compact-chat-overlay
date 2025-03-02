@@ -18,6 +18,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
   - Font size
   - Window width
   - Usernames - use original Twitch colors or pick a custom color
+  - Multiple themes including Dark, Light, Natural, Transparent, Pink, and Cyberpunk
 - **Draggable Interface**: Position the chat window anywhere on your screen or in OBS.
 - **Auto-Connect**: Remembers your channel and automatically connects on startup.
 - **No Authentication Required**: Works anonymously without needing Twitch credentials.
@@ -48,13 +49,15 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Width**: Change the width of the chat window
 - **Max Messages**: Control how many chat messages to show before removing older ones
 - **Show Timestamps**: Toggle message timestamps
-- **Theme**: Choose between Default or Polar Bear Cafe theme presets
+- **Theme**: Choose from multiple themes including Dark, Light, Natural, Transparent, Pink, and Cyberpunk
 
 ## Customization Tips
 
-- For a transparent background, reduce the opacity slider to 0.
+- Use the Transparent theme for a clean overlay on top of your gameplay.
 - For better readability, keep font sizes between 12-16px.
 - Position the chat overlay where it won't overlap with important game elements.
+- The settings panel stays visible and usable even with transparent backgrounds.
+- Try the Cyberpunk theme for a neon-style game streaming aesthetic.
 
 ## Technical Details
 
@@ -75,8 +78,9 @@ MIT License - Feel free to modify and use as needed.
 
 ## Acknowledgements
 
-- Default theme inspired by the visual style of Polar Bear Cafe anime
+- Natural theme inspired by the visual style of Polar Bear Cafe anime
 - Built for streamers who want a clean, customizable chat overlay
+- Themed designs inspired by popular streaming aesthetics
 
 ## Support & Contributions
 
