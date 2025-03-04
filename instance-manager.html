@@ -194,6 +194,8 @@
             border-radius: var(--border-radius-md);
             box-shadow: var(--shadow-sm);
             padding: var(--spacing-lg);
+            max-width: 1000px;
+            margin: 0 auto;
         }
         
         .workspace-header {
@@ -1470,11 +1472,6 @@
                 // Theme
                 this.themeSelector.value = config.theme || 'default';
                 
-                // Special handling for transparent theme opacity
-                if (config.theme === 'transparent-theme') {
-                    this.bgOpacity.value = 0;
-                    this.bgOpacityValue.textContent = '0%';
-                }
                 
                 // Colors
                 const bgColorMatch = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
@@ -1782,9 +1779,7 @@
                 if (theme !== 'default') {
                     const themeData = this.getThemeColors(theme);
                     if (themeData) {
-                        // For transparent theme, we want to use its opacity setting
-                        const themeOpacity = theme === 'transparent-theme' ? 0 : opacity;
-                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${themeOpacity})`;
+                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${opacity})`;
                         themeBasedBorderColor = themeData.borderColor;
                         themeBasedTextColor = themeData.textColor;
                         themeBasedUsernameColor = themeData.usernameColor;
