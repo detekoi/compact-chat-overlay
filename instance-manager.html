@@ -481,6 +481,7 @@
             background: #e0e0e0;
             outline: none;
             border: none;
+            max-width: 200px;
         }
         
         input[type="range"]::-webkit-slider-thumb {
@@ -516,12 +517,17 @@
             border: 1px solid var(--border-color);
         }
         
+        .input-group .color-picker {
+            width: 150px;
+        }
+        
         /* Toggle switch */
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 46px;
             height: 24px;
+            flex-shrink: 0;
         }
         
         .toggle-switch input {
@@ -1726,10 +1732,27 @@
                 const showTimestamps = this.showTimestamps.checked;
                 const overrideColors = this.overrideColors.checked;
                 
+                // Update colors based on theme selection
+                let themeBasedBgColor = bgColor;
+                let themeBasedBorderColor = borderColor;
+                let themeBasedTextColor = textColor;
+                let themeBasedUsernameColor = usernameColor;
+                
+                // Apply theme colors if a theme is selected
+                if (theme !== 'default') {
+                    const themeData = this.getThemeColors(theme);
+                    if (themeData) {
+                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${opacity})`;
+                        themeBasedBorderColor = themeData.borderColor;
+                        themeBasedTextColor = themeData.textColor;
+                        themeBasedUsernameColor = themeData.usernameColor;
+                    }
+                }
+                
                 // Create basic preview style
-                this.previewOverlay.style.backgroundColor = bgColor;
-                this.previewOverlay.style.border = `2px solid ${borderColor}`;
-                this.previewOverlay.style.color = textColor;
+                this.previewOverlay.style.backgroundColor = themeBasedBgColor;
+                this.previewOverlay.style.border = `2px solid ${themeBasedBorderColor}`;
+                this.previewOverlay.style.color = themeBasedTextColor;
                 this.previewOverlay.style.fontSize = `${fontSize}px`;
                 this.previewOverlay.style.width = `${width}px`;
                 this.previewOverlay.style.height = 'auto';
@@ -1740,8 +1763,8 @@
                 
                 // Sample messages with timestamps
                 const timestamp = showTimestamps ? '<span style="color: #adadb8; font-size: 0.85em;">[12:34]</span> ' : '';
-                const username1Color = overrideColors ? usernameColor : '#ff4500';
-                const username2Color = overrideColors ? usernameColor : '#1E90FF';
+                const username1Color = overrideColors ? (theme === 'default' ? usernameColor : themeBasedUsernameColor) : '#ff4500';
+                const username2Color = overrideColors ? (theme === 'default' ? usernameColor : themeBasedUsernameColor) : '#1E90FF';
                 
                 // Generate sample chat messages
                 this.previewOverlay.innerHTML = `
@@ -1755,6 +1778,62 @@
                         ${timestamp}<span style="color: ${username1Color}; font-weight: bold;">TwitchUser1:</span> This is a preview of your chat overlay.
                     </div>
                 `;
+                
+                // Also update the color inputs to reflect theme colors when theme changes
+                if (theme !== 'default') {
+                    // Get theme colors
+                    const themeData = this.getThemeColors(theme);
+                    if (themeData) {
+                        // Update color preview elements
+                        this.bgColorPreview.style.backgroundColor = `rgb(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b})`;
+                        this.borderColorPreview.style.backgroundColor = themeData.borderColor;
+                        this.textColorPreview.style.backgroundColor = themeData.textColor;
+                        this.usernameColorPreview.style.backgroundColor = themeData.usernameColor;
+                    }
+                }
+            }
+            
+            // Get colors for a specific theme
+            getThemeColors(theme) {
+                switch(theme) {
+                    case 'light-theme':
+                        return {
+                            bgColor: { r: 250, g: 250, b: 250 },
+                            borderColor: '#6441a5',
+                            textColor: '#1a1a1a',
+                            usernameColor: '#6441a5'
+                        };
+                    case 'natural-theme':
+                        return {
+                            bgColor: { r: 245, g: 242, b: 230 },
+                            borderColor: '#7e6852',
+                            textColor: '#4e3629',
+                            usernameColor: '#508d69'
+                        };
+                    case 'transparent-theme':
+                        return {
+                            bgColor: { r: 0, g: 0, b: 0 },
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            textColor: '#ffffff',
+                            usernameColor: '#ff9800'
+                        };
+                    case 'pink-theme':
+                        return {
+                            bgColor: { r: 255, g: 222, b: 236 },
+                            borderColor: '#ff6bcb',
+                            textColor: '#8e2651',
+                            usernameColor: '#b81670'
+                        };
+                    case 'cyberpunk-theme':
+                        return {
+                            bgColor: { r: 12, g: 12, b: 40 },
+                            borderColor: '#00ffb3',
+                            textColor: '#00ffea',
+                            usernameColor: '#ff2e97'
+                        };
+                    default:
+                        return null;
+                }
             }
             
             // Test the preview with sample messages that appear one by one
