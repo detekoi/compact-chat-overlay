@@ -13,6 +13,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Emote Support**: Displays Twitch emotes in chat.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See changes in real-time before applying them.
+- **Multiple Instances**: Create different overlay styles for different OBS scenes using URL parameters.
 - **Customizable Appearance**:
   - Background color & opacity
   - Border color
@@ -34,6 +35,21 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 3. Select "Local file" and browse to the `index.html` file.
 4. Set the width and height (recommended starting size: 320px × 600px).
 5. Click "OK" to add the source.
+
+### Multiple Instances for Different Scenes (NEW!)
+
+You can now create multiple instances with different styles for different OBS scenes:
+
+1. Instead of using the local file directly, add the `?instance=NAME` parameter to the URL:
+   - Windows example: `file:///C:/path/to/index.html?instance=gaming`
+   - macOS example: `file:///Users/username/path/to/index.html?instance=chatting`
+
+2. Each instance maintains its own separate settings with unique styling.
+
+3. Use descriptive instance names like:
+   - `?instance=gaming` for your gaming scene
+   - `?instance=talking` for your talking/webcam scene
+   - `?instance=intro` for your stream intro scene
 
 ### Configuring the Overlay
 

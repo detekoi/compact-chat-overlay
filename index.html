@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compact Twitch Chat Overlay</title>
+    <!-- Added support for multiple instances via URL parameters -->
+    <meta name="description" content="Twitch chat overlay with support for multiple instances via URL parameters (e.g., ?instance=scene1)">
     <style>
         :root {
             /* Default Theme (Dark) */
@@ -517,7 +519,9 @@
                 // Update the saved channel in the config and save it
                 if (config.lastChannel !== channel) {
                     config.lastChannel = channel;
-                    localStorage.setItem('twitch-chat-overlay-config', JSON.stringify(config));
+                    // Get instance ID from URL parameter
+                    const instanceId = getUrlParameter('instance') || 'default';
+                    localStorage.setItem(`twitch-chat-overlay-config-${instanceId}`, JSON.stringify(config));
                 }
                 
                 addSystemMessage(`Connected to ${channel}'s chat`);
@@ -1104,8 +1108,11 @@
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
             
-            // Save to localStorage
-            localStorage.setItem('twitch-chat-overlay-config', JSON.stringify(config));
+            // Get instance ID from URL parameter
+            const instanceId = getUrlParameter('instance') || 'default';
+            
+            // Save to localStorage with instance-specific key
+            localStorage.setItem(`twitch-chat-overlay-config-${instanceId}`, JSON.stringify(config));
             
             // Hide config panel
             configPanel.classList.remove('visible');
@@ -1287,7 +1294,9 @@
         // Cancel should restore previous settings
         cancelConfigBtn.addEventListener('click', () => {
             // Whether Reset was clicked or not, revert to last saved config
-            const savedConfig = localStorage.getItem('twitch-chat-overlay-config');
+            // Get instance ID from URL parameter
+            const instanceId = getUrlParameter('instance') || 'default';
+            const savedConfig = localStorage.getItem(`twitch-chat-overlay-config-${instanceId}`);
             if (savedConfig) {
                 try {
                     const parsedConfig = JSON.parse(savedConfig);
@@ -1341,9 +1350,21 @@
             addSystemMessage('Settings changes canceled');
         });
 
+        // Helper function to get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            const results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
         // Load saved config on page load
         window.addEventListener('DOMContentLoaded', () => {
-            const savedConfig = localStorage.getItem('twitch-chat-overlay-config');
+            // Get instance ID from URL parameter, default to 'default' if not specified
+            const instanceId = getUrlParameter('instance') || 'default';
+            
+            // Use instance-specific storage key
+            const savedConfig = localStorage.getItem(`twitch-chat-overlay-config-${instanceId}`);
             
             if (savedConfig) {
                 try {
