@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Chat Overlay - Instance Manager</title>
+    <link rel="stylesheet" href="css/instance-manager.css">
+    <style>
+        :root {
+            /* Base colors */
+            --primary-color: #9147ff;
+            --primary-dark: #772ce8;
+            --primary-light: #a970ff;
+            --secondary-color: #f0f0f0;
+            --text-color: #18181b;
+            --background-color: #f7f7f8;
+            --panel-color: #ffffff;
+            --border-color: #e5e5e5;
+            --success-color: #00b300;
+            --danger-color: #ff3e3e;
+            --warning-color: #ffb300;
+            --info-color: #3ea6ff;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            
+            /* Typography */
+            --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            --font-size-sm: 0.875rem;
+            --font-size-md: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-xxl: 1.5rem;
+            
+            /* Borders & Shadows */
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html, body {
+            height: 100%;
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            color: var(--text-color);
+            background-color: var(--background-color);
+            line-height: 1.5;
+        }
+        
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-md);
+        }
+        
+        header {
+            text-align: center;
+            padding: var(--spacing-lg) 0;
+            margin-bottom: var(--spacing-xl);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        header h1 {
+            font-size: var(--font-size-xxl);
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary-color);
+        }
+        
+        header p {
+            color: #555;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .app-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: var(--spacing-lg);
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* Instance List Panel */
+        .instances-panel {
+            background: var(--panel-color);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: var(--spacing-md);
+            height: fit-content;
+        }
+        
+        .instances-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .instances-header h2 {
+            font-size: var(--font-size-lg);
+        }
+        
+        .instance-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .instance-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .instance-item:hover {
+            border-color: var(--primary-light);
+            background-color: rgba(145, 71, 255, 0.05);
+        }
+        
+        .instance-item.active {
+            border-color: var(--primary-color);
+            background-color: rgba(145, 71, 255, 0.1);
+        }
+        
+        .instance-thumb {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-sm);
+            margin-right: var(--spacing-md);
+            background-color: #f0f0f0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .instance-thumb-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            overflow: hidden;
+        }
+        
+        .instance-details {
+            flex-grow: 1;
+        }
+        
+        .instance-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .instance-meta {
+            font-size: var(--font-size-sm);
+            color: #666;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        
+        /* Configuration Workspace */
+        .workspace-panel {
+            background: var(--panel-color);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: var(--spacing-lg);
+        }
+        
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .workspace-title {
+            font-size: var(--font-size-xl);
+        }
+        
+        .workspace-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+        
+        .config-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: var(--spacing-lg);
+        }
+        
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        
+        .settings-section {
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            border: 1px solid var(--border-color);
+        }
+        
+        .settings-section h3 {
+            margin-bottom: var(--spacing-md);
+            font-size: var(--font-size-lg);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .settings-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .settings-row label {
+            flex: 0 0 120px;
+            margin-right: var(--spacing-md);
+        }
+        
+        .settings-row .input-group {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Preview Panel */
+        .preview-panel {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        
+        .preview-container {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            background-color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23999999' fill-opacity='0.1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .preview-overlay {
+            width: 80%;
+            height: 85%;
+            /* Styles for the actual overlay preview will be dynamically set */
+        }
+        
+        .preview-actions {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+        }
+        
+        /* Help & OBS Setup Section */
+        .obs-setup {
+            margin-top: var(--spacing-xl);
+            border-top: 1px solid var(--border-color);
+            padding-top: var(--spacing-lg);
+        }
+        
+        .obs-setup h2 {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .url-generator {
+            background-color: rgba(0, 0, 0, 0.03);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .url-display {
+            display: flex;
+            margin-top: var(--spacing-sm);
+        }
+        
+        .url-text {
+            flex-grow: 1;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+            font-family: monospace;
+            background-color: #f8f8f8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .copy-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+            background-color: var(--primary-color);
+            color: white;
+            cursor: pointer;
+        }
+        
+        .copy-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .setup-steps {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .setup-steps ol {
+            margin-left: var(--spacing-lg);
+        }
+        
+        .setup-steps li {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        /* Accordion */
+        .accordion {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            margin-bottom: var(--spacing-md);
+            overflow: hidden;
+        }
+        
+        .accordion-header {
+            padding: var(--spacing-md);
+            background-color: rgba(0, 0, 0, 0.02);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .accordion-header h3 {
+            margin: 0;
+            font-size: var(--font-size-md);
+        }
+        
+        .accordion-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .accordion-content {
+            padding: var(--spacing-md);
+            display: none;
+        }
+        
+        .accordion.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        
+        .accordion.active .accordion-content {
+            display: block;
+        }
+        
+        /* Button Styles */
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #009900;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #e62e2e;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: var(--font-size-sm);
+        }
+        
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        
+        /* Form Elements */
+        input, select, textarea {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        /* Range slider customization */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            outline: none;
+            border: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: none;
+        }
+        
+        /* Color picker customization */
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--border-radius-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: var(--spacing-xs);
+        }
+        
+        .tooltip-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #999;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: help;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: var(--font-size-sm);
+        }
+        
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Notifications */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 9999;
+        }
+        
+        .notification {
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            box-shadow: var(--shadow-md);
+            animation: slideIn 0.3s forwards;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .notification.hiding {
+            animation: slideOut 0.3s forwards;
+        }
+        
+        .notification-content {
+            flex-grow: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .notification-message {
+            font-size: var(--font-size-sm);
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #999;
+        }
+        
+        .notification-success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .notification-error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .notification-warning {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .notification-info {
+            border-left: 4px solid var(--info-color);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .config-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-panel {
+                margin-top: var(--spacing-lg);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .instances-panel {
+                margin-bottom: var(--spacing-lg);
+            }
+            
+            .instance-list {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Twitch Chat Overlay - Instance Manager</h1>
+            <p>Create, customize, and manage multiple instances of your Twitch chat overlay for different OBS scenes</p>
+        </header>
+        
+        <main class="app-layout">
+            <!-- Instance List Panel -->
+            <div class="instances-panel">
+                <div class="instances-header">
+                    <h2>Instances</h2>
+                </div>
+                
+                <div class="instance-list" id="instanceList">
+                    <!-- Instance items will be dynamically generated here -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="createInstanceBtn">New Instance</button>
+                    <button class="btn btn-secondary" id="importBtn">Import</button>
+                    <button class="btn btn-secondary" id="exportAllBtn">Export All</button>
+                </div>
+            </div>
+            
+            <!-- Main Workspace Panel -->
+            <div class="workspace-panel">
+                <div class="workspace-header">
+                    <h2 class="workspace-title" id="workspaceTitle">Select or Create an Instance</h2>
+                    <div class="workspace-actions" id="workspaceActions" style="display: none;">
+                        <button class="btn btn-secondary" id="duplicateBtn">Duplicate</button>
+                        <button class="btn btn-danger" id="deleteBtn">Delete</button>
+                        <button class="btn btn-secondary" id="exportBtn">Export</button>
+                    </div>
+                </div>
+                
+                <div class="config-layout" id="configLayout" style="display: none;">
+                    <!-- Settings Column -->
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3>Basic Information</h3>
+                            <div class="settings-group">
+                                <div class="settings-row">
+                                    <label for="instanceName">Instance Name</label>
+                                    <div class="input-group">
+                                        <input type="text" id="instanceName" class="form-control">
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">A recognizable name for this instance</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="instanceId">Instance ID</label>
+                                    <div class="input-group">
+                                        <input type="text" id="instanceId" class="form-control" disabled>
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">Unique identifier used in the URL parameter</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>Theme Settings</h3>
+                            <div class="settings-group">
+                                <div class="settings-row">
+                                    <label for="themeSelector">Base Theme</label>
+                                    <div class="input-group">
+                                        <select id="themeSelector" class="form-control">
+                                            <option value="default">Dark (Default)</option>
+                                            <option value="light-theme">Light</option>
+                                            <option value="natural-theme">Natural</option>
+                                            <option value="transparent-theme">Transparent</option>
+                                            <option value="pink-theme">Pink</option>
+                                            <option value="cyberpunk-theme">Cyberpunk</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>Colors</h3>
+                            <div class="settings-group">
+                                <div class="settings-row">
+                                    <label for="bgColor">Background</label>
+                                    <div class="input-group">
+                                        <div class="color-picker">
+                                            <div class="color-preview" id="bgColorPreview"></div>
+                                            <input type="color" id="bgColor">
+                                        </div>
+                                        <input type="range" id="bgOpacity" min="0" max="100" value="80">
+                                        <span id="bgOpacityValue">80%</span>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="borderColor">Border</label>
+                                    <div class="input-group">
+                                        <div class="color-picker">
+                                            <div class="color-preview" id="borderColorPreview"></div>
+                                            <input type="color" id="borderColor">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="textColor">Text</label>
+                                    <div class="input-group">
+                                        <div class="color-picker">
+                                            <div class="color-preview" id="textColorPreview"></div>
+                                            <input type="color" id="textColor">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="usernameColor">Username</label>
+                                    <div class="input-group">
+                                        <div class="color-picker">
+                                            <div class="color-preview" id="usernameColorPreview"></div>
+                                            <input type="color" id="usernameColor">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>Layout & Display</h3>
+                            <div class="settings-group">
+                                <div class="settings-row">
+                                    <label for="fontSize">Font Size</label>
+                                    <div class="input-group">
+                                        <input type="range" id="fontSize" min="10" max="24" value="14">
+                                        <span id="fontSizeValue">14px</span>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="chatWidth">Width</label>
+                                    <div class="input-group">
+                                        <input type="range" id="chatWidth" min="200" max="500" value="300">
+                                        <span id="chatWidthValue">300px</span>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="maxMessages">Max Messages</label>
+                                    <div class="input-group">
+                                        <input type="number" id="maxMessages" min="5" max="100" value="50" style="width: 80px;">
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="showTimestamps">Show Timestamps</label>
+                                    <div class="input-group">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="showTimestamps" checked>
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="overrideColors">Override Twitch Colors</label>
+                                    <div class="input-group">
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" id="overrideColors">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">When enabled, all usernames will use the custom color instead of Twitch-assigned colors</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>Default Channel</h3>
+                            <div class="settings-group">
+                                <div class="settings-row">
+                                    <label for="defaultChannel">Twitch Channel</label>
+                                    <div class="input-group">
+                                        <input type="text" id="defaultChannel" placeholder="Enter channel name">
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">The overlay will auto-connect to this channel when loaded</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="saveSettingsBtn" style="align-self: flex-start;">Save Settings</button>
+                    </div>
+                    
+                    <!-- Preview Column -->
+                    <div class="preview-panel">
+                        <div class="preview-container">
+                            <div class="preview-overlay" id="previewOverlay">
+                                <!-- Dynamic preview will be rendered here -->
+                            </div>
+                        </div>
+                        <div class="preview-actions">
+                            <button class="btn btn-secondary" id="testMessagesBtn">Test with Sample Messages</button>
+                            <button class="btn btn-secondary" id="previewBtn">Open Standalone Preview</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="text-align: center; padding: 40px 0;">
+                    <p style="margin-bottom: 20px;">No instance selected. Create a new instance or select one from the list.</p>
+                    <button class="btn btn-primary" id="emptyStateCreateBtn">Create First Instance</button>
+                </div>
+                
+                <!-- OBS Setup Section -->
+                <div class="obs-setup" id="obsSetup" style="display: none;">
+                    <h2>OBS Setup Instructions</h2>
+                    
+                    <div class="url-generator">
+                        <h3>Instance URL</h3>
+                        <p>Copy this URL to use in your OBS Browser Source:</p>
+                        <div class="url-display">
+                            <div class="url-text" id="instanceUrl">file:///path/to/index.html?instance=example</div>
+                            <button class="copy-btn" id="copyUrlBtn">Copy</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setup-steps">
+                        <h3>Steps to Add in OBS:</h3>
+                        <ol>
+                            <li>In OBS Studio, right-click in the Sources panel and select <strong>Add</strong> → <strong>Browser</strong></li>
+                            <li>Name your source (e.g., "Twitch Chat - Gaming")</li>
+                            <li>Uncheck "Local file" option</li>
+                            <li>Paste the URL copied above into the URL field</li>
+                            <li>Set Width: 320 and Height: 600 (or as desired)</li>
+                            <li>Click "OK" to add the browser source</li>
+                            <li>Position and resize the chat overlay as needed in your scene</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="accordion">
+                        <div class="accordion-header">
+                            <h3>Troubleshooting Tips</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <ul>
+                                <li><strong>Chat not connecting:</strong> Make sure you entered the channel name correctly and have an internet connection.</li>
+                                <li><strong>Settings not saving:</strong> Ensure your browser allows local storage for the page.</li>
+                                <li><strong>Text too small/large:</strong> Adjust the font size in settings or scale the browser source in OBS.</li>
+                                <li><strong>Empty overlay:</strong> Right-click the browser source in OBS and select "Interact" to enter a channel name.</li>
+                                <li><strong>Chat not refreshing:</strong> Try refreshing the browser source in OBS or recreating it.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion">
+                        <div class="accordion-header">
+                            <h3>Advanced OBS Settings</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p>For optimal performance, configure these additional settings in your OBS Browser Source:</p>
+                            <ul>
+                                <li>Check "Shutdown source when not visible" to save resources</li>
+                                <li>Check "Refresh browser when scene becomes active" for the most up-to-date chat</li>
+                                <li>Set "Custom CSS" to remove scrollbars if needed:<br>
+                                <code>body { overflow: hidden; }</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for creating/editing instances -->
+    <div id="instanceModal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;">
+        <div style="background-color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h2 id="modalTitle">Create New Instance</h2>
+            <div style="margin: 20px 0;">
+                <div style="margin-bottom: 10px;">
+                    <label for="modalInstanceName" style="display: block; margin-bottom: 5px;">Instance Name:</label>
+                    <input type="text" id="modalInstanceName" style="width: 100%; padding: 8px;" placeholder="e.g., Gaming Stream, Just Chatting, etc.">
+                </div>
+                <div>
+                    <label for="modalInstanceId" style="display: block; margin-bottom: 5px;">Instance ID (for URL):</label>
+                    <input type="text" id="modalInstanceId" style="width: 100%; padding: 8px;" placeholder="e.g., gaming, chatting (no spaces)">
+                    <p style="font-size: 12px; color: #666; margin-top: 4px;">This will be used in the URL: ?instance=your-id</p>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <button id="modalCancelBtn" class="btn btn-secondary" style="margin-right: 10px;">Cancel</button>
+                <button id="modalCreateBtn" class="btn btn-primary">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification container -->
+    <div id="notification-container"></div>
+
+    <script>
+        // Main Instance Manager class
+        class InstanceManager {
+            constructor() {
+                this.instances = {};
+                this.currentInstanceId = null;
+                this.initializeDOM();
+                this.loadInstances();
+                this.setupEventListeners();
+            }
+            
+            // Initialize DOM references
+            initializeDOM() {
+                // Instance list panel
+                this.instanceList = document.getElementById('instanceList');
+                this.createInstanceBtn = document.getElementById('createInstanceBtn');
+                this.importBtn = document.getElementById('importBtn');
+                this.exportAllBtn = document.getElementById('exportAllBtn');
+                
+                // Workspace panel
+                this.workspaceTitle = document.getElementById('workspaceTitle');
+                this.workspaceActions = document.getElementById('workspaceActions');
+                this.configLayout = document.getElementById('configLayout');
+                this.emptyState = document.getElementById('emptyState');
+                this.emptyStateCreateBtn = document.getElementById('emptyStateCreateBtn');
+                this.obsSetup = document.getElementById('obsSetup');
+                
+                // Instance actions
+                this.duplicateBtn = document.getElementById('duplicateBtn');
+                this.deleteBtn = document.getElementById('deleteBtn');
+                this.exportBtn = document.getElementById('exportBtn');
+                
+                // Form elements
+                this.instanceName = document.getElementById('instanceName');
+                this.instanceId = document.getElementById('instanceId');
+                this.themeSelector = document.getElementById('themeSelector');
+                this.bgColor = document.getElementById('bgColor');
+                this.bgOpacity = document.getElementById('bgOpacity');
+                this.bgOpacityValue = document.getElementById('bgOpacityValue');
+                this.borderColor = document.getElementById('borderColor');
+                this.textColor = document.getElementById('textColor');
+                this.usernameColor = document.getElementById('usernameColor');
+                this.fontSize = document.getElementById('fontSize');
+                this.fontSizeValue = document.getElementById('fontSizeValue');
+                this.chatWidth = document.getElementById('chatWidth');
+                this.chatWidthValue = document.getElementById('chatWidthValue');
+                this.maxMessages = document.getElementById('maxMessages');
+                this.showTimestamps = document.getElementById('showTimestamps');
+                this.overrideColors = document.getElementById('overrideColors');
+                this.defaultChannel = document.getElementById('defaultChannel');
+                this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
+                
+                // Preview section
+                this.previewOverlay = document.getElementById('previewOverlay');
+                this.testMessagesBtn = document.getElementById('testMessagesBtn');
+                this.previewBtn = document.getElementById('previewBtn');
+                
+                // OBS setup
+                this.instanceUrl = document.getElementById('instanceUrl');
+                this.copyUrlBtn = document.getElementById('copyUrlBtn');
+                
+                // Color previews
+                this.bgColorPreview = document.getElementById('bgColorPreview');
+                this.borderColorPreview = document.getElementById('borderColorPreview');
+                this.textColorPreview = document.getElementById('textColorPreview');
+                this.usernameColorPreview = document.getElementById('usernameColorPreview');
+                
+                // Modal elements
+                this.instanceModal = document.getElementById('instanceModal');
+                this.modalTitle = document.getElementById('modalTitle');
+                this.modalInstanceName = document.getElementById('modalInstanceName');
+                this.modalInstanceId = document.getElementById('modalInstanceId');
+                this.modalCancelBtn = document.getElementById('modalCancelBtn');
+                this.modalCreateBtn = document.getElementById('modalCreateBtn');
+            }
+            
+            // Load instances from localStorage
+            loadInstances() {
+                // Get all keys from localStorage
+                const instanceRegistry = localStorage.getItem('twitch-chat-overlay-instances');
+                
+                if (instanceRegistry) {
+                    try {
+                        this.instances = JSON.parse(instanceRegistry);
+                        this.renderInstanceList();
+                        
+                        // If there are instances, show empty state or load the first one
+                        if (Object.keys(this.instances).length > 0) {
+                            const firstInstanceId = Object.keys(this.instances)[0];
+                            this.selectInstance(firstInstanceId);
+                        } else {
+                            this.showEmptyState();
+                        }
+                    } catch (error) {
+                        console.error('Error loading instances:', error);
+                        this.showNotification('Error', 'Failed to load saved instances.', 'error');
+                        this.instances = {};
+                        this.showEmptyState();
+                    }
+                } else {
+                    this.showEmptyState();
+                }
+            }
+            
+            // Save instances to localStorage
+            saveInstances() {
+                try {
+                    localStorage.setItem('twitch-chat-overlay-instances', JSON.stringify(this.instances));
+                } catch (error) {
+                    console.error('Error saving instances:', error);
+                    this.showNotification('Error', 'Failed to save instances. LocalStorage may be full.', 'error');
+                }
+            }
+            
+            // Render the instance list
+            renderInstanceList() {
+                this.instanceList.innerHTML = '';
+                
+                Object.keys(this.instances).forEach(instanceId => {
+                    const instance = this.instances[instanceId];
+                    const instanceItem = document.createElement('div');
+                    instanceItem.className = `instance-item ${instanceId === this.currentInstanceId ? 'active' : ''}`;
+                    instanceItem.dataset.id = instanceId;
+                    
+                    // Create thumbnail preview
+                    const thumbnailHtml = this.createThumbnail(instance);
+                    
+                    instanceItem.innerHTML = `
+                        <div class="instance-thumb">
+                            <div class="instance-thumb-preview" style="${this.getInstancePreviewStyle(instance)}">
+                                ${thumbnailHtml}
+                            </div>
+                        </div>
+                        <div class="instance-details">
+                            <div class="instance-name">${instance.name}</div>
+                            <div class="instance-meta">ID: ${instanceId}</div>
+                        </div>
+                    `;
+                    
+                    instanceItem.addEventListener('click', () => {
+                        this.selectInstance(instanceId);
+                    });
+                    
+                    this.instanceList.appendChild(instanceItem);
+                });
+            }
+            
+            // Create a thumbnail preview for an instance
+            createThumbnail(instance) {
+                return `<div style="font-size: 5px; line-height: 1.2;">
+                    <span style="color: ${instance.usernameColor || '#9147ff'};">User:</span> 
+                    <span>Chat</span>
+                </div>`;
+            }
+            
+            // Get CSS styles for the instance preview
+            getInstancePreviewStyle(instance) {
+                return `
+                    background-color: ${instance.bgColor || 'rgba(18, 18, 18, 0.8)'};
+                    border: 1px solid ${instance.borderColor || '#9147ff'};
+                    color: ${instance.textColor || '#efeff1'};
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+            }
+            
+            // Show empty state when no instances are available
+            showEmptyState() {
+                this.emptyState.style.display = 'block';
+                this.configLayout.style.display = 'none';
+                this.workspaceActions.style.display = 'none';
+                this.obsSetup.style.display = 'none';
+                this.workspaceTitle.textContent = 'Create Your First Instance';
+            }
+            
+            // Setup all event listeners
+            setupEventListeners() {
+                // Instance creation and management
+                this.createInstanceBtn.addEventListener('click', () => this.showCreateInstanceModal());
+                this.emptyStateCreateBtn.addEventListener('click', () => this.showCreateInstanceModal());
+                this.duplicateBtn.addEventListener('click', () => this.duplicateInstance());
+                this.deleteBtn.addEventListener('click', () => this.deleteInstance());
+                this.exportBtn.addEventListener('click', () => this.exportInstance(this.currentInstanceId));
+                this.exportAllBtn.addEventListener('click', () => this.exportAllInstances());
+                this.importBtn.addEventListener('click', () => this.importInstances());
+                
+                // Modal events
+                this.modalCancelBtn.addEventListener('click', () => this.hideModal());
+                this.modalCreateBtn.addEventListener('click', () => this.createInstance());
+                
+                // Settings form events
+                this.saveSettingsBtn.addEventListener('click', () => this.saveCurrentInstance());
+                
+                // Preview and test buttons
+                this.testMessagesBtn.addEventListener('click', () => this.testWithSampleMessages());
+                this.previewBtn.addEventListener('click', () => this.openStandalonePreview());
+                
+                // OBS setup
+                this.copyUrlBtn.addEventListener('click', () => this.copyInstanceUrl());
+                
+                // Form input events
+                this.setupFormEvents();
+                
+                // Accordion sections
+                document.querySelectorAll('.accordion-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const accordion = header.parentElement;
+                        accordion.classList.toggle('active');
+                    });
+                });
+            }
+            
+            // Setup form input events
+            setupFormEvents() {
+                // Theme selector
+                this.themeSelector.addEventListener('change', () => {
+                    this.updatePreview();
+                });
+                
+                // Colors
+                this.bgColor.addEventListener('input', () => {
+                    this.bgColorPreview.style.backgroundColor = this.bgColor.value;
+                    this.updatePreview();
+                });
+                
+                this.bgOpacity.addEventListener('input', () => {
+                    this.bgOpacityValue.textContent = `${this.bgOpacity.value}%`;
+                    this.updatePreview();
+                });
+                
+                this.borderColor.addEventListener('input', () => {
+                    this.borderColorPreview.style.backgroundColor = this.borderColor.value;
+                    this.updatePreview();
+                });
+                
+                this.textColor.addEventListener('input', () => {
+                    this.textColorPreview.style.backgroundColor = this.textColor.value;
+                    this.updatePreview();
+                });
+                
+                this.usernameColor.addEventListener('input', () => {
+                    this.usernameColorPreview.style.backgroundColor = this.usernameColor.value;
+                    this.updatePreview();
+                });
+                
+                // Sliders
+                this.fontSize.addEventListener('input', () => {
+                    this.fontSizeValue.textContent = `${this.fontSize.value}px`;
+                    this.updatePreview();
+                });
+                
+                this.chatWidth.addEventListener('input', () => {
+                    this.chatWidthValue.textContent = `${this.chatWidth.value}px`;
+                    this.updatePreview();
+                });
+                
+                // Checkboxes
+                this.showTimestamps.addEventListener('change', () => {
+                    this.updatePreview();
+                });
+                
+                this.overrideColors.addEventListener('change', () => {
+                    this.updatePreview();
+                });
+            }
+            
+            // Show the create instance modal
+            showCreateInstanceModal() {
+                this.modalTitle.textContent = 'Create New Instance';
+                this.modalInstanceName.value = '';
+                this.modalInstanceId.value = '';
+                this.modalCreateBtn.textContent = 'Create';
+                this.instanceModal.style.display = 'flex';
+                
+                // Focus the name input
+                setTimeout(() => this.modalInstanceName.focus(), 100);
+            }
+            
+            // Hide the modal
+            hideModal() {
+                this.instanceModal.style.display = 'none';
+            }
+            
+            // Create a new instance
+            createInstance() {
+                const name = this.modalInstanceName.value.trim();
+                let id = this.modalInstanceId.value.trim();
+                
+                if (!name) {
+                    this.showNotification('Error', 'Please enter an instance name.', 'error');
+                    return;
+                }
+                
+                // Generate ID from name if not provided
+                if (!id) {
+                    id = this.generateInstanceId(name);
+                }
+                
+                // Make sure ID is URL-friendly
+                id = id.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+                
+                // Check if ID already exists
+                if (this.instances[id]) {
+                    this.showNotification('Error', `An instance with ID '${id}' already exists.`, 'error');
+                    return;
+                }
+                
+                // Create the new instance with default settings
+                const newInstance = {
+                    name: name,
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString(),
+                    config: this.getDefaultConfig()
+                };
+                
+                // Save the instance
+                this.instances[id] = newInstance;
+                this.saveInstances();
+                
+                // Update the UI
+                this.hideModal();
+                this.renderInstanceList();
+                this.selectInstance(id);
+                this.showNotification('Success', `Instance '${name}' created successfully.`, 'success');
+            }
+            
+            // Generate a unique instance ID from a name
+            generateInstanceId(name) {
+                // Convert name to lowercase and replace non-alphanumeric chars with dashes
+                let id = name.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+                
+                // Check if this ID exists already
+                let counter = 1;
+                let uniqueId = id;
+                
+                while (this.instances[uniqueId]) {
+                    uniqueId = `${id}-${counter}`;
+                    counter++;
+                }
+                
+                return uniqueId;
+            }
+            
+            // Get default configuration for new instances
+            getDefaultConfig() {
+                return {
+                    theme: 'default',
+                    bgColor: 'rgba(18, 18, 18, 0.8)',
+                    borderColor: '#9147ff',
+                    textColor: '#efeff1',
+                    usernameColor: '#9147ff',
+                    fontSize: 14,
+                    chatWidth: 300,
+                    maxMessages: 50,
+                    showTimestamps: true,
+                    overrideUsernameColors: false,
+                    lastChannel: ''
+                };
+            }
+            
+            // Select and load an instance
+            selectInstance(instanceId) {
+                if (!this.instances[instanceId]) {
+                    this.showNotification('Error', 'Instance not found.', 'error');
+                    return;
+                }
+                
+                this.currentInstanceId = instanceId;
+                const instance = this.instances[instanceId];
+                
+                // Update UI state
+                this.emptyState.style.display = 'none';
+                this.configLayout.style.display = 'grid';
+                this.workspaceActions.style.display = 'flex';
+                this.obsSetup.style.display = 'block';
+                this.workspaceTitle.textContent = instance.name;
+                
+                // Update instance list selection
+                document.querySelectorAll('.instance-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.id === instanceId);
+                });
+                
+                // Populate form with instance values
+                this.populateForm(instance);
+                
+                // Update preview
+                this.updatePreview();
+                
+                // Generate and display instance URL
+                this.updateInstanceUrl();
+            }
+            
+            // Populate the form with instance values
+            populateForm(instance) {
+                const config = instance.config;
+                
+                this.instanceName.value = instance.name;
+                this.instanceId.value = this.currentInstanceId;
+                
+                // Theme
+                this.themeSelector.value = config.theme || 'default';
+                
+                // Colors
+                const bgColorMatch = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+                if (bgColorMatch) {
+                    const [, r, g, b, a] = bgColorMatch;
+                    const hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
+                    this.bgColor.value = hexColor;
+                    this.bgColorPreview.style.backgroundColor = hexColor;
+                    this.bgOpacity.value = Math.round(parseFloat(a) * 100);
+                    this.bgOpacityValue.textContent = `${this.bgOpacity.value}%`;
+                }
+                
+                this.borderColor.value = config.borderColor;
+                this.borderColorPreview.style.backgroundColor = config.borderColor;
+                
+                this.textColor.value = config.textColor;
+                this.textColorPreview.style.backgroundColor = config.textColor;
+                
+                this.usernameColor.value = config.usernameColor;
+                this.usernameColorPreview.style.backgroundColor = config.usernameColor;
+                
+                // Layout settings
+                this.fontSize.value = config.fontSize;
+                this.fontSizeValue.textContent = `${config.fontSize}px`;
+                
+                this.chatWidth.value = config.chatWidth;
+                this.chatWidthValue.textContent = `${config.chatWidth}px`;
+                
+                this.maxMessages.value = config.maxMessages;
+                this.showTimestamps.checked = config.showTimestamps;
+                this.overrideColors.checked = config.overrideUsernameColors;
+                
+                // Default channel
+                this.defaultChannel.value = config.lastChannel || '';
+            }
+            
+            // Save the current instance
+            saveCurrentInstance() {
+                if (!this.currentInstanceId || !this.instances[this.currentInstanceId]) {
+                    this.showNotification('Error', 'No instance selected.', 'error');
+                    return;
+                }
+                
+                const instance = this.instances[this.currentInstanceId];
+                
+                // Update basic information
+                instance.name = this.instanceName.value.trim();
+                instance.lastModified = new Date().toISOString();
+                
+                // Get color values
+                const r = parseInt(this.bgColor.value.slice(1, 3), 16);
+                const g = parseInt(this.bgColor.value.slice(3, 5), 16);
+                const b = parseInt(this.bgColor.value.slice(5, 7), 16);
+                const opacity = this.bgOpacity.value / 100;
+                
+                // Update config
+                instance.config = {
+                    theme: this.themeSelector.value,
+                    bgColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+                    borderColor: this.borderColor.value,
+                    textColor: this.textColor.value,
+                    usernameColor: this.usernameColor.value,
+                    fontSize: parseInt(this.fontSize.value),
+                    chatWidth: parseInt(this.chatWidth.value),
+                    maxMessages: parseInt(this.maxMessages.value),
+                    showTimestamps: this.showTimestamps.checked,
+                    overrideUsernameColors: this.overrideColors.checked,
+                    lastChannel: this.defaultChannel.value.trim()
+                };
+                
+                // Save to localStorage
+                this.saveInstances();
+                
+                // Also save to instance-specific storage for the overlay to use
+                this.saveToInstanceStorage();
+                
+                // Update UI
+                this.workspaceTitle.textContent = instance.name;
+                this.renderInstanceList();
+                this.updateInstanceUrl();
+                
+                this.showNotification('Success', 'Instance saved successfully.', 'success');
+            }
+            
+            // Save to instance-specific localStorage key
+            saveToInstanceStorage() {
+                const config = this.instances[this.currentInstanceId].config;
+                localStorage.setItem(`twitch-chat-overlay-config-${this.currentInstanceId}`, JSON.stringify(config));
+            }
+            
+            // Duplicate the current instance
+            duplicateInstance() {
+                if (!this.currentInstanceId) {
+                    this.showNotification('Error', 'No instance selected to duplicate.', 'error');
+                    return;
+                }
+                
+                const sourceInstance = this.instances[this.currentInstanceId];
+                const newName = `${sourceInstance.name} (Copy)`;
+                const newId = this.generateInstanceId(newName);
+                
+                // Create a deep copy of the instance
+                const newInstance = {
+                    name: newName,
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString(),
+                    config: JSON.parse(JSON.stringify(sourceInstance.config))
+                };
+                
+                // Save the new instance
+                this.instances[newId] = newInstance;
+                this.saveInstances();
+                
+                // Update UI
+                this.renderInstanceList();
+                this.selectInstance(newId);
+                
+                this.showNotification('Success', `Instance '${sourceInstance.name}' duplicated as '${newName}'.`, 'success');
+            }
+            
+            // Delete the current instance
+            deleteInstance() {
+                if (!this.currentInstanceId) {
+                    this.showNotification('Error', 'No instance selected to delete.', 'error');
+                    return;
+                }
+                
+                const instance = this.instances[this.currentInstanceId];
+                
+                if (confirm(`Are you sure you want to delete the instance "${instance.name}"? This cannot be undone.`)) {
+                    // Also remove from instance-specific storage
+                    localStorage.removeItem(`twitch-chat-overlay-config-${this.currentInstanceId}`);
+                    
+                    // Remove from our registry
+                    delete this.instances[this.currentInstanceId];
+                    this.saveInstances();
+                    
+                    // Update UI
+                    this.currentInstanceId = null;
+                    this.renderInstanceList();
+                    
+                    // Select another instance or show empty state
+                    const remainingIds = Object.keys(this.instances);
+                    if (remainingIds.length > 0) {
+                        this.selectInstance(remainingIds[0]);
+                    } else {
+                        this.showEmptyState();
+                    }
+                    
+                    this.showNotification('Success', `Instance '${instance.name}' deleted.`, 'success');
+                }
+            }
+            
+            // Export a single instance
+            exportInstance(instanceId) {
+                if (!instanceId || !this.instances[instanceId]) {
+                    this.showNotification('Error', 'Instance not found.', 'error');
+                    return;
+                }
+                
+                const instance = this.instances[instanceId];
+                const exportData = {
+                    version: '1.0',
+                    type: 'single',
+                    timestamp: new Date().toISOString(),
+                    data: {
+                        [instanceId]: instance
+                    }
+                };
+                
+                this.downloadJson(exportData, `twitch-overlay-${instanceId}.json`);
+                this.showNotification('Success', `Instance '${instance.name}' exported.`, 'success');
+            }
+            
+            // Export all instances
+            exportAllInstances() {
+                const exportData = {
+                    version: '1.0',
+                    type: 'collection',
+                    timestamp: new Date().toISOString(),
+                    data: this.instances
+                };
+                
+                this.downloadJson(exportData, 'twitch-overlay-instances.json');
+                this.showNotification('Success', 'All instances exported.', 'success');
+            }
+            
+            // Helper to download JSON data
+            downloadJson(data, filename) {
+                const dataStr = JSON.stringify(data, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                
+                const exportLink = document.createElement('a');
+                exportLink.setAttribute('href', dataUri);
+                exportLink.setAttribute('download', filename);
+                exportLink.style.display = 'none';
+                
+                document.body.appendChild(exportLink);
+                exportLink.click();
+                document.body.removeChild(exportLink);
+            }
+            
+            // Import instances from file
+            importInstances() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'application/json';
+                
+                input.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const importData = JSON.parse(e.target.result);
+                            
+                            // Validate import data
+                            if (!importData.version || !importData.type || !importData.data) {
+                                throw new Error('Invalid import file format.');
+                            }
+                            
+                            // Process the imported data
+                            const importedInstances = importData.data;
+                            let importCount = 0;
+                            let skipCount = 0;
+                            
+                            // For each imported instance
+                            Object.keys(importedInstances).forEach(id => {
+                                // Check if it already exists
+                                if (this.instances[id]) {
+                                    // Ask if user wants to overwrite
+                                    const overwrite = confirm(`An instance with ID '${id}' already exists. Overwrite?`);
+                                    if (!overwrite) {
+                                        skipCount++;
+                                        return;
+                                    }
+                                }
+                                
+                                // Import the instance
+                                this.instances[id] = importedInstances[id];
+                                importCount++;
+                            });
+                            
+                            // Save and update UI
+                            this.saveInstances();
+                            this.renderInstanceList();
+                            
+                            if (importCount > 0) {
+                                // If we were in empty state, select the first imported instance
+                                if (!this.currentInstanceId) {
+                                    const firstId = Object.keys(importedInstances)[0];
+                                    if (this.instances[firstId]) {
+                                        this.selectInstance(firstId);
+                                    }
+                                }
+                                
+                                this.showNotification('Success', `${importCount} instance(s) imported successfully.${skipCount ? ` ${skipCount} skipped.` : ''}`, 'success');
+                            } else {
+                                this.showNotification('Info', 'No instances were imported.', 'info');
+                            }
+                            
+                        } catch (error) {
+                            console.error('Import error:', error);
+                            this.showNotification('Error', 'Failed to import instances. Invalid file format.', 'error');
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                });
+                
+                input.click();
+            }
+            
+            // Update the live preview
+            updatePreview() {
+                if (!this.currentInstanceId) return;
+                
+                // Get current form values
+                const theme = this.themeSelector.value;
+                
+                // Get background color with opacity
+                const bgHex = this.bgColor.value;
+                const r = parseInt(bgHex.slice(1, 3), 16);
+                const g = parseInt(bgHex.slice(3, 5), 16);
+                const b = parseInt(bgHex.slice(5, 7), 16);
+                const opacity = this.bgOpacity.value / 100;
+                const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                
+                const borderColor = this.borderColor.value;
+                const textColor = this.textColor.value;
+                const usernameColor = this.usernameColor.value;
+                const fontSize = this.fontSize.value;
+                const width = this.chatWidth.value;
+                const showTimestamps = this.showTimestamps.checked;
+                const overrideColors = this.overrideColors.checked;
+                
+                // Create basic preview style
+                this.previewOverlay.style.backgroundColor = bgColor;
+                this.previewOverlay.style.border = `2px solid ${borderColor}`;
+                this.previewOverlay.style.color = textColor;
+                this.previewOverlay.style.fontSize = `${fontSize}px`;
+                this.previewOverlay.style.width = `${width}px`;
+                this.previewOverlay.style.height = 'auto';
+                this.previewOverlay.style.maxHeight = '100%';
+                this.previewOverlay.style.overflow = 'hidden';
+                this.previewOverlay.style.padding = '10px';
+                this.previewOverlay.style.borderRadius = '8px';
+                
+                // Sample messages with timestamps
+                const timestamp = showTimestamps ? '<span style="color: #adadb8; font-size: 0.85em;">[12:34]</span> ' : '';
+                const username1Color = overrideColors ? usernameColor : '#ff4500';
+                const username2Color = overrideColors ? usernameColor : '#1E90FF';
+                
+                // Generate sample chat messages
+                this.previewOverlay.innerHTML = `
+                    <div style="margin-bottom: 8px;">
+                        ${timestamp}<span style="color: ${username1Color}; font-weight: bold;">TwitchUser1:</span> Hello, this is a sample message!
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        ${timestamp}<span style="color: ${username2Color}; font-weight: bold;">StreamFan99:</span> How's the stream going today?
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        ${timestamp}<span style="color: ${username1Color}; font-weight: bold;">TwitchUser1:</span> This is a preview of your chat overlay.
+                    </div>
+                `;
+            }
+            
+            // Test the preview with sample messages that appear one by one
+            testWithSampleMessages() {
+                // Clear existing sample messages
+                this.previewOverlay.innerHTML = '';
+                
+                // Sample messages data
+                const sampleMessages = [
+                    { username: 'TwitchUser1', message: 'Hello everyone!', color: '#ff4500' },
+                    { username: 'StreamFan99', message: 'Hey! How\'s the stream going today?', color: '#1E90FF' },
+                    { username: 'ChatBot', message: 'Welcome to the chat!', color: '#00FF7F' },
+                    { username: 'ViewerPrime', message: 'This overlay looks great!', color: '#9147FF' },
+                    { username: 'GameLover22', message: 'What are we playing today?', color: '#FF69B4' }
+                ];
+                
+                // Get current settings
+                const showTimestamps = this.showTimestamps.checked;
+                const overrideColors = this.overrideColors.checked;
+                const usernameColor = this.usernameColor.value;
+                
+                // Function to add a message
+                const addMessage = (index) => {
+                    if (index >= sampleMessages.length) return;
+                    
+                    const msg = sampleMessages[index];
+                    const msgDiv = document.createElement('div');
+                    msgDiv.style.marginBottom = '8px';
+                    msgDiv.style.animation = 'fadeIn 0.3s ease-in-out';
+                    msgDiv.style.opacity = '0';
+                    msgDiv.style.transform = 'translateY(10px)';
+                    
+                    // Create timestamp if enabled
+                    let messageHTML = '';
+                    if (showTimestamps) {
+                        const now = new Date();
+                        const hours = now.getHours().toString().padStart(2, '0');
+                        const minutes = now.getMinutes().toString().padStart(2, '0');
+                        messageHTML += `<span style="color: #adadb8; font-size: 0.85em;">[${hours}:${minutes}]</span> `;
+                    }
+                    
+                    // Add username with color
+                    const color = overrideColors ? usernameColor : msg.color;
+                    messageHTML += `<span style="color: ${color}; font-weight: bold;">${msg.username}:</span> ${msg.message}`;
+                    
+                    msgDiv.innerHTML = messageHTML;
+                    this.previewOverlay.appendChild(msgDiv);
+                    
+                    // Add animation
+                    setTimeout(() => {
+                        msgDiv.style.opacity = '1';
+                        msgDiv.style.transform = 'translateY(0)';
+                    }, 50);
+                    
+                    // Add next message after delay
+                    setTimeout(() => addMessage(index + 1), 800);
+                };
+                
+                // Start adding messages
+                addMessage(0);
+            }
+            
+            // Open a standalone preview window
+            openStandalonePreview() {
+                if (!this.currentInstanceId) return;
+                
+                // Create URL for the standalone preview
+                const baseUrl = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+                const previewUrl = `${baseUrl}?instance=${this.currentInstanceId}&preview=true`;
+                
+                // Open in new window
+                window.open(previewUrl, '_blank', 'width=350,height=500');
+            }
+            
+            // Update the instance URL for OBS
+            updateInstanceUrl() {
+                if (!this.currentInstanceId) return;
+                
+                // Get base path to index.html
+                const basePath = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+                const instanceUrl = `${basePath}?instance=${this.currentInstanceId}`;
+                
+                this.instanceUrl.textContent = instanceUrl;
+            }
+            
+            // Copy instance URL to clipboard
+            copyInstanceUrl() {
+                const url = this.instanceUrl.textContent;
+                
+                navigator.clipboard.writeText(url)
+                    .then(() => {
+                        this.showNotification('Success', 'URL copied to clipboard.', 'success');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy URL:', err);
+                        this.showNotification('Error', 'Failed to copy URL. Please try selecting and copying manually.', 'error');
+                    });
+            }
+            
+            // Show notification
+            showNotification(title, message, type) {
+                const container = document.getElementById('notification-container');
+                
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-title">${title}</div>
+                        <div class="notification-message">${message}</div>
+                    </div>
+                    <button class="notification-close">&times;</button>
+                `;
+                
+                // Add close button event
+                const closeBtn = notification.querySelector('.notification-close');
+                closeBtn.addEventListener('click', () => {
+                    this.removeNotification(notification);
+                });
+                
+                // Add to container
+                container.appendChild(notification);
+                
+                // Auto remove after delay
+                setTimeout(() => {
+                    this.removeNotification(notification);
+                }, 5000);
+            }
+            
+            // Remove notification with animation
+            removeNotification(notification) {
+                notification.classList.add('hiding');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }
+        
+        // Initialize the Instance Manager
+        document.addEventListener('DOMContentLoaded', () => {
+            const manager = new InstanceManager();
+            
+            // Add style to animate message transitions
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>

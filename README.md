@@ -38,9 +38,11 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ### Multiple Instances for Different Scenes (NEW!)
 
-You can now create multiple instances with different styles for different OBS scenes:
+There are two ways to create multiple instances with different styles for different OBS scenes:
 
-1. Instead of using the local file directly, add the `?instance=NAME` parameter to the URL:
+#### Option 1: Use URL Parameters (Simple Approach)
+
+1. Add the `?instance=NAME` parameter to the URL:
    - Windows example: `file:///C:/path/to/index.html?instance=gaming`
    - macOS example: `file:///Users/username/path/to/index.html?instance=chatting`
 
@@ -50,6 +52,18 @@ You can now create multiple instances with different styles for different OBS sc
    - `?instance=gaming` for your gaming scene
    - `?instance=talking` for your talking/webcam scene
    - `?instance=intro` for your stream intro scene
+
+#### Option 2: Use the Instance Manager (NEW!)
+
+The new Instance Manager provides a comprehensive UI for creating and managing overlay instances:
+
+1. Open `instance-manager.html` in your browser
+2. Create named instances with custom settings
+3. Generate OBS-ready URLs for each instance
+4. Import/export instance configurations
+5. Test and preview instances before using them in OBS
+
+The Instance Manager makes it easy to manage multiple overlays for different scenes, with a visual interface for all settings.
 
 ### Configuring the Overlay
 
