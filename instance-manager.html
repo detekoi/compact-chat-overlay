@@ -218,7 +218,7 @@
         
         .config-layout {
             display: grid;
-            grid-template-columns: 1fr 280px;
+            grid-template-columns: 1fr 350px;
             gap: var(--spacing-lg);
         }
         
@@ -833,62 +833,15 @@
                         </div>
                         
                         <div class="settings-section">
-                            <h3>Theme Settings</h3>
+                            <h3>Instance Properties</h3>
                             <div class="settings-group">
                                 <div class="settings-row">
-                                    <label for="themeSelector">Base Theme</label>
+                                    <label for="defaultChannel">Default Channel</label>
                                     <div class="input-group">
-                                        <select id="themeSelector" class="form-control">
-                                            <option value="default">Dark (Default)</option>
-                                            <option value="light-theme">Light</option>
-                                            <option value="natural-theme">Natural</option>
-                                            <option value="transparent-theme">Transparent</option>
-                                            <option value="pink-theme">Pink</option>
-                                            <option value="cyberpunk-theme">Cyberpunk</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <h3>Colors</h3>
-                            <div class="settings-group">
-                                <div class="settings-row">
-                                    <label for="bgColor">Background</label>
-                                    <div class="input-group">
-                                        <div class="color-picker">
-                                            <div class="color-preview" id="bgColorPreview"></div>
-                                            <input type="color" id="bgColor">
-                                        </div>
-                                        <input type="range" id="bgOpacity" min="0" max="100" value="80">
-                                        <span id="bgOpacityValue">80%</span>
-                                    </div>
-                                </div>
-                                <div class="settings-row">
-                                    <label for="borderColor">Border</label>
-                                    <div class="input-group">
-                                        <div class="color-picker">
-                                            <div class="color-preview" id="borderColorPreview"></div>
-                                            <input type="color" id="borderColor">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="settings-row">
-                                    <label for="textColor">Text</label>
-                                    <div class="input-group">
-                                        <div class="color-picker">
-                                            <div class="color-preview" id="textColorPreview"></div>
-                                            <input type="color" id="textColor">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="settings-row">
-                                    <label for="usernameColor">Username</label>
-                                    <div class="input-group">
-                                        <div class="color-picker">
-                                            <div class="color-preview" id="usernameColorPreview"></div>
-                                            <input type="color" id="usernameColor">
+                                        <input type="text" id="defaultChannel" placeholder="Enter Twitch channel name">
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">The overlay will auto-connect to this channel when loaded</span>
                                         </div>
                                     </div>
                                 </div>
@@ -896,26 +849,16 @@
                         </div>
                         
                         <div class="settings-section">
-                            <h3>Layout & Display</h3>
+                            <h3>Display Settings</h3>
                             <div class="settings-group">
-                                <div class="settings-row">
-                                    <label for="fontSize">Font Size</label>
-                                    <div class="input-group">
-                                        <input type="range" id="fontSize" min="10" max="24" value="14">
-                                        <span id="fontSizeValue">14px</span>
-                                    </div>
-                                </div>
-                                <div class="settings-row">
-                                    <label for="chatWidth">Width</label>
-                                    <div class="input-group">
-                                        <input type="range" id="chatWidth" min="200" max="500" value="300">
-                                        <span id="chatWidthValue">300px</span>
-                                    </div>
-                                </div>
                                 <div class="settings-row">
                                     <label for="maxMessages">Max Messages</label>
                                     <div class="input-group">
                                         <input type="number" id="maxMessages" min="5" max="100" value="50" style="width: 80px;">
+                                        <div class="tooltip">
+                                            <span class="tooltip-icon">?</span>
+                                            <span class="tooltip-text">Number of chat messages to display before removing old ones</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="settings-row">
@@ -927,51 +870,25 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="settings-row">
-                                    <label for="overrideColors">Override Twitch Colors</label>
-                                    <div class="input-group">
-                                        <label class="toggle-switch">
-                                            <input type="checkbox" id="overrideColors">
-                                            <span class="toggle-slider"></span>
-                                        </label>
-                                        <div class="tooltip">
-                                            <span class="tooltip-icon">?</span>
-                                            <span class="tooltip-text">When enabled, all usernames will use the custom color instead of Twitch-assigned colors</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <h3>Default Channel</h3>
-                            <div class="settings-group">
-                                <div class="settings-row">
-                                    <label for="defaultChannel">Twitch Channel</label>
-                                    <div class="input-group">
-                                        <input type="text" id="defaultChannel" placeholder="Enter channel name">
-                                        <div class="tooltip">
-                                            <span class="tooltip-icon">?</span>
-                                            <span class="tooltip-text">The overlay will auto-connect to this channel when loaded</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                         
                         <button class="btn btn-primary" id="saveSettingsBtn" style="align-self: flex-start;">Save Settings</button>
                     </div>
                     
-                    <!-- Preview Column -->
+                    <!-- URL and OBS Info -->
                     <div class="preview-panel">
-                        <div class="preview-container">
-                            <div class="preview-overlay" id="previewOverlay">
-                                <!-- Dynamic preview will be rendered here -->
+                        <div class="url-generator">
+                            <h3>Instance URL</h3>
+                            <p>Copy this URL to use in your OBS Browser Source:</p>
+                            <div class="url-display">
+                                <div class="url-text" id="instanceUrl">file:///path/to/index.html?instance=example</div>
+                                <button class="copy-btn" id="copyUrlBtn">Copy</button>
                             </div>
                         </div>
-                        <div class="preview-actions">
-                            <button class="btn btn-secondary" id="testMessagesBtn">Test with Sample Messages</button>
-                            <button class="btn btn-secondary" id="previewBtn">Open Standalone Preview</button>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-secondary" id="previewBtn" style="width: 100%;">Open Standalone Preview</button>
                         </div>
                     </div>
                 </div>
@@ -1104,37 +1021,17 @@
                 // Form elements
                 this.instanceName = document.getElementById('instanceName');
                 this.instanceId = document.getElementById('instanceId');
-                this.themeSelector = document.getElementById('themeSelector');
-                this.bgColor = document.getElementById('bgColor');
-                this.bgOpacity = document.getElementById('bgOpacity');
-                this.bgOpacityValue = document.getElementById('bgOpacityValue');
-                this.borderColor = document.getElementById('borderColor');
-                this.textColor = document.getElementById('textColor');
-                this.usernameColor = document.getElementById('usernameColor');
-                this.fontSize = document.getElementById('fontSize');
-                this.fontSizeValue = document.getElementById('fontSizeValue');
-                this.chatWidth = document.getElementById('chatWidth');
-                this.chatWidthValue = document.getElementById('chatWidthValue');
                 this.maxMessages = document.getElementById('maxMessages');
                 this.showTimestamps = document.getElementById('showTimestamps');
-                this.overrideColors = document.getElementById('overrideColors');
                 this.defaultChannel = document.getElementById('defaultChannel');
                 this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
                 
                 // Preview section
-                this.previewOverlay = document.getElementById('previewOverlay');
-                this.testMessagesBtn = document.getElementById('testMessagesBtn');
                 this.previewBtn = document.getElementById('previewBtn');
                 
                 // OBS setup
                 this.instanceUrl = document.getElementById('instanceUrl');
                 this.copyUrlBtn = document.getElementById('copyUrlBtn');
-                
-                // Color previews
-                this.bgColorPreview = document.getElementById('bgColorPreview');
-                this.borderColorPreview = document.getElementById('borderColorPreview');
-                this.textColorPreview = document.getElementById('textColorPreview');
-                this.usernameColorPreview = document.getElementById('usernameColorPreview');
                 
                 // Modal elements
                 this.instanceModal = document.getElementById('instanceModal');
@@ -1241,7 +1138,6 @@
                 this.emptyState.style.display = 'block';
                 this.configLayout.style.display = 'none';
                 this.workspaceActions.style.display = 'none';
-                this.obsSetup.style.display = 'none';
                 this.workspaceTitle.textContent = 'Create Your First Instance';
             }
             
@@ -1263,8 +1159,7 @@
                 // Settings form events
                 this.saveSettingsBtn.addEventListener('click', () => this.saveCurrentInstance());
                 
-                // Preview and test buttons
-                this.testMessagesBtn.addEventListener('click', () => this.testWithSampleMessages());
+                // Preview button
                 this.previewBtn.addEventListener('click', () => this.openStandalonePreview());
                 
                 // OBS setup
@@ -1284,56 +1179,7 @@
             
             // Setup form input events
             setupFormEvents() {
-                // Theme selector
-                this.themeSelector.addEventListener('change', () => {
-                    this.updatePreview();
-                });
-                
-                // Colors
-                this.bgColor.addEventListener('input', () => {
-                    this.bgColorPreview.style.backgroundColor = this.bgColor.value;
-                    this.updatePreview();
-                });
-                
-                this.bgOpacity.addEventListener('input', () => {
-                    this.bgOpacityValue.textContent = `${this.bgOpacity.value}%`;
-                    this.updatePreview();
-                });
-                
-                this.borderColor.addEventListener('input', () => {
-                    this.borderColorPreview.style.backgroundColor = this.borderColor.value;
-                    this.updatePreview();
-                });
-                
-                this.textColor.addEventListener('input', () => {
-                    this.textColorPreview.style.backgroundColor = this.textColor.value;
-                    this.updatePreview();
-                });
-                
-                this.usernameColor.addEventListener('input', () => {
-                    this.usernameColorPreview.style.backgroundColor = this.usernameColor.value;
-                    this.updatePreview();
-                });
-                
-                // Sliders
-                this.fontSize.addEventListener('input', () => {
-                    this.fontSizeValue.textContent = `${this.fontSize.value}px`;
-                    this.updatePreview();
-                });
-                
-                this.chatWidth.addEventListener('input', () => {
-                    this.chatWidthValue.textContent = `${this.chatWidth.value}px`;
-                    this.updatePreview();
-                });
-                
-                // Checkboxes
-                this.showTimestamps.addEventListener('change', () => {
-                    this.updatePreview();
-                });
-                
-                this.overrideColors.addEventListener('change', () => {
-                    this.updatePreview();
-                });
+                // No form events needed for our simplified interface
             }
             
             // Show the create instance modal
@@ -1444,7 +1290,6 @@
                 this.emptyState.style.display = 'none';
                 this.configLayout.style.display = 'grid';
                 this.workspaceActions.style.display = 'flex';
-                this.obsSetup.style.display = 'block';
                 this.workspaceTitle.textContent = instance.name;
                 
                 // Update instance list selection
@@ -1455,54 +1300,20 @@
                 // Populate form with instance values
                 this.populateForm(instance);
                 
-                // Update preview
-                this.updatePreview();
-                
                 // Generate and display instance URL
                 this.updateInstanceUrl();
             }
             
             // Populate the form with instance values
             populateForm(instance) {
-                const config = instance.config;
+                const config = instance.config || this.getDefaultConfig();
                 
                 this.instanceName.value = instance.name;
                 this.instanceId.value = this.currentInstanceId;
                 
-                // Theme
-                this.themeSelector.value = config.theme || 'default';
-                
-                
-                // Colors
-                const bgColorMatch = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
-                if (bgColorMatch) {
-                    const [, r, g, b, a] = bgColorMatch;
-                    const hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
-                    this.bgColor.value = hexColor;
-                    this.bgColorPreview.style.backgroundColor = hexColor;
-                    this.bgOpacity.value = Math.round(parseFloat(a) * 100);
-                    this.bgOpacityValue.textContent = `${this.bgOpacity.value}%`;
-                }
-                
-                this.borderColor.value = config.borderColor;
-                this.borderColorPreview.style.backgroundColor = config.borderColor;
-                
-                this.textColor.value = config.textColor;
-                this.textColorPreview.style.backgroundColor = config.textColor;
-                
-                this.usernameColor.value = config.usernameColor;
-                this.usernameColorPreview.style.backgroundColor = config.usernameColor;
-                
-                // Layout settings
-                this.fontSize.value = config.fontSize;
-                this.fontSizeValue.textContent = `${config.fontSize}px`;
-                
-                this.chatWidth.value = config.chatWidth;
-                this.chatWidthValue.textContent = `${config.chatWidth}px`;
-                
-                this.maxMessages.value = config.maxMessages;
-                this.showTimestamps.checked = config.showTimestamps;
-                this.overrideColors.checked = config.overrideUsernameColors;
+                // Basic settings
+                this.maxMessages.value = config.maxMessages || 50;
+                this.showTimestamps.checked = config.showTimestamps !== undefined ? config.showTimestamps : true;
                 
                 // Default channel
                 this.defaultChannel.value = config.lastChannel || '';
@@ -1521,26 +1332,19 @@
                 instance.name = this.instanceName.value.trim();
                 instance.lastModified = new Date().toISOString();
                 
-                // Get color values
-                const r = parseInt(this.bgColor.value.slice(1, 3), 16);
-                const g = parseInt(this.bgColor.value.slice(3, 5), 16);
-                const b = parseInt(this.bgColor.value.slice(5, 7), 16);
-                const opacity = this.bgOpacity.value / 100;
+                // Get existing config or create default
+                const existingConfig = instance.config || this.getDefaultConfig();
                 
-                // Update config
-                instance.config = {
-                    theme: this.themeSelector.value,
-                    bgColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
-                    borderColor: this.borderColor.value,
-                    textColor: this.textColor.value,
-                    usernameColor: this.usernameColor.value,
-                    fontSize: parseInt(this.fontSize.value),
-                    chatWidth: parseInt(this.chatWidth.value),
+                // Update only the fields we care about, preserving the rest
+                const updatedConfig = {
+                    ...existingConfig,
                     maxMessages: parseInt(this.maxMessages.value),
                     showTimestamps: this.showTimestamps.checked,
-                    overrideUsernameColors: this.overrideColors.checked,
                     lastChannel: this.defaultChannel.value.trim()
                 };
+                
+                // Update the instance config
+                instance.config = updatedConfig;
                 
                 // Save to localStorage
                 this.saveInstances();
@@ -1746,192 +1550,17 @@
                 input.click();
             }
             
-            // Update the live preview
-            updatePreview() {
+            // Update the instance URL display
+            updateInstanceUrl() {
                 if (!this.currentInstanceId) return;
                 
-                // Get current form values
-                const theme = this.themeSelector.value;
+                // Get base path to index.html
+                const basePath = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+                const instanceUrl = `${basePath}?instance=${this.currentInstanceId}`;
                 
-                // Get background color with opacity
-                const bgHex = this.bgColor.value;
-                const r = parseInt(bgHex.slice(1, 3), 16);
-                const g = parseInt(bgHex.slice(3, 5), 16);
-                const b = parseInt(bgHex.slice(5, 7), 16);
-                const opacity = this.bgOpacity.value / 100;
-                const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                
-                const borderColor = this.borderColor.value;
-                const textColor = this.textColor.value;
-                const usernameColor = this.usernameColor.value;
-                const fontSize = this.fontSize.value;
-                const width = this.chatWidth.value;
-                const showTimestamps = this.showTimestamps.checked;
-                const overrideColors = this.overrideColors.checked;
-                
-                // Update colors based on theme selection
-                let themeBasedBgColor = bgColor;
-                let themeBasedBorderColor = borderColor;
-                let themeBasedTextColor = textColor;
-                let themeBasedUsernameColor = usernameColor;
-                
-                // Apply theme colors if a theme is selected
-                if (theme !== 'default') {
-                    const themeData = this.getThemeColors(theme);
-                    if (themeData) {
-                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${opacity})`;
-                        themeBasedBorderColor = themeData.borderColor;
-                        themeBasedTextColor = themeData.textColor;
-                        themeBasedUsernameColor = themeData.usernameColor;
-                    }
-                }
-                
-                // Create basic preview style
-                this.previewOverlay.style.backgroundColor = themeBasedBgColor;
-                this.previewOverlay.style.border = `2px solid ${themeBasedBorderColor}`;
-                this.previewOverlay.style.color = themeBasedTextColor;
-                this.previewOverlay.style.fontSize = `${fontSize}px`;
-                this.previewOverlay.style.width = `${width}px`;
-                this.previewOverlay.style.height = 'auto';
-                this.previewOverlay.style.maxHeight = '100%';
-                this.previewOverlay.style.overflow = 'hidden';
-                this.previewOverlay.style.padding = '10px';
-                this.previewOverlay.style.borderRadius = '8px';
-                
-                // Sample messages with timestamps
-                const timestamp = showTimestamps ? '<span style="color: #adadb8; font-size: 0.85em;">[12:34]</span> ' : '';
-                const username1Color = overrideColors ? (theme === 'default' ? usernameColor : themeBasedUsernameColor) : '#ff4500';
-                const username2Color = overrideColors ? (theme === 'default' ? usernameColor : themeBasedUsernameColor) : '#1E90FF';
-                
-                // Generate sample chat messages
-                this.previewOverlay.innerHTML = `
-                    <div style="margin-bottom: 8px;">
-                        ${timestamp}<span style="color: ${username1Color}; font-weight: bold;">TwitchUser1:</span> Hello, this is a sample message!
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        ${timestamp}<span style="color: ${username2Color}; font-weight: bold;">StreamFan99:</span> How's the stream going today?
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        ${timestamp}<span style="color: ${username1Color}; font-weight: bold;">TwitchUser1:</span> This is a preview of your chat overlay.
-                    </div>
-                `;
-                
-                // Also update the color inputs to reflect theme colors when theme changes
-                if (theme !== 'default') {
-                    // Get theme colors
-                    const themeData = this.getThemeColors(theme);
-                    if (themeData) {
-                        // Update color preview elements
-                        this.bgColorPreview.style.backgroundColor = `rgb(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b})`;
-                        this.borderColorPreview.style.backgroundColor = themeData.borderColor;
-                        this.textColorPreview.style.backgroundColor = themeData.textColor;
-                        this.usernameColorPreview.style.backgroundColor = themeData.usernameColor;
-                    }
-                }
+                this.instanceUrl.textContent = instanceUrl;
             }
             
-            // Get colors for a specific theme
-            getThemeColors(theme) {
-                switch(theme) {
-                    case 'light-theme':
-                        return {
-                            bgColor: { r: 250, g: 250, b: 250 },
-                            borderColor: '#6441a5',
-                            textColor: '#1a1a1a',
-                            usernameColor: '#6441a5'
-                        };
-                    case 'natural-theme':
-                        return {
-                            bgColor: { r: 245, g: 242, b: 230 },
-                            borderColor: '#7e6852',
-                            textColor: '#4e3629',
-                            usernameColor: '#508d69'
-                        };
-                    case 'transparent-theme':
-                        return {
-                            bgColor: { r: 0, g: 0, b: 0 },
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                            textColor: '#ffffff',
-                            usernameColor: '#ff9800'
-                        };
-                    case 'pink-theme':
-                        return {
-                            bgColor: { r: 255, g: 222, b: 236 },
-                            borderColor: '#ff6bcb',
-                            textColor: '#8e2651',
-                            usernameColor: '#b81670'
-                        };
-                    case 'cyberpunk-theme':
-                        return {
-                            bgColor: { r: 12, g: 12, b: 40 },
-                            borderColor: '#00ffb3',
-                            textColor: '#00ffea',
-                            usernameColor: '#ff2e97'
-                        };
-                    default:
-                        return null;
-                }
-            }
-            
-            // Test the preview with sample messages that appear one by one
-            testWithSampleMessages() {
-                // Clear existing sample messages
-                this.previewOverlay.innerHTML = '';
-                
-                // Sample messages data
-                const sampleMessages = [
-                    { username: 'TwitchUser1', message: 'Hello everyone!', color: '#ff4500' },
-                    { username: 'StreamFan99', message: 'Hey! How\'s the stream going today?', color: '#1E90FF' },
-                    { username: 'ChatBot', message: 'Welcome to the chat!', color: '#00FF7F' },
-                    { username: 'ViewerPrime', message: 'This overlay looks great!', color: '#9147FF' },
-                    { username: 'GameLover22', message: 'What are we playing today?', color: '#FF69B4' }
-                ];
-                
-                // Get current settings
-                const showTimestamps = this.showTimestamps.checked;
-                const overrideColors = this.overrideColors.checked;
-                const usernameColor = this.usernameColor.value;
-                
-                // Function to add a message
-                const addMessage = (index) => {
-                    if (index >= sampleMessages.length) return;
-                    
-                    const msg = sampleMessages[index];
-                    const msgDiv = document.createElement('div');
-                    msgDiv.style.marginBottom = '8px';
-                    msgDiv.style.animation = 'fadeIn 0.3s ease-in-out';
-                    msgDiv.style.opacity = '0';
-                    msgDiv.style.transform = 'translateY(10px)';
-                    
-                    // Create timestamp if enabled
-                    let messageHTML = '';
-                    if (showTimestamps) {
-                        const now = new Date();
-                        const hours = now.getHours().toString().padStart(2, '0');
-                        const minutes = now.getMinutes().toString().padStart(2, '0');
-                        messageHTML += `<span style="color: #adadb8; font-size: 0.85em;">[${hours}:${minutes}]</span> `;
-                    }
-                    
-                    // Add username with color
-                    const color = overrideColors ? usernameColor : msg.color;
-                    messageHTML += `<span style="color: ${color}; font-weight: bold;">${msg.username}:</span> ${msg.message}`;
-                    
-                    msgDiv.innerHTML = messageHTML;
-                    this.previewOverlay.appendChild(msgDiv);
-                    
-                    // Add animation
-                    setTimeout(() => {
-                        msgDiv.style.opacity = '1';
-                        msgDiv.style.transform = 'translateY(0)';
-                    }, 50);
-                    
-                    // Add next message after delay
-                    setTimeout(() => addMessage(index + 1), 800);
-                };
-                
-                // Start adding messages
-                addMessage(0);
-            }
             
             // Open a standalone preview window
             openStandalonePreview() {
