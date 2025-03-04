@@ -88,7 +88,7 @@
         
         .app-layout {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 260px 1fr;
             gap: var(--spacing-lg);
             min-height: calc(100vh - 200px);
         }
@@ -216,7 +216,7 @@
         
         .config-layout {
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: 1fr 280px;
             gap: var(--spacing-lg);
         }
         
@@ -251,7 +251,7 @@
         }
         
         .settings-row label {
-            flex: 0 0 120px;
+            flex: 0 0 110px;
             margin-right: var(--spacing-md);
         }
         
@@ -706,7 +706,7 @@
         }
         
         /* Responsive Design */
-        @media (max-width: 992px) {
+        @media (max-width: 1100px) {
             .config-layout {
                 grid-template-columns: 1fr;
             }
@@ -716,7 +716,7 @@
             }
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 850px) {
             .app-layout {
                 grid-template-columns: 1fr;
             }
@@ -727,6 +727,40 @@
             
             .instance-list {
                 max-height: 300px;
+            }
+            
+            .container {
+                padding: var(--spacing-sm);
+            }
+            
+            .workspace-panel {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .settings-row {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-bottom: var(--spacing-sm);
+            }
+            
+            .settings-row label {
+                margin-bottom: var(--spacing-xs);
+            }
+            
+            .settings-row .input-group {
+                width: 100%;
+            }
+            
+            .workspace-header {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                align-items: flex-start;
+            }
+            
+            .workspace-actions {
+                width: 100%;
             }
         }
     </style>
@@ -1436,6 +1470,12 @@
                 // Theme
                 this.themeSelector.value = config.theme || 'default';
                 
+                // Special handling for transparent theme opacity
+                if (config.theme === 'transparent-theme') {
+                    this.bgOpacity.value = 0;
+                    this.bgOpacityValue.textContent = '0%';
+                }
+                
                 // Colors
                 const bgColorMatch = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
                 if (bgColorMatch) {
@@ -1742,7 +1782,9 @@
                 if (theme !== 'default') {
                     const themeData = this.getThemeColors(theme);
                     if (themeData) {
-                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${opacity})`;
+                        // For transparent theme, we want to use its opacity setting
+                        const themeOpacity = theme === 'transparent-theme' ? 0 : opacity;
+                        themeBasedBgColor = `rgba(${themeData.bgColor.r}, ${themeData.bgColor.g}, ${themeData.bgColor.b}, ${themeOpacity})`;
                         themeBasedBorderColor = themeData.borderColor;
                         themeBasedTextColor = themeData.textColor;
                         themeBasedUsernameColor = themeData.usernameColor;
