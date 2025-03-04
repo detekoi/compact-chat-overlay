@@ -962,18 +962,14 @@
     </div>
 
     <!-- Modal for creating/editing instances -->
-    <div id="instanceModal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;">
+    <div id="instanceModal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
         <div style="background-color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
             <h2 id="modalTitle">Create New Instance</h2>
             <div style="margin: 20px 0;">
-                <div style="margin-bottom: 10px;">
-                    <label for="modalInstanceName" style="display: block; margin-bottom: 5px;">Instance Name:</label>
-                    <input type="text" id="modalInstanceName" style="width: 100%; padding: 8px;" placeholder="e.g., Gaming Stream, Just Chatting, etc.">
-                </div>
                 <div>
-                    <label for="modalInstanceId" style="display: block; margin-bottom: 5px;">Instance ID (for URL):</label>
-                    <input type="text" id="modalInstanceId" style="width: 100%; padding: 8px;" placeholder="e.g., gaming, chatting (no spaces)">
-                    <p style="font-size: 12px; color: #666; margin-top: 4px;">This will be used in the URL: ?instance=your-id</p>
+                    <label for="modalInstanceName" style="display: block; margin-bottom: 5px;">Descriptive Name:</label>
+                    <input type="text" id="modalInstanceName" style="width: 100%; padding: 8px;" placeholder="e.g., Gaming Stream, Just Chatting, etc.">
+                    <p style="font-size: 12px; color: #666; margin-top: 4px;">A friendly name to identify this overlay in your instance list</p>
                 </div>
             </div>
             <div style="text-align: right;">
@@ -1037,7 +1033,6 @@
                 this.instanceModal = document.getElementById('instanceModal');
                 this.modalTitle = document.getElementById('modalTitle');
                 this.modalInstanceName = document.getElementById('modalInstanceName');
-                this.modalInstanceId = document.getElementById('modalInstanceId');
                 this.modalCancelBtn = document.getElementById('modalCancelBtn');
                 this.modalCreateBtn = document.getElementById('modalCreateBtn');
             }
@@ -1067,6 +1062,8 @@
                     }
                 } else {
                     this.showEmptyState();
+                    // Automatically open the create instance modal if no instances exist
+                    this.showCreateInstanceModal();
                 }
             }
             
@@ -1186,7 +1183,6 @@
             showCreateInstanceModal() {
                 this.modalTitle.textContent = 'Create New Instance';
                 this.modalInstanceName.value = '';
-                this.modalInstanceId.value = '';
                 this.modalCreateBtn.textContent = 'Create';
                 this.instanceModal.style.display = 'flex';
                 
@@ -1202,25 +1198,24 @@
             // Create a new instance
             createInstance() {
                 const name = this.modalInstanceName.value.trim();
-                let id = this.modalInstanceId.value.trim();
                 
                 if (!name) {
                     this.showNotification('Error', 'Please enter an instance name.', 'error');
                     return;
                 }
                 
-                // Generate ID from name if not provided
-                if (!id) {
-                    id = this.generateInstanceId(name);
-                }
+                // Generate ID from name
+                let id = this.generateInstanceId(name);
                 
                 // Make sure ID is URL-friendly
                 id = id.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
                 
-                // Check if ID already exists
-                if (this.instances[id]) {
-                    this.showNotification('Error', `An instance with ID '${id}' already exists.`, 'error');
-                    return;
+                // Check if ID already exists and generate a unique one if needed
+                let counter = 1;
+                let originalId = id;
+                while (this.instances[id]) {
+                    id = `${originalId}-${counter}`;
+                    counter++;
                 }
                 
                 // Create the new instance with default settings
