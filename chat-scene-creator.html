@@ -789,6 +789,11 @@
         <header>
             <h1>Twitch Chat Overlay - Chat Scene Creator</h1>
             <p>Create, customize, and manage chat scenes for different parts of your stream</p>
+            <p style="margin-top: 10px; font-size: 14px;">
+                <a href="https://github.com/detekoi/compact-chat-overlay" target="_blank" style="color: #9147ff; text-decoration: none;">
+                    View Documentation on GitHub →
+                </a>
+            </p>
         </header>
         
         <main class="app-layout">
@@ -827,7 +832,7 @@
                             <h3>Basic Information</h3>
                             <div class="settings-group">
                                 <div class="settings-row">
-                                    <label for="instanceName">Instance Name</label>
+                                    <label for="instanceName">Scene Name</label>
                                     <div class="input-group">
                                         <input type="text" id="instanceName" class="form-control">
                                         <div class="tooltip">
@@ -837,7 +842,7 @@
                                     </div>
                                 </div>
                                 <div class="settings-row">
-                                    <label for="instanceId">Instance ID</label>
+                                    <label for="instanceId">Scene ID</label>
                                     <div class="input-group">
                                         <input type="text" id="instanceId" class="form-control" disabled>
                                         <div class="tooltip">
@@ -850,7 +855,7 @@
                         </div>
                         
                         <div class="settings-section">
-                            <h3>Instance Properties</h3>
+                            <h3>Scene Properties</h3>
                             <div class="settings-group">
                                 <div class="settings-row">
                                     <label for="defaultChannel">Default Channel</label>
@@ -896,7 +901,7 @@
                     <!-- URL and OBS Info -->
                     <div class="preview-panel">
                         <div class="url-generator">
-                            <h3>Instance URL</h3>
+                            <h3>Chat Scene URL</h3>
                             <p>Copy this URL to use in your OBS Browser Source:</p>
                             <div class="url-display">
                                 <div class="url-text" id="instanceUrl">file:///path/to/chat.html?instance=example</div>

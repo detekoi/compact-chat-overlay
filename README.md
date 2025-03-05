@@ -4,7 +4,11 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![Compact Chat Overlay Screenshot](preview.png)
 
-[Click here for a live demo!](https://detekoi.github.io/compact-chat-overlay/)
+## Try It Now
+
+**[➡️ Use the Online Chat Scene Creator](https://detekoi.github.io/compact-chat-overlay/)**
+
+Create and manage multiple chat scenes for your stream in seconds!
 
 ## Features
 
@@ -28,14 +32,23 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ## Getting Started
 
-### Quick Start Guide
+### Quick Start Guide (Recommended Method)
 
-1. **Download** this repository or clone it to your computer.
-2. **Open the Chat Scene Creator** by opening the `chat-scene-creator.html` file in your browser.
-3. **Create your first chat scene** by clicking the "New Chat Scene" button.
-4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting".
-5. **Copy the generated URL** for adding to OBS.
-6. **Add to OBS** following the provided instructions.
+1. **Visit the online version** at [detekoi.github.io/compact-chat-overlay](https://detekoi.github.io/compact-chat-overlay/)
+2. **Use the Chat Scene Creator** to easily set up and manage your chat scenes
+3. **Create your first chat scene** by clicking the "New Chat Scene" button
+4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting"
+5. **Copy the generated URL** for adding to OBS
+6. **Add to OBS** following the provided instructions
+
+### Alternative: Local Installation
+
+If you prefer to run everything locally:
+
+1. **Download** this repository or clone it to your computer
+2. **Open the index.html file** in your browser
+3. **Select "Chat Scene Creator"** from the landing page
+4. Follow the same steps as above to create and manage chat scenes
 
 ### Setting Up in OBS
 
