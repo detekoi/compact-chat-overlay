@@ -32,9 +32,13 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 1. Download this repository or clone it to your computer.
 2. In OBS Studio, add a new "Browser Source" to your scene.
-3. Select "Local file" and browse to the `index.html` file.
+3. **Important:** Do NOT select "Local file" - instead, use a URL with the file path.
+   - Windows example: `file:///C:/path/to/index.html`
+   - macOS example: `file:///Users/username/path/to/index.html`
 4. Set the width and height (recommended starting size: 320px × 600px).
 5. Click "OK" to add the source.
+
+For the easiest setup, use the Chat Scene Creator (explained below) which provides copy-ready URLs and detailed OBS setup instructions.
 
 ### Multiple Instances for Different Scenes (NEW!)
 
@@ -53,17 +57,17 @@ There are two ways to create multiple instances with different styles for differ
    - `?instance=talking` for your talking/webcam scene
    - `?instance=intro` for your stream intro scene
 
-#### Option 2: Use the Instance Manager (NEW!)
+#### Option 2: Use the Chat Scene Creator (NEW!)
 
-The new Instance Manager provides a comprehensive UI for creating and managing overlay instances:
+The new Chat Scene Creator provides a comprehensive UI for creating and managing overlay instances:
 
-1. Open `instance-manager.html` in your browser
-2. Create named instances with custom settings
-3. Generate OBS-ready URLs for each instance
-4. Import/export instance configurations
-5. Test and preview instances before using them in OBS
+1. Open `chat-scene-creator.html` in your browser
+2. Create named chat scenes with custom settings
+3. Generate OBS-ready URLs for each scene
+4. Import/export scene configurations
+5. Get step-by-step OBS setup instructions
 
-The Instance Manager makes it easy to manage multiple overlays for different scenes, with a visual interface for all settings.
+The Chat Scene Creator makes it easy to manage multiple chat overlays for different scenes, with a user-friendly interface for all settings and detailed instructions for OBS integration.
 
 ### Configuring the Overlay
 
