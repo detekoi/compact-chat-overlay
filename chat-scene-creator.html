@@ -1598,13 +1598,13 @@
             
             // Preview functionality removed - must be viewed in OBS
             
-            // Update the instance URL for OBS
+            // Update the scene URL for OBS
             updateInstanceUrl() {
                 if (!this.currentInstanceId) return;
                 
                 // Get base path to chat.html
                 const basePath = window.location.href.replace(/\/[^\/]*$/, '/chat.html');
-                const instanceUrl = `${basePath}?instance=${this.currentInstanceId}`;
+                const instanceUrl = `${basePath}?scene=${this.currentInstanceId}`;
                 
                 this.instanceUrl.textContent = instanceUrl;
             }

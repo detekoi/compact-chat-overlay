@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compact Twitch Chat Overlay</title>
-    <!-- Added support for multiple instances via URL parameters -->
-    <meta name="description" content="Twitch chat overlay with support for multiple instances via URL parameters (e.g., ?instance=scene1)">
+    <!-- Added support for multiple chat scenes via URL parameters -->
+    <meta name="description" content="Twitch chat overlay with support for multiple chat scenes via URL parameters (e.g., ?scene=gaming)">
     <style>
         :root {
             /* Default Theme (Dark) */
@@ -519,9 +519,9 @@
                 // Update the saved channel in the config and save it
                 if (config.lastChannel !== channel) {
                     config.lastChannel = channel;
-                    // Get instance ID from URL parameter
-                    const instanceId = getUrlParameter('instance') || 'default';
-                    localStorage.setItem(`twitch-chat-overlay-config-${instanceId}`, JSON.stringify(config));
+                    // Get scene ID from URL parameter
+                    const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
+                    localStorage.setItem(`twitch-chat-overlay-config-${sceneId}`, JSON.stringify(config));
                 }
                 
                 addSystemMessage(`Connected to ${channel}'s chat`);
@@ -1108,11 +1108,11 @@
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
             
-            // Get instance ID from URL parameter
-            const instanceId = getUrlParameter('instance') || 'default';
+            // Get scene ID from URL parameter
+            const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
             
-            // Save to localStorage with instance-specific key
-            localStorage.setItem(`twitch-chat-overlay-config-${instanceId}`, JSON.stringify(config));
+            // Save to localStorage with scene-specific key
+            localStorage.setItem(`twitch-chat-overlay-config-${sceneId}`, JSON.stringify(config));
             
             // Hide config panel
             configPanel.classList.remove('visible');
@@ -1360,11 +1360,11 @@
         
         // Load saved config on page load
         window.addEventListener('DOMContentLoaded', () => {
-            // Get instance ID from URL parameter, default to 'default' if not specified
-            const instanceId = getUrlParameter('instance') || 'default';
+            // Get scene ID from URL parameter, default to 'default' if not specified
+            const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
             
-            // Use instance-specific storage key
-            const savedConfig = localStorage.getItem(`twitch-chat-overlay-config-${instanceId}`);
+            // Use scene-specific storage key
+            const savedConfig = localStorage.getItem(`twitch-chat-overlay-config-${sceneId}`);
             
             if (savedConfig) {
                 try {

@@ -107,16 +107,16 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 
 If you prefer to manage your chat scenes manually, you can use URL parameters:
 
-1. Add the `?instance=NAME` parameter to the URL:
-   - Windows example: `file:///C:/path/to/chat.html?instance=gaming`
-   - macOS example: `file:///Users/username/path/to/chat.html?instance=chatting`
+1. Add the `?scene=NAME` parameter to the URL:
+   - Windows example: `file:///C:/path/to/chat.html?scene=gaming`
+   - macOS example: `file:///Users/username/path/to/chat.html?scene=chatting`
 
-2. Each instance maintains its own separate settings with unique styling.
+2. Each scene maintains its own separate settings with unique styling.
 
-3. Use descriptive instance names like:
-   - `?instance=gaming` for your gaming scene
-   - `?instance=talking` for your talking/webcam scene
-   - `?instance=intro` for your stream intro scene
+3. Use descriptive scene names like:
+   - `?scene=gaming` for your gaming scene
+   - `?scene=talking` for your talking/webcam scene
+   - `?scene=intro` for your stream intro scene
 
 ## Customization Tips
 
