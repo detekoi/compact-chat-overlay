@@ -1218,6 +1218,25 @@
                 this.modalCancelBtn.addEventListener('click', () => this.hideModal());
                 this.modalCreateBtn.addEventListener('click', () => this.createInstance());
                 
+                // Modal keyboard events
+                this.modalInstanceName.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.createInstance();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.hideModal();
+                    }
+                });
+                
+                // Global escape key for modal
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.instanceModal.style.display === 'flex') {
+                        e.preventDefault();
+                        this.hideModal();
+                    }
+                });
+                
                 // Settings form events
                 this.saveSettingsBtn.addEventListener('click', () => this.saveCurrentInstance());
                 
