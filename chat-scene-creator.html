@@ -899,7 +899,7 @@
                             <h3>Instance URL</h3>
                             <p>Copy this URL to use in your OBS Browser Source:</p>
                             <div class="url-display">
-                                <div class="url-text" id="instanceUrl">file:///path/to/index.html?instance=example</div>
+                                <div class="url-text" id="instanceUrl">file:///path/to/chat.html?instance=example</div>
                                 <button class="copy-btn" id="copyUrlBtn">Copy</button>
                             </div>
                             <div style="margin-top: 10px; padding: 8px; background-color: #f5f5f5; border-radius: 4px; font-size: 13px;">
@@ -940,7 +940,7 @@
                         <h3>Instance URL</h3>
                         <p>Copy this URL to use in your OBS Browser Source:</p>
                         <div class="url-display">
-                            <div class="url-text" id="instanceUrl">file:///path/to/index.html?instance=example</div>
+                            <div class="url-text" id="instanceUrl">file:///path/to/chat.html?instance=example</div>
                             <button class="copy-btn" id="copyUrlBtn">Copy</button>
                         </div>
                     </div>
@@ -1583,8 +1583,8 @@
             updateInstanceUrl() {
                 if (!this.currentInstanceId) return;
                 
-                // Get base path to index.html
-                const basePath = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+                // Get base path to chat.html
+                const basePath = window.location.href.replace(/\/[^\/]*$/, '/chat.html');
                 const instanceUrl = `${basePath}?instance=${this.currentInstanceId}`;
                 
                 this.instanceUrl.textContent = instanceUrl;
@@ -1597,8 +1597,8 @@
             updateInstanceUrl() {
                 if (!this.currentInstanceId) return;
                 
-                // Get base path to index.html
-                const basePath = window.location.href.replace(/\/[^\/]*$/, '/index.html');
+                // Get base path to chat.html
+                const basePath = window.location.href.replace(/\/[^\/]*$/, '/chat.html');
                 const instanceUrl = `${basePath}?instance=${this.currentInstanceId}`;
                 
                 this.instanceUrl.textContent = instanceUrl;
