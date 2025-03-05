@@ -107,14 +107,13 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ## Customization Tips
 
-- Use the **Transparent** theme for a clean overlay on top of your gameplay or camera.
+- Use the **Light** theme for an airy, bright overlay on top of your gameplay or camera.
 - The **Live Preview** in settings helps visualize changes before applying them.
 - For better readability, keep font sizes between 12-16px.
 - Position the chat overlay where it won't overlap with important game elements.
-- The settings panel stays visible and usable even with transparent backgrounds.
 - Try the **Cyberpunk** theme for a neon-style game streaming aesthetic.
 - For retro games or cozy streams, the **Natural** theme offers earthy, warm tones.
-- When using dark game footage, the **Light** theme can provide better contrast.
+- For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
 
 ## Technical Details
 
