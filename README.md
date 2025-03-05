@@ -13,7 +13,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Emote Support**: Displays Twitch emotes in chat.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See changes in real-time before applying them.
-- **Multiple Instances**: Create different overlay styles for different OBS scenes using URL parameters.
+- **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
 - **Customizable Appearance**:
   - Background color & opacity
   - Border color
@@ -26,25 +26,51 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Auto-Connect**: Remembers your channel and automatically connects on startup.
 - **No Authentication Required**: Works anonymously without needing Twitch credentials.
 
-## How to Use
+## Getting Started
 
-### Adding to OBS
+### Quick Start Guide
 
-1. Download this repository or clone it to your computer.
-2. In OBS Studio, add a new "Browser Source" to your scene.
-3. **Important:** Do NOT select "Local file" - instead, use a URL with the file path.
-   - Windows example: `file:///C:/path/to/index.html`
-   - macOS example: `file:///Users/username/path/to/index.html`
-4. Set the width and height (recommended starting size: 320px × 600px).
-5. Click "OK" to add the source.
+1. **Download** this repository or clone it to your computer.
+2. **Open the Chat Scene Creator** by opening the `chat-scene-creator.html` file in your browser.
+3. **Create your first chat scene** by clicking the "New Chat Scene" button.
+4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting".
+5. **Copy the generated URL** for adding to OBS.
+6. **Add to OBS** following the provided instructions.
 
-For the easiest setup, use the Chat Scene Creator (explained below) which provides copy-ready URLs and detailed OBS setup instructions.
+### Setting Up in OBS
 
-### Multiple Instances for Different Scenes (NEW!)
+1. In OBS Studio, right-click in the Sources panel and select **Add** → **Browser**.
+2. Name your source (e.g., "Twitch Chat - Gaming").
+3. Paste the URL copied from the Chat Scene Creator into the URL field.
+4. **IF YOU CAN'T PASTE:** Uncheck "Local file" option even though you're using a local file.
+5. Set Width: 320 and Height: 600 (recommended size).
+6. Click "OK" to add the browser source.
 
-There are two ways to create multiple instances with different styles for different OBS scenes:
+### Using the Chat Scene Creator
 
-#### Option 1: Use URL Parameters (Simple Approach)
+The Chat Scene Creator makes it easy to manage multiple chat overlays:
+
+![Chat Scene Creator Interface](preview.png)
+
+1. **Create chat scenes** with descriptive names for different parts of your stream
+2. **Customize settings** for each scene:
+   - Default Twitch channel to connect to
+   - Maximum message count
+   - Timestamps display
+3. **Get copy-ready URLs** for OBS with proper instance parameters
+4. **Import/export** your scene configurations
+5. **View step-by-step OBS setup instructions**
+
+### Accessing Chat Settings
+
+To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
+1. Right-click the browser source in OBS and select **Interact**.
+2. In the interaction window, hover over the chat to see the settings gear icon (⚙️).
+3. Click the gear icon to access the settings panel.
+
+## Advanced: Manual URL Parameters
+
+If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 1. Add the `?instance=NAME` parameter to the URL:
    - Windows example: `file:///C:/path/to/index.html?instance=gaming`
@@ -56,18 +82,6 @@ There are two ways to create multiple instances with different styles for differ
    - `?instance=gaming` for your gaming scene
    - `?instance=talking` for your talking/webcam scene
    - `?instance=intro` for your stream intro scene
-
-#### Option 2: Use the Chat Scene Creator (NEW!)
-
-The new Chat Scene Creator provides a comprehensive UI for creating and managing overlay instances:
-
-1. Open `chat-scene-creator.html` in your browser
-2. Create named chat scenes with custom settings
-3. Generate OBS-ready URLs for each scene
-4. Import/export scene configurations
-5. Get step-by-step OBS setup instructions
-
-The Chat Scene Creator makes it easy to manage multiple chat overlays for different scenes, with a user-friendly interface for all settings and detailed instructions for OBS integration.
 
 ### Configuring the Overlay
 
