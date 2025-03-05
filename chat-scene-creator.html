@@ -854,48 +854,59 @@
                             </div>
                         </div>
                         
-                        <div class="settings-section">
-                            <h3>Scene Properties</h3>
-                            <div class="settings-note" style="margin-bottom: 12px; padding: 8px; background-color: #fffde7; border-left: 3px solid #ffd600; font-size: 13px; color: #5f4339;">
-                                <strong>Note:</strong> These settings are saved in your browser's local storage. When you add this scene to OBS, you'll need to configure these settings directly within OBS by <strong>right-clicking the browser source</strong> and selecting <strong>"Interact"</strong>.
-                            </div>
-                            <div class="settings-group">
-                                <div class="settings-row">
-                                    <label for="defaultChannel">Default Channel</label>
-                                    <div class="input-group">
-                                        <input type="text" id="defaultChannel" placeholder="Enter Twitch channel name">
-                                        <div class="tooltip">
-                                            <span class="tooltip-icon">?</span>
-                                            <span class="tooltip-text">The overlay will auto-connect to this channel when loaded</span>
+                        <div class="settings-section" style="margin-bottom: 20px;">
+                            <div class="accordion" id="browserSettingsAccordion">
+                                <div class="accordion-header" style="cursor: pointer; background-color: #f1f3f4; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="margin: 0; font-size: 15px;">Advanced Browser Settings (Optional)</h3>
+                                    <span class="accordion-icon">▼</span>
+                                </div>
+                                <div class="accordion-content" style="display: none; padding: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px;">
+                                    
+                                    <div class="settings-note" style="margin-bottom: 20px; padding: 10px; background-color: #fffde7; border-left: 3px solid #ffd600; font-size: 14px; color: #5f4339;">
+                                        <strong>Note:</strong> These settings save to this browser only. When you add this scene to OBS, you'll need to configure these settings directly within OBS by <strong>right-clicking the browser source</strong> and selecting <strong>"Interact"</strong>.
+                                    </div>
+                                    
+                                    <!-- Scene Properties -->
+                                    <div style="margin-bottom: 20px;">
+                                        <h3>Scene Properties</h3>
+                                        <div class="settings-group">
+                                            <div class="settings-row">
+                                                <label for="defaultChannel">Default Channel</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="defaultChannel" placeholder="Enter Twitch channel name">
+                                                    <div class="tooltip">
+                                                        <span class="tooltip-icon">?</span>
+                                                        <span class="tooltip-text">The overlay will auto-connect to this channel when loaded</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="settings-section">
-                            <h3>Display Settings</h3>
-                            <div class="settings-note" style="margin-bottom: 12px; padding: 8px; background-color: #fffde7; border-left: 3px solid #ffd600; font-size: 13px; color: #5f4339;">
-                                <strong>Note:</strong> These basic display settings save to the browser. For more advanced customization options (colors, themes, etc.), you'll need to adjust them directly in OBS by interacting with the chat source.
-                            </div>
-                            <div class="settings-group">
-                                <div class="settings-row">
-                                    <label for="maxMessages">Max Messages</label>
-                                    <div class="input-group">
-                                        <input type="number" id="maxMessages" min="5" max="100" value="50" style="width: 80px;">
-                                        <div class="tooltip">
-                                            <span class="tooltip-icon">?</span>
-                                            <span class="tooltip-text">Number of chat messages to display before removing old ones</span>
+                                    
+                                    <!-- Display Settings -->
+                                    <div>
+                                        <h3>Display Settings</h3>
+                                        <div class="settings-group">
+                                            <div class="settings-row">
+                                                <label for="maxMessages">Max Messages</label>
+                                                <div class="input-group">
+                                                    <input type="number" id="maxMessages" min="5" max="100" value="50" style="width: 80px;">
+                                                    <div class="tooltip">
+                                                        <span class="tooltip-icon">?</span>
+                                                        <span class="tooltip-text">Number of chat messages to display before removing old ones</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="settings-row">
+                                                <label for="showTimestamps">Show Timestamps</label>
+                                                <div class="input-group">
+                                                    <label class="toggle-switch">
+                                                        <input type="checkbox" id="showTimestamps" checked>
+                                                        <span class="toggle-slider"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="settings-row">
-                                    <label for="showTimestamps">Show Timestamps</label>
-                                    <div class="input-group">
-                                        <label class="toggle-switch">
-                                            <input type="checkbox" id="showTimestamps" checked>
-                                            <span class="toggle-slider"></span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -949,7 +960,7 @@
                 
                 <!-- Show OBS Setup Button -->
                 <div style="margin: 20px 0; text-align: center;">
-                    <button id="toggleObsSetupBtn" class="btn btn-secondary">Show OBS Setup Instructions</button>
+                    <button id="toggleObsSetupBtn" class="btn btn-secondary">Detailed OBS Setup Instructions</button>
                 </div>
                 
                 <!-- OBS Setup Section -->
@@ -1705,6 +1716,19 @@
                     'Show OBS Setup Instructions' : 
                     'Hide OBS Setup Instructions';
             });
+            
+            // Toggle Browser Settings Accordion
+            const browserSettingsHeader = document.querySelector('#browserSettingsAccordion .accordion-header');
+            const browserSettingsContent = document.querySelector('#browserSettingsAccordion .accordion-content');
+            const browserSettingsIcon = document.querySelector('#browserSettingsAccordion .accordion-icon');
+            
+            if (browserSettingsHeader && browserSettingsContent) {
+                browserSettingsHeader.addEventListener('click', () => {
+                    const isVisible = browserSettingsContent.style.display !== 'none';
+                    browserSettingsContent.style.display = isVisible ? 'none' : 'block';
+                    browserSettingsIcon.textContent = isVisible ? '▼' : '▲';
+                });
+            }
         });
     </script>
 </body>
