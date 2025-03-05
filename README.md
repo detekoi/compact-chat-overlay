@@ -68,6 +68,28 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 2. In the interaction window, hover over the chat to see the settings gear icon (⚙️).
 3. Click the gear icon to access the settings panel.
 
+## Configuring the Overlay
+
+1. When first loaded, enter your Twitch channel name in the input field and click "Connect."
+2. Access settings by hovering over the chat window and clicking the gear icon (⚙️).
+3. Customize the appearance using the available options.
+4. Click "Save Settings" to apply your changes.
+
+**Important OBS Tip**: To access the settings while in OBS, right-click the browser source in your Sources list (or right-click directly on the overlay in the preview window) and select "Interact." This will open an interactive window where you can hover over the chat to reveal the settings gear icon.
+
+## Settings Options
+
+- **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
+- **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
+- **Background**: Adjust color and opacity with easy-to-use preset buttons.
+- **Border**: Change the border color using theme-specific presets.
+- **Text**: Set the message text color.
+- **Username Colors**: Choose whether to use Twitch's colors or your custom color.
+- **Font Size**: Adjust the text size with a slider.
+- **Width**: Change the width of the chat window.
+- **Max Messages**: Control how many chat messages to show before removing older ones.
+- **Show Timestamps**: Toggle message timestamps on/off.
+
 ## Advanced: Manual URL Parameters
 
 If you prefer to manage your chat scenes manually, you can use URL parameters:
@@ -82,28 +104,6 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
    - `?instance=gaming` for your gaming scene
    - `?instance=talking` for your talking/webcam scene
    - `?instance=intro` for your stream intro scene
-
-### Configuring the Overlay
-
-1. When first loaded, enter your Twitch channel name in the input field and click "Connect."
-2. Access settings by hovering over the chat window and clicking the gear icon (⚙️).
-3. Customize the appearance using the available options.
-4. Click "Save Settings" to apply your changes.
-
-**Important OBS Tip**: To access the settings while in OBS, right-click the browser source in your Sources list (or right-click directly on the overlay in the preview window) and select "Interact." This will open an interactive window where you can hover over the chat to reveal the settings gear icon.
-
-### Settings Options
-
-- **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
-- **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
-- **Background**: Adjust color and opacity with easy-to-use preset buttons.
-- **Border**: Change the border color using theme-specific presets.
-- **Text**: Set the message text color.
-- **Username Colors**: Choose whether to use Twitch's colors or your custom color.
-- **Font Size**: Adjust the text size with a slider.
-- **Width**: Change the width of the chat window.
-- **Max Messages**: Control how many chat messages to show before removing older ones.
-- **Show Timestamps**: Toggle message timestamps on/off.
 
 ## Customization Tips
 
