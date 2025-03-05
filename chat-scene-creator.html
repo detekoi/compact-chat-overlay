@@ -540,6 +540,7 @@
         
         .toggle-slider {
             position: absolute;
+            width: 42%;
             cursor: pointer;
             top: 0;
             left: 0;
@@ -885,10 +886,21 @@
                                 <div class="url-text" id="instanceUrl">file:///path/to/index.html?instance=example</div>
                                 <button class="copy-btn" id="copyUrlBtn">Copy</button>
                             </div>
+                            <div style="margin-top: 10px; padding: 8px; background-color: #f5f5f5; border-radius: 4px; font-size: 13px;">
+                                <p><strong>Important:</strong> When adding to OBS, you need to:</p>
+                                <ol style="margin-left: 20px; margin-top: 5px;">
+                                    <li>In OBS, add a Browser Source</li>
+                                    <li><strong>Uncheck "Local file"</strong> option</li>
+                                    <li>Paste the URL above into the URL field</li>
+                                    <li>Set width: 320px and height: 600px (recommended)</li>
+                                </ol>
+                                <p style="margin-top: 5px; font-size: 12px; color: #666;">Tip: To access settings like appearance in OBS, right-click the source and select "Interact"</p>
+                            </div>
                         </div>
                         
-                        <div style="margin-top: 20px;">
-                            <button class="btn btn-secondary" id="previewBtn" style="width: 100%;">Open Standalone Preview</button>
+                        <!-- Preview functionality removed as it needs to be tested directly in OBS -->
+                        <div style="margin-top: 20px; text-align: center; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
+                            <p style="margin: 0; color: #666;">To preview your chat scene, add it to OBS as a browser source.</p>
                         </div>
                     </div>
                 </div>
@@ -917,11 +929,22 @@
                         <ol>
                             <li>In OBS Studio, right-click in the Sources panel and select <strong>Add</strong> → <strong>Browser</strong></li>
                             <li>Name your source (e.g., "Twitch Chat - Gaming")</li>
-                            <li>Uncheck "Local file" option</li>
+                            <li><strong>IMPORTANT:</strong> Uncheck "Local file" option even though you're using a local file</li>
                             <li>Paste the URL copied above into the URL field</li>
-                            <li>Set Width: 320 and Height: 600 (or as desired)</li>
+                            <li>Adjust the file path in the URL to match where you saved this overlay on your computer</li>
+                            <li>Set Width: 320 and Height: 600 (recommended size)</li>
                             <li>Click "OK" to add the browser source</li>
                             <li>Position and resize the chat overlay as needed in your scene</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="setup-steps">
+                        <h3>Interacting With Your Chat Overlay:</h3>
+                        <ol>
+                            <li>To access settings once added to OBS: right-click the browser source and select <strong>Interact</strong></li>
+                            <li>In the interaction window, hover over the chat to reveal the settings gear icon (⚙️)</li>
+                            <li>When first connecting, enter your Twitch channel name and click "Connect"</li>
+                            <li>The overlay will remember your settings and channel between OBS sessions</li>
                         </ol>
                     </div>
                     
@@ -953,6 +976,23 @@
                                 <li>Check "Refresh browser when scene becomes active" for the most up-to-date chat</li>
                                 <li>Set "Custom CSS" to remove scrollbars if needed:<br>
                                 <code>body { overflow: hidden; }</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion">
+                        <div class="accordion-header">
+                            <h3>Customization Tips</h3>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="accordion-content">
+                            <ul>
+                                <li><strong>Transparent theme:</strong> Perfect for overlaying on gameplay without a visible background</li>
+                                <li><strong>Font size:</strong> Keep between 12-16px for best readability</li>
+                                <li><strong>Positioning:</strong> Place chat where it won't overlap important game elements</li>
+                                <li><strong>Cyberpunk theme:</strong> Great for high-energy, neon-style game streaming</li>
+                                <li><strong>Natural theme:</strong> Offers earthy, warm tones for cozy streams</li>
+                                <li><strong>Light theme:</strong> Provides better contrast on dark game footage</li>
                             </ul>
                         </div>
                     </div>
@@ -1022,8 +1062,7 @@
                 this.defaultChannel = document.getElementById('defaultChannel');
                 this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
                 
-                // Preview section
-                this.previewBtn = document.getElementById('previewBtn');
+                // Preview section removed
                 
                 // OBS setup
                 this.instanceUrl = document.getElementById('instanceUrl');
@@ -1156,8 +1195,7 @@
                 // Settings form events
                 this.saveSettingsBtn.addEventListener('click', () => this.saveCurrentInstance());
                 
-                // Preview button
-                this.previewBtn.addEventListener('click', () => this.openStandalonePreview());
+                // Preview button removed
                 
                 // OBS setup
                 this.copyUrlBtn.addEventListener('click', () => this.copyInstanceUrl());
@@ -1557,17 +1595,7 @@
             }
             
             
-            // Open a standalone preview window
-            openStandalonePreview() {
-                if (!this.currentInstanceId) return;
-                
-                // Create URL for the standalone preview
-                const baseUrl = window.location.href.replace(/\/[^\/]*$/, '/index.html');
-                const previewUrl = `${baseUrl}?instance=${this.currentInstanceId}&preview=true`;
-                
-                // Open in new window
-                window.open(previewUrl, '_blank', 'width=350,height=500');
-            }
+            // Preview functionality removed - must be viewed in OBS
             
             // Update the instance URL for OBS
             updateInstanceUrl() {
