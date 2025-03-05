@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Twitch Chat Overlay - Chat Scene Creator</title>
     <link rel="stylesheet" href="css/instance-manager.css">
     <style>
@@ -63,8 +63,10 @@
         /* Layout */
         .container {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             padding: var(--spacing-md);
+            box-sizing: border-box;
         }
         
         header {
@@ -125,9 +127,8 @@
         }
         
         .instance-item {
-            display: flex;
-            align-items: center;
-            padding: var(--spacing-sm);
+            display: block;
+            padding: var(--spacing-md);
             border-radius: var(--border-radius-sm);
             border: 1px solid var(--border-color);
             cursor: pointer;
@@ -144,28 +145,7 @@
             background-color: rgba(145, 71, 255, 0.1);
         }
         
-        .instance-thumb {
-            width: 50px;
-            height: 50px;
-            border-radius: var(--border-radius-sm);
-            margin-right: var(--spacing-md);
-            background-color: #f0f0f0;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .instance-thumb-preview {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            overflow: hidden;
-        }
+        /* Instance thumb removed as requested */
         
         .instance-details {
             flex-grow: 1;
@@ -195,7 +175,10 @@
             box-shadow: var(--shadow-sm);
             padding: var(--spacing-lg);
             max-width: 1000px;
+            width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
         
         .workspace-header {
@@ -220,12 +203,16 @@
             display: grid;
             grid-template-columns: 1fr 350px;
             gap: var(--spacing-lg);
+            max-width: 100%;
         }
         
         .settings-container {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-lg);
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         
         .settings-section {
@@ -269,6 +256,9 @@
             display: flex;
             flex-direction: column;
             gap: var(--spacing-md);
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         
         .preview-container {
@@ -319,6 +309,8 @@
         .url-display {
             display: flex;
             margin-top: var(--spacing-sm);
+            width: 100%;
+            max-width: 100%;
         }
         
         .url-text {
@@ -331,6 +323,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 0;
         }
         
         .copy-btn {
@@ -717,6 +710,13 @@
             .preview-panel {
                 margin-top: var(--spacing-lg);
             }
+            
+            .workspace-panel {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+                padding: var(--spacing-md);
+            }
         }
         
         @media (max-width: 850px) {
@@ -734,14 +734,27 @@
             
             .container {
                 padding: var(--spacing-sm);
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
             }
             
             .workspace-panel {
                 padding: var(--spacing-md);
+                width: 100%;
+                overflow-x: hidden;
             }
         }
         
         @media (max-width: 600px) {
+            body {
+                overflow-x: hidden;
+            }
+            
+            .container {
+                padding: var(--spacing-xs);
+            }
+            
             .settings-row {
                 flex-direction: column;
                 align-items: flex-start;
@@ -764,6 +777,10 @@
             
             .workspace-actions {
                 width: 100%;
+            }
+            
+            .url-text {
+                font-size: 12px;
             }
         }
     </style>
@@ -1126,15 +1143,7 @@
                     instanceItem.className = `instance-item ${instanceId === this.currentInstanceId ? 'active' : ''}`;
                     instanceItem.dataset.id = instanceId;
                     
-                    // Create thumbnail preview
-                    const thumbnailHtml = this.createThumbnail(instance);
-                    
                     instanceItem.innerHTML = `
-                        <div class="instance-thumb">
-                            <div class="instance-thumb-preview" style="${this.getInstancePreviewStyle(instance)}">
-                                ${thumbnailHtml}
-                            </div>
-                        </div>
                         <div class="instance-details">
                             <div class="instance-name">${instance.name}</div>
                             <div class="instance-meta">ID: ${instanceId}</div>
@@ -1149,25 +1158,7 @@
                 });
             }
             
-            // Create a thumbnail preview for an instance
-            createThumbnail(instance) {
-                return `<div style="font-size: 5px; line-height: 1.2;">
-                    <span style="color: ${instance.usernameColor || '#9147ff'};">User:</span> 
-                    <span>Chat</span>
-                </div>`;
-            }
-            
-            // Get CSS styles for the instance preview
-            getInstancePreviewStyle(instance) {
-                return `
-                    background-color: ${instance.bgColor || 'rgba(18, 18, 18, 0.8)'};
-                    border: 1px solid ${instance.borderColor || '#9147ff'};
-                    color: ${instance.textColor || '#efeff1'};
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                `;
-            }
+            // Methods for thumbnail rendering removed, since we now use a generic chat icon
             
             // Show empty state when no chat scenes are available
             showEmptyState() {
