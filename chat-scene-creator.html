@@ -927,6 +927,11 @@
                     <button class="btn btn-primary" id="emptyStateCreateBtn">Create First Chat Scene</button>
                 </div>
                 
+                <!-- Show OBS Setup Button -->
+                <div style="margin: 20px 0; text-align: center;">
+                    <button id="toggleObsSetupBtn" class="btn btn-secondary">Show OBS Setup Instructions</button>
+                </div>
+                
                 <!-- OBS Setup Section -->
                 <div class="obs-setup" id="obsSetup" style="display: none;">
                     <h2>OBS Setup Instructions</h2>
@@ -943,24 +948,24 @@
                     <div class="setup-steps">
                         <h3>Steps to Add in OBS:</h3>
                         <ol>
-                            <li>In OBS Studio, right-click in the Sources panel and select <strong>Add</strong> → <strong>Browser</strong></li>
-                            <li>Name your source (e.g., "Twitch Chat - Gaming")</li>
-                            <li>Paste the URL copied above into the URL field</li>
-                            <li><strong>IF YOU CAN'T PASTE:</strong> Uncheck "Local file" option even though you're using a local file</li>
-                            <li>Adjust the file path in the URL to match where you saved this overlay on your computer</li>
-                            <li>Set Width: 320 and Height: 600 (recommended size)</li>
-                            <li>Click "OK" to add the browser source</li>
-                            <li>Position and resize the chat overlay as needed in your scene</li>
+                            <li>In OBS Studio, right-click in the Sources panel and select <strong>Add</strong> → <strong>Browser</strong>.</li>
+                            <li>Name your source (e.g., "Twitch Chat - Gaming").</li>
+                            <li>Paste the URL copied above into the URL field.</li>
+                            <li><strong>IF YOU CAN'T PASTE:</strong> Uncheck "Local file" option even though you're using a local file.</li>
+                            <li>Adjust the file path in the URL to match where you saved this overlay on your computer.</li>
+                            <li>Set Width: 320 and Height: 600 (recommended size).</li>
+                            <li>Click "OK" to add the browser source.</li>
+                            <li>Position and resize the chat overlay as needed in your scene.</li>
                         </ol>
                     </div>
                     
                     <div class="setup-steps">
                         <h3>Interacting With Your Chat Overlay:</h3>
                         <ol>
-                            <li>To access settings once added to OBS: right-click the browser source and select <strong>Interact</strong></li>
-                            <li>In the interaction window, hover over the chat to reveal the settings gear icon (⚙️)</li>
-                            <li>When first connecting, enter your Twitch channel name and click "Connect"</li>
-                            <li>The overlay will remember your settings and channel between OBS sessions</li>
+                            <li>To access settings once added to OBS: right-click the browser source and select <strong>Interact</strong>.</li>
+                            <li>In the interaction window, hover over the chat to reveal the settings gear icon (⚙️).</li>
+                            <li>When first connecting, enter your Twitch channel name and click "Connect."</li>
+                            <li>The overlay will remember your settings and channel between OBS sessions.</li>
                         </ol>
                     </div>
                     
@@ -988,8 +993,8 @@
                         <div class="accordion-content">
                             <p>For optimal performance, configure these additional settings in your OBS Browser Source:</p>
                             <ul>
-                                <li>Check "Shutdown source when not visible" to save resources</li>
-                                <li>Check "Refresh browser when scene becomes active" for the most up-to-date chat</li>
+                                <li>Check "Shutdown source when not visible" to save resources.</li>
+                                <li>Check "Refresh browser when scene becomes active" for the most up-to-date chat.</li>
                                 <li>Set "Custom CSS" to remove scrollbars if needed:<br>
                                 <code>body { overflow: hidden; }</code></li>
                             </ul>
@@ -1003,12 +1008,12 @@
                         </div>
                         <div class="accordion-content">
                             <ul>
-                                <li><strong>Transparent theme:</strong> Perfect for overlaying on gameplay without a visible background</li>
-                                <li><strong>Font size:</strong> Keep between 12-16px for best readability</li>
-                                <li><strong>Positioning:</strong> Place chat where it won't overlap important game elements</li>
-                                <li><strong>Cyberpunk theme:</strong> Great for high-energy, neon-style game streaming</li>
-                                <li><strong>Natural theme:</strong> Offers earthy, warm tones for cozy streams</li>
-                                <li><strong>Light theme:</strong> Provides better contrast on dark game footage</li>
+                                <li><strong>Transparent theme:</strong> Perfect for overlaying on gameplay without a visible background.</li>
+                                <li><strong>Font size:</strong> Keep between 12-16px for best readability.</li>
+                                <li><strong>Positioning:</strong> Place chat where it won't overlap important game elements.</li>
+                                <li><strong>Cyberpunk theme:</strong> Great for high-energy, neon-style game streaming.</li>
+                                <li><strong>Natural theme:</strong> Offers earthy, warm tones for cozy streams.</li>
+                                <li><strong>Light theme:</strong> Provides better contrast on dark game footage.</li>
                             </ul>
                         </div>
                     </div>
@@ -1666,6 +1671,19 @@
                 }
             `;
             document.head.appendChild(style);
+            
+            // Toggle OBS Setup Instructions
+            const toggleObsSetupBtn = document.getElementById('toggleObsSetupBtn');
+            const obsSetup = document.getElementById('obsSetup');
+            
+            toggleObsSetupBtn.addEventListener('click', () => {
+                const isVisible = obsSetup.style.display !== 'none';
+                
+                obsSetup.style.display = isVisible ? 'none' : 'block';
+                toggleObsSetupBtn.textContent = isVisible ? 
+                    'Show OBS Setup Instructions' : 
+                    'Hide OBS Setup Instructions';
+            });
         });
     </script>
 </body>
