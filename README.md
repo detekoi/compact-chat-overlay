@@ -4,7 +4,11 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![Compact Chat Overlay Screenshot](preview.png)
 
-[Click here for a live demo!](https://detekoi.github.io/compact-chat-overlay/)
+## Try It Now
+
+**[➡️ Use the Online Chat Scene Creator](https://detekoi.github.io/compact-chat-overlay/)**
+
+Create and manage multiple chat scenes for your stream in seconds!
 
 ## Features
 
@@ -28,14 +32,23 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ## Getting Started
 
-### Quick Start Guide
+### Quick Start Guide (Recommended Method)
 
-1. **Download** this repository or clone it to your computer.
-2. **Open the Chat Scene Creator** by opening the `chat-scene-creator.html` file in your browser.
-3. **Create your first chat scene** by clicking the "New Chat Scene" button.
-4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting".
-5. **Copy the generated URL** for adding to OBS.
-6. **Add to OBS** following the provided instructions.
+1. **Visit the online version** at [detekoi.github.io/compact-chat-overlay](https://detekoi.github.io/compact-chat-overlay/)
+2. **Use the Chat Scene Creator** to easily set up and manage your chat scenes
+3. **Create your first chat scene** by clicking the "New Chat Scene" button
+4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting"
+5. **Copy the generated URL** for adding to OBS
+6. **Add to OBS** following the provided instructions
+
+### Alternative: Local Installation
+
+If you prefer to run everything locally:
+
+1. **Download** this repository or clone it to your computer
+2. **Open the index.html file** in your browser
+3. **Select "Chat Scene Creator"** from the landing page
+4. Follow the same steps as above to create and manage chat scenes
 
 ### Setting Up in OBS
 
@@ -94,16 +107,16 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 
 If you prefer to manage your chat scenes manually, you can use URL parameters:
 
-1. Add the `?instance=NAME` parameter to the URL:
-   - Windows example: `file:///C:/path/to/index.html?instance=gaming`
-   - macOS example: `file:///Users/username/path/to/index.html?instance=chatting`
+1. Add the `?scene=NAME` parameter to the URL:
+   - Windows example: `file:///C:/path/to/chat.html?scene=gaming`
+   - macOS example: `file:///Users/username/path/to/chat.html?scene=chatting`
 
-2. Each instance maintains its own separate settings with unique styling.
+2. Each scene maintains its own separate settings with unique styling.
 
-3. Use descriptive instance names like:
-   - `?instance=gaming` for your gaming scene
-   - `?instance=talking` for your talking/webcam scene
-   - `?instance=intro` for your stream intro scene
+3. Use descriptive scene names like:
+   - `?scene=gaming` for your gaming scene
+   - `?scene=talking` for your talking/webcam scene
+   - `?scene=intro` for your stream intro scene
 
 ## Customization Tips
 
