@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitch Chat Overlay - Instance Manager</title>
+    <title>Twitch Chat Overlay - Chat Scene Creator</title>
     <link rel="stylesheet" href="css/instance-manager.css">
     <style>
         :root {
@@ -770,23 +770,23 @@
 <body>
     <div class="container">
         <header>
-            <h1>Twitch Chat Overlay - Instance Manager</h1>
-            <p>Create, customize, and manage multiple instances of your Twitch chat overlay for different OBS scenes</p>
+            <h1>Twitch Chat Overlay - Chat Scene Creator</h1>
+            <p>Create, customize, and manage chat scenes for different parts of your stream</p>
         </header>
         
         <main class="app-layout">
-            <!-- Instance List Panel -->
+            <!-- Chat Scene List Panel -->
             <div class="instances-panel">
                 <div class="instances-header">
-                    <h2>Instances</h2>
+                    <h2>Chat Scenes</h2>
                 </div>
                 
                 <div class="instance-list" id="instanceList">
-                    <!-- Instance items will be dynamically generated here -->
+                    <!-- Chat Scene items will be dynamically generated here -->
                 </div>
                 
                 <div class="action-buttons">
-                    <button class="btn btn-primary" id="createInstanceBtn">New Instance</button>
+                    <button class="btn btn-primary" id="createInstanceBtn">New Chat Scene</button>
                     <button class="btn btn-secondary" id="importBtn">Import</button>
                     <button class="btn btn-secondary" id="exportAllBtn">Export All</button>
                 </div>
@@ -795,7 +795,7 @@
             <!-- Main Workspace Panel -->
             <div class="workspace-panel">
                 <div class="workspace-header">
-                    <h2 class="workspace-title" id="workspaceTitle">Select or Create an Instance</h2>
+                    <h2 class="workspace-title" id="workspaceTitle">Select or Create a Chat Scene</h2>
                     <div class="workspace-actions" id="workspaceActions" style="display: none;">
                         <button class="btn btn-secondary" id="duplicateBtn">Duplicate</button>
                         <button class="btn btn-danger" id="deleteBtn">Delete</button>
@@ -895,8 +895,8 @@
                 
                 <!-- Empty State -->
                 <div id="emptyState" class="empty-state" style="text-align: center; padding: 40px 0;">
-                    <p style="margin-bottom: 20px;">No instance selected. Create a new instance or select one from the list.</p>
-                    <button class="btn btn-primary" id="emptyStateCreateBtn">Create First Instance</button>
+                    <p style="margin-bottom: 20px;">No chat scene selected. Create a new chat scene or select one from the list.</p>
+                    <button class="btn btn-primary" id="emptyStateCreateBtn">Create First Chat Scene</button>
                 </div>
                 
                 <!-- OBS Setup Section -->
@@ -961,15 +961,15 @@
         </main>
     </div>
 
-    <!-- Modal for creating/editing instances -->
+    <!-- Modal for creating/editing chat scenes -->
     <div id="instanceModal" style="display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
         <div style="background-color: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
-            <h2 id="modalTitle">Create New Instance</h2>
+            <h2 id="modalTitle">Create New Chat Scene</h2>
             <div style="margin: 20px 0;">
                 <div>
                     <label for="modalInstanceName" style="display: block; margin-bottom: 5px;">Descriptive Name:</label>
-                    <input type="text" id="modalInstanceName" style="width: 100%; padding: 8px;" placeholder="e.g., Gaming Stream, Just Chatting, etc.">
-                    <p style="font-size: 12px; color: #666; margin-top: 4px;">A friendly name to identify this overlay in your instance list</p>
+                    <input type="text" id="modalInstanceName" style="width: 100%; padding: 8px;" placeholder="e.g., Gaming, Just Chatting, Intro Screen">
+                    <p style="font-size: 12px; color: #666; margin-top: 4px;">A friendly name to identify this chat overlay in your scenes list</p>
                 </div>
             </div>
             <div style="text-align: right;">
@@ -983,8 +983,8 @@
     <div id="notification-container"></div>
 
     <script>
-        // Main Instance Manager class
-        class InstanceManager {
+        // Main Chat Scene Creator class
+        class ChatSceneCreator {
             constructor() {
                 this.instances = {};
                 this.currentInstanceId = null;
@@ -1130,12 +1130,12 @@
                 `;
             }
             
-            // Show empty state when no instances are available
+            // Show empty state when no chat scenes are available
             showEmptyState() {
                 this.emptyState.style.display = 'block';
                 this.configLayout.style.display = 'none';
                 this.workspaceActions.style.display = 'none';
-                this.workspaceTitle.textContent = 'Create Your First Instance';
+                this.workspaceTitle.textContent = 'Create Your First Chat Scene';
             }
             
             // Setup all event listeners
@@ -1179,9 +1179,9 @@
                 // No form events needed for our simplified interface
             }
             
-            // Show the create instance modal
+            // Show the create chat scene modal
             showCreateInstanceModal() {
-                this.modalTitle.textContent = 'Create New Instance';
+                this.modalTitle.textContent = 'Create New Chat Scene';
                 this.modalInstanceName.value = '';
                 this.modalCreateBtn.textContent = 'Create';
                 this.instanceModal.style.display = 'flex';
@@ -1195,12 +1195,12 @@
                 this.instanceModal.style.display = 'none';
             }
             
-            // Create a new instance
+            // Create a new chat scene
             createInstance() {
                 const name = this.modalInstanceName.value.trim();
                 
                 if (!name) {
-                    this.showNotification('Error', 'Please enter an instance name.', 'error');
+                    this.showNotification('Error', 'Please enter a name for your chat scene.', 'error');
                     return;
                 }
                 
@@ -1234,7 +1234,7 @@
                 this.hideModal();
                 this.renderInstanceList();
                 this.selectInstance(id);
-                this.showNotification('Success', `Instance '${name}' created successfully.`, 'success');
+                this.showNotification('Success', `Chat scene '${name}' created successfully.`, 'success');
             }
             
             // Generate a unique instance ID from a name
@@ -1317,7 +1317,7 @@
             // Save the current instance
             saveCurrentInstance() {
                 if (!this.currentInstanceId || !this.instances[this.currentInstanceId]) {
-                    this.showNotification('Error', 'No instance selected.', 'error');
+                    this.showNotification('Error', 'No chat scene selected.', 'error');
                     return;
                 }
                 
@@ -1352,7 +1352,7 @@
                 this.renderInstanceList();
                 this.updateInstanceUrl();
                 
-                this.showNotification('Success', 'Instance saved successfully.', 'success');
+                this.showNotification('Success', 'Chat scene saved successfully.', 'success');
             }
             
             // Save to instance-specific localStorage key
@@ -1635,9 +1635,9 @@
             }
         }
         
-        // Initialize the Instance Manager
+        // Initialize the Chat Scene Creator
         document.addEventListener('DOMContentLoaded', () => {
-            const manager = new InstanceManager();
+            const manager = new ChatSceneCreator();
             
             // Add style to animate message transitions
             const style = document.createElement('style');
