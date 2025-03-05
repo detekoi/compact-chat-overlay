@@ -1290,16 +1290,8 @@
             // Get default configuration for new instances
             getDefaultConfig() {
                 return {
-                    theme: 'default',
-                    bgColor: 'rgba(18, 18, 18, 0.8)',
-                    borderColor: '#9147ff',
-                    textColor: '#efeff1',
-                    usernameColor: '#9147ff',
-                    fontSize: 14,
-                    chatWidth: 300,
                     maxMessages: 50,
                     showTimestamps: true,
-                    overrideUsernameColors: false,
                     lastChannel: ''
                 };
             }
@@ -1360,12 +1352,8 @@
                 instance.name = this.instanceName.value.trim();
                 instance.lastModified = new Date().toISOString();
                 
-                // Get existing config or create default
-                const existingConfig = instance.config || this.getDefaultConfig();
-                
-                // Update only the fields we care about, preserving the rest
+                // Create a new simplified config object with only the relevant properties
                 const updatedConfig = {
-                    ...existingConfig,
                     maxMessages: parseInt(this.maxMessages.value),
                     showTimestamps: this.showTimestamps.checked,
                     lastChannel: this.defaultChannel.value.trim()
@@ -1543,8 +1531,21 @@
                                     }
                                 }
                                 
-                                // Import the instance
-                                this.instances[id] = importedInstances[id];
+                                // Import the instance but sanitize the config to only include relevant properties
+                                const instance = importedInstances[id];
+                                
+                                // Create a clean version with only the properties we need
+                                this.instances[id] = {
+                                    name: instance.name,
+                                    createdAt: instance.createdAt || new Date().toISOString(),
+                                    lastModified: instance.lastModified || new Date().toISOString(),
+                                    config: {
+                                        maxMessages: instance.config.maxMessages || 50,
+                                        showTimestamps: instance.config.showTimestamps !== undefined ? 
+                                            instance.config.showTimestamps : true,
+                                        lastChannel: instance.config.lastChannel || ''
+                                    }
+                                };
                                 importCount++;
                             });
                             
