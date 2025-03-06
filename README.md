@@ -118,10 +118,10 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 ## Settings Options
 
 - **Display Mode**: Choose between Window mode (traditional chat window) or Popup mode (toast notifications).
-- **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
+- **Theme Selection**: Choose from Dark (neutral gray border), Light (subtle light border), Natural, Transparent (borderless), Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
 - **Background**: Adjust color and opacity with easy-to-use preset buttons.
-- **Border**: Change the border color using theme-specific presets.
+- **Border**: Change the border color using theme-specific presets or choose "None" for borderless display.
 - **Text**: Set the message text color.
 - **Username Colors**: Choose whether to use Twitch's colors or your custom color.
 - **Font Size**: Adjust the text size with a slider.
