@@ -10,7 +10,7 @@
         :root {
             /* Default Theme (Dark) */
             --chat-bg-color: rgba(18, 18, 18, 0.8);
-            --chat-border-color: #9147ff;
+            --chat-border-color: #444444;
             --chat-text-color: #efeff1;
             --username-color: #9147ff; /* Default if no color is specified */
             --timestamp-color: #adadb8;
@@ -35,14 +35,14 @@
         /* Light Theme */
         :root.light-theme {
             --chat-bg-color: rgba(250, 250, 250, 0.85);
-            --chat-border-color: #6441a5;
+            --chat-border-color: #cccccc;
             --chat-text-color: #1a1a1a;
             --username-color: #6441a5;
             --timestamp-color: #737373;
             
             /* Popup styles */
             --popup-bg-color: rgba(250, 250, 250, 0.85);
-            --popup-border-color: #6441a5;
+            --popup-border-color: #cccccc;
             --popup-text-color: #1a1a1a;
             --popup-username-color: #6441a5;
         }
@@ -491,9 +491,9 @@
             <div class="color-picker">
                 <div class="color-preview" id="border-color-preview"></div>
                 <div class="color-buttons">
-                    <button type="button" class="color-btn" data-color="#9147ff" data-target="border">Twitch</button>
+                    <button type="button" class="color-btn" data-color="#444444" data-target="border">Dark</button>
+                    <button type="button" class="color-btn" data-color="#cccccc" data-target="border">Light</button>
                     <button type="button" class="color-btn" data-color="#7e6852" data-target="border">Natural</button>
-                    <button type="button" class="color-btn" data-color="#ffffff33" data-target="border">Trans</button>
                     <button type="button" class="color-btn" data-color="#ff6bcb" data-target="border">Pink</button>
                     <button type="button" class="color-btn" data-color="#00ffb3" data-target="border">Cyber</button>
                     <button type="button" class="color-btn" data-color="transparent" data-target="border">None</button>
@@ -1135,7 +1135,7 @@
                 colors: {
                     bg: '#121212',
                     bgOpacity: 80,
-                    border: '#9147ff',
+                    border: '#444444',
                     text: '#efeff1',
                     username: '#9147ff',
                     timestamp: '#adadb8'
@@ -1147,7 +1147,7 @@
                 colors: {
                     bg: '#ffffff',
                     bgOpacity: 85,
-                    border: '#6441a5',
+                    border: '#cccccc',
                     text: '#1a1a1a',
                     username: '#6441a5',
                     timestamp: '#737373'
@@ -1171,7 +1171,7 @@
                 colors: {
                     bg: '#000000',
                     bgOpacity: 0,
-                    border: '#ffffff33',
+                    border: 'transparent',
                     text: '#ffffff',
                     username: '#ff9800',
                     timestamp: '#ffffff99'
