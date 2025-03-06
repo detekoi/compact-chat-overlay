@@ -12,6 +12,7 @@ Create and manage multiple chat scenes for your stream in seconds!
 
 ## Features
 
+- **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Compact & Clean Interface**: Displays chat messages in a minimalist window that can be added as a browser source.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
 - **Emote Support**: Displays Twitch emotes in chat.
@@ -100,7 +101,9 @@ The Chat Scene Creator makes it easy to manage multiple chat overlays:
 
 To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 1. Right-click the browser source in OBS and select **Interact**.
-2. In the interaction window, hover over the chat to see the settings gear icon (⚙️).
+2. In the interaction window:
+   - **Window Mode**: Hover over the chat to see the settings gear icon (⚙️) in the top-right corner.
+   - **Popup Mode**: Hover over the top-right area to reveal the settings gear icon (⚙️).
 3. Click the gear icon to access the settings panel.
 
 ## Configuring the Overlay
@@ -114,6 +117,7 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 
 ## Settings Options
 
+- **Display Mode**: Choose between Window mode (traditional chat window) or Popup mode (toast notifications).
 - **Theme Selection**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
 - **Background**: Adjust color and opacity with easy-to-use preset buttons.
@@ -125,6 +129,14 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 - **Height**: Change the height of the chat window.
 - **Max Messages**: Control how many chat messages to show before removing older ones.
 - **Show Timestamps**: Toggle message timestamps on/off.
+
+### Popup Mode Settings
+
+When using Popup mode, additional options become available:
+
+- **Animation Direction**: Choose how messages animate in (From Top, From Bottom, From Left, From Right).
+- **Duration**: Control how long each message stays visible (2-10 seconds).
+- **Max Messages**: Set how many popup messages can be visible simultaneously.
 
 ## Advanced: Manual URL Parameters
 
@@ -143,6 +155,7 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ## Customization Tips
 
+### Window Mode Tips
 - Use the **Light** theme for an airy, bright overlay on top of your gameplay or camera.
 - The **Live Preview** in settings helps visualize changes before applying them.
 - For better readability, keep font sizes between 12-16px.
@@ -150,6 +163,14 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - Try the **Cyberpunk** theme for a neon-style game streaming aesthetic.
 - For retro games or cozy streams, the **Natural** theme offers earthy, warm tones.
 - For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
+
+### Popup Mode Tips
+- Use popup mode for a more dynamic, attention-grabbing chat experience.
+- Choose **From Bottom** animation for a natural chat appearance similar to mobile notifications.
+- **From Right** animation works well for right-side gameplay UI layouts.
+- Consider shortening the duration (3-4 seconds) during high chat activity streams.
+- Set a lower max messages count (2-3) to prevent screen clutter.
+- Match the animation direction with your stream layout (e.g., choose From Left if your camera is on the right).
 
 ## Technical Details
 
