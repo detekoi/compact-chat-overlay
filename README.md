@@ -174,3 +174,7 @@ If you find this useful or have suggestions for improvements, feel free to:
 - Star the repository.
 - Submit issues or pull requests.
 - Fork and customize it for your own needs.
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or in any way officially connected to Twitch Interactive, Inc. or any of its subsidiaries or affiliates. The official Twitch website can be found at https://www.twitch.tv. Twitch and the Twitch logo are trademarks of Twitch Interactive, Inc. While this tool is designed to work with Twitch streams, any similarity to Twitch's brand colors or visual elements is incidental and does not imply any official connection or endorsement.
