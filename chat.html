@@ -20,6 +20,12 @@
             --chat-border-radius: 8px;
             --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
             
+            /* Popup Theme (same as chat by default) */
+            --popup-bg-color: var(--chat-bg-color);
+            --popup-border-color: var(--chat-border-color);
+            --popup-text-color: var(--chat-text-color);
+            --popup-username-color: var(--username-color);
+            
             /* Config Panel specific styles - not affected by chat themes */
             --config-bg-color: rgba(35, 35, 35, 0.95);
             --config-text-color: #ffffff;
@@ -33,6 +39,12 @@
             --chat-text-color: #1a1a1a;
             --username-color: #6441a5;
             --timestamp-color: #737373;
+            
+            /* Popup styles */
+            --popup-bg-color: rgba(250, 250, 250, 0.85);
+            --popup-border-color: #6441a5;
+            --popup-text-color: #1a1a1a;
+            --popup-username-color: #6441a5;
         }
 
         /* Natural Theme (renamed from Polar Bear Cafe) */
@@ -42,6 +54,12 @@
             --chat-text-color: #4E3629;
             --username-color: #508D69;
             --timestamp-color: #ACA192;
+            
+            /* Popup styles */
+            --popup-bg-color: rgba(245, 242, 230, 0.85);
+            --popup-border-color: #7E6852;
+            --popup-text-color: #4E3629;
+            --popup-username-color: #508D69;
         }
 
         /* Transparent Theme */
@@ -51,6 +69,12 @@
             --chat-text-color: #ffffff;
             --username-color: #ff9800;
             --timestamp-color: rgba(255, 255, 255, 0.6);
+            
+            /* Popup styles */
+            --popup-bg-color: rgba(0, 0, 0, 0.5);  /* Slightly darker for visibility */
+            --popup-border-color: rgba(255, 255, 255, 0.3);
+            --popup-text-color: #ffffff;
+            --popup-username-color: #ff9800;
         }
 
         /* Pink Theme */
@@ -60,6 +84,12 @@
             --chat-text-color: #8e2651;
             --username-color: #b81670;
             --timestamp-color: #d67bb2;
+            
+            /* Popup styles */
+            --popup-bg-color: rgba(255, 222, 236, 0.85);
+            --popup-border-color: #ff6bcb;
+            --popup-text-color: #8e2651;
+            --popup-username-color: #b81670;
         }
 
         /* Cyberpunk Theme */
@@ -69,6 +99,12 @@
             --chat-text-color: #00ffea;
             --username-color: #ff2e97;
             --timestamp-color: #fffd88;
+            
+            /* Popup styles */
+            --popup-bg-color: rgba(12, 12, 40, 0.85);
+            --popup-border-color: #00ffb3;
+            --popup-text-color: #00ffea;
+            --popup-username-color: #ff2e97;
         }
 
         * {
@@ -229,9 +265,79 @@
             opacity: 1;
             transform: scale(1.1);
         }
+        
+        /* Popup mode styles */
+        #popup-container {
+            position: fixed;
+            pointer-events: none; /* Allow clicking through */
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            /* Position will be set via JS based on selected corner */
+            top: auto;
+            right: auto;
+            bottom: auto;
+            left: auto;
+        }
+        
+        #popup-container.hidden {
+            display: none;
+        }
+        
+        .popup-message {
+            background-color: var(--popup-bg-color);
+            border: 2px solid var(--popup-border-color);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            max-width: 400px;
+            min-width: 200px;
+            margin-bottom: 8px;
+            animation: slideIn 0.3s forwards, fadeOut 0.3s forwards;
+            animation-delay: 0s, 5s; /* Will be customized via JS */
+            opacity: 0; /* Start invisible */
+        }
+        
+        .popup-message .timestamp {
+            color: var(--timestamp-color);
+            font-size: 0.85em;
+            margin-right: 5px;
+        }
+        
+        .popup-message .username {
+            color: var(--popup-username-color);
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .popup-message .message-text {
+            color: var(--popup-text-color);
+            word-break: break-word;
+        }
+        
+        .popup-message .emote {
+            height: 1.5em;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
 </head>
 <body>
+    <div id="popup-container" class="hidden">
+        <!-- Popup messages will be inserted here -->
+    </div>
+    
     <div id="chat-container">
         <button id="settings-btn">⚙️</button>
         <div id="channel-form">
@@ -409,6 +515,53 @@
             <input type="checkbox" id="show-timestamps" checked>
         </div>
         
+        <div class="section-divider">Display Mode</div>
+        
+        <div class="config-row">
+            <label>Chat Mode:</label>
+            <div>
+                <label>
+                    <input type="radio" name="chat-mode" value="window" checked>
+                    Window
+                </label>
+                <label style="margin-left: 10px;">
+                    <input type="radio" name="chat-mode" value="popup">
+                    Popup
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Position:</label>
+            <select id="popup-position">
+                <option value="top-left">Top Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right" selected>Bottom Right</option>
+            </select>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Offset:</label>
+            <div>
+                <label>X: <input type="number" id="popup-offset-x" value="20" min="0" max="200" style="width: 50px;"></label>
+                <label style="margin-left: 10px;">Y: <input type="number" id="popup-offset-y" value="20" min="0" max="200" style="width: 50px;"></label>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Duration (seconds):</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="popup-duration" min="2" max="10" value="5">
+                <span id="popup-duration-value">5s</span>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Max Messages:</label>
+            <input type="number" id="popup-max-messages" value="3" min="1" max="10">
+        </div>
+        
         <style>
             .theme-buttons-container {
                 display: flex;
@@ -432,6 +585,9 @@
                 flex: 1;
                 max-width: 70px;
             }
+            .popup-setting {
+                display: none; /* Hidden by default, will be shown when popup mode is selected */
+            }
         </style>
         
         <div class="config-row" id="channel-actions" style="margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.3); padding-top: 15px;">
@@ -450,6 +606,10 @@
     <script>
         // Config and state variables
         let config = {
+            // Display mode
+            chatMode: 'window', // 'window' or 'popup'
+            
+            // Window mode settings
             bgColor: 'rgba(18, 18, 18, 0.8)',
             borderColor: '#9147ff',
             textColor: '#efeff1',
@@ -458,7 +618,17 @@
             chatWidth: 300,
             chatHeight: 600,
             maxMessages: 50,
-            showTimestamps: true
+            showTimestamps: true,
+            
+            // Popup mode settings
+            popup: {
+                position: 'bottom-right',
+                offsetX: 20,
+                offsetY: 20,
+                duration: 5, // seconds
+                maxMessages: 3,
+                theme: 'dark' // Inherits from main theme
+            }
         };
         
         let channel = '';
@@ -472,6 +642,7 @@
         const connectBtn = document.getElementById('connect-btn');
         const settingsBtn = document.getElementById('settings-btn');
         const configPanel = document.getElementById('config-panel');
+        const popupContainer = document.getElementById('popup-container');
         
         // Dragging functionality removed as it's not needed for OBS browser sources
 
@@ -556,6 +727,124 @@
             };
         }
 
+        // Popup mode functions
+        function switchChatMode(mode) {
+            config.chatMode = mode;
+            
+            if (mode === 'window') {
+                chatContainer.classList.remove('hidden');
+                popupContainer.classList.add('hidden');
+            } else { // popup mode
+                chatContainer.classList.add('hidden');
+                popupContainer.classList.remove('hidden');
+                updatePopupPosition();
+            }
+        }
+        
+        // Update popup position based on settings
+        function updatePopupPosition() {
+            const { position, offsetX, offsetY } = config.popup;
+            
+            // Reset all position properties
+            popupContainer.style.top = 'auto';
+            popupContainer.style.right = 'auto';
+            popupContainer.style.bottom = 'auto';
+            popupContainer.style.left = 'auto';
+            
+            // Set position based on corner selection
+            switch (position) {
+                case 'top-left':
+                    popupContainer.style.top = `${offsetY}px`;
+                    popupContainer.style.left = `${offsetX}px`;
+                    break;
+                case 'top-right':
+                    popupContainer.style.top = `${offsetY}px`;
+                    popupContainer.style.right = `${offsetX}px`;
+                    break;
+                case 'bottom-left':
+                    popupContainer.style.bottom = `${offsetY}px`;
+                    popupContainer.style.left = `${offsetX}px`;
+                    break;
+                case 'bottom-right':
+                default:
+                    popupContainer.style.bottom = `${offsetY}px`;
+                    popupContainer.style.right = `${offsetX}px`;
+                    break;
+            }
+        }
+        
+        // Create and display a popup message
+        function showPopupMessage(username, message, userColor, emotes = {}) {
+            // Create popup element
+            const popup = document.createElement('div');
+            popup.className = 'popup-message';
+            
+            // Set animation duration
+            popup.style.animationDelay = `0s, ${config.popup.duration}s`;
+            
+            // Create message content
+            let messageHTML = '';
+            
+            // Add timestamp if enabled
+            if (config.showTimestamps) {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                messageHTML += `<span class="timestamp">[${hours}:${minutes}]</span>`;
+            }
+            
+            // Add username with color
+            const usernameColor = config.overrideUsernameColors ? 
+                'var(--popup-username-color)' : userColor;
+            messageHTML += `<span class="username" style="color: ${usernameColor}">${username}:</span>`;
+            
+            // Process message text with emotes
+            let messageText = ' ';
+            
+            if (Object.keys(emotes).length > 0) {
+                // Sort emote positions to replace from end to start (to not mess up indices)
+                const positions = Object.keys(emotes).map(Number).sort((a, b) => b - a);
+                
+                let processedMessage = message;
+                
+                positions.forEach(position => {
+                    const emote = emotes[position];
+                    const emoteCode = message.substring(position, emote.end + 1);
+                    const emoteImg = `<img class="emote" src="https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0" alt="${emoteCode}">`;
+                    
+                    processedMessage = processedMessage.substring(0, position) + 
+                                      emoteImg + 
+                                      processedMessage.substring(emote.end + 1);
+                });
+                
+                messageText += processedMessage;
+            } else {
+                messageText += message;
+            }
+            
+            messageHTML += `<span class="message-text">${messageText}</span>`;
+            
+            // Set popup content
+            popup.innerHTML = messageHTML;
+            
+            // Add to container
+            popupContainer.appendChild(popup);
+            
+            // Remove older messages if exceeding max
+            const popups = popupContainer.querySelectorAll('.popup-message');
+            if (popups.length > config.popup.maxMessages) {
+                popupContainer.removeChild(popups[0]);
+            }
+            
+            // Remove this popup after animation completes
+            const duration = (config.popup.duration + 0.3) * 1000; // Add animation time
+            setTimeout(() => {
+                if (popup.parentNode === popupContainer) {
+                    popupContainer.removeChild(popup);
+                }
+            }, duration);
+        }
+
         function parseMessage(rawMessage) {
             try {
                 console.log("Raw message:", rawMessage); // Debugging
@@ -616,8 +905,12 @@
                     });
                 }
                 
-                // Add message to chat
-                addChatMessage(username, msgContent, emotes, userColor);
+                // Add message to chat based on the selected mode
+                if (config.chatMode === 'popup') {
+                    showPopupMessage(username, msgContent, userColor, emotes);
+                } else {
+                    addChatMessage(username, msgContent, emotes, userColor);
+                }
             } catch (error) {
                 console.error('Error parsing message:', error);
             }
@@ -1073,6 +1366,53 @@
                 document.documentElement.classList.remove('override-username-colors');
             }
         });
+        
+        // Popup mode settings
+        // Chat mode toggle
+        document.querySelectorAll('input[name="chat-mode"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    switchChatMode(e.target.value);
+                    
+                    // Show/hide popup settings based on selected mode
+                    const popupSettings = document.querySelectorAll('.popup-setting');
+                    if (e.target.value === 'popup') {
+                        popupSettings.forEach(el => el.style.display = 'flex');
+                    } else {
+                        popupSettings.forEach(el => el.style.display = 'none');
+                    }
+                }
+            });
+        });
+        
+        // Popup position
+        document.getElementById('popup-position').addEventListener('change', (e) => {
+            config.popup.position = e.target.value;
+            updatePopupPosition();
+        });
+        
+        // Popup offset X
+        document.getElementById('popup-offset-x').addEventListener('input', (e) => {
+            config.popup.offsetX = parseInt(e.target.value);
+            updatePopupPosition();
+        });
+        
+        // Popup offset Y
+        document.getElementById('popup-offset-y').addEventListener('input', (e) => {
+            config.popup.offsetY = parseInt(e.target.value);
+            updatePopupPosition();
+        });
+        
+        // Popup duration
+        document.getElementById('popup-duration').addEventListener('input', (e) => {
+            config.popup.duration = parseInt(e.target.value);
+            document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
+        });
+        
+        // Popup max messages
+        document.getElementById('popup-max-messages').addEventListener('change', (e) => {
+            config.popup.maxMessages = parseInt(e.target.value);
+        });
 
         // Save configuration
         saveConfigBtn.addEventListener('click', () => {
@@ -1083,6 +1423,9 @@
             const opacity = bgOpacityInput.value / 100;
             
             config = {
+                chatMode: document.querySelector('input[name="chat-mode"]:checked').value,
+                
+                // Window mode settings
                 bgColor: `rgba(${r}, ${g}, ${b}, ${opacity})`,
                 borderColor: borderColorInput.value,
                 textColor: textColorInput.value,
@@ -1094,7 +1437,16 @@
                 showTimestamps: showTimestampsInput.checked,
                 overrideUsernameColors: overrideUsernameColorsInput.checked,
                 theme: availableThemes[currentThemeIndex].value, // Get theme from carousel
-                lastChannel: channel // Save the last channel
+                lastChannel: channel, // Save the last channel
+                
+                // Popup mode settings
+                popup: {
+                    position: document.getElementById('popup-position').value,
+                    offsetX: parseInt(document.getElementById('popup-offset-x').value),
+                    offsetY: parseInt(document.getElementById('popup-offset-y').value),
+                    duration: parseInt(document.getElementById('popup-duration').value),
+                    maxMessages: parseInt(document.getElementById('popup-max-messages').value)
+                }
             };
             
             // Apply theme
@@ -1162,7 +1514,7 @@
                 bgOpacityInput.value = parseFloat(a) * 100;
             }
             
-            // Update form fields
+            // Update form fields for window mode
             borderColorInput.value = config.borderColor;
             textColorInput.value = config.textColor;
             usernameColorInput.value = config.usernameColor;
@@ -1173,6 +1525,23 @@
             maxMessagesInput.value = config.maxMessages;
             showTimestampsInput.checked = config.showTimestamps;
             overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+            
+            // Update popup mode controls
+            document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`).checked = true;
+            document.getElementById('popup-position').value = config.popup.position;
+            document.getElementById('popup-offset-x').value = config.popup.offsetX;
+            document.getElementById('popup-offset-y').value = config.popup.offsetY;
+            document.getElementById('popup-duration').value = config.popup.duration;
+            document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
+            document.getElementById('popup-max-messages').value = config.popup.maxMessages;
+            
+            // Show/hide popup settings based on selected mode
+            const popupSettings = document.querySelectorAll('.popup-setting');
+            if (config.chatMode === 'popup') {
+                popupSettings.forEach(el => el.style.display = 'flex');
+            } else {
+                popupSettings.forEach(el => el.style.display = 'none');
+            }
             
             // Update theme carousel
             const themeIndex = availableThemes.findIndex(theme => theme.value === (config.theme || 'default'));
@@ -1204,6 +1573,9 @@
                 document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                 document.documentElement.style.setProperty('--username-color', config.usernameColor);
             }
+            
+            // Apply the current chat mode
+            switchChatMode(config.chatMode);
             
             // Update channel actions visibility based on connection state
             const channelActions = document.getElementById('channel-actions');
@@ -1404,6 +1776,10 @@
                     // Update form fields and visual settings
                     updateConfigPanelFromConfig();
                     
+                    // Initialize popup mode
+                    updatePopupPosition();
+                    switchChatMode(config.chatMode || 'window');
+                    
                     // If the channel was previously saved, auto-connect
                     if (config.lastChannel) {
                         channelInput.value = config.lastChannel;
@@ -1416,8 +1792,17 @@
                     console.error('Error loading saved config:', e);
                 }
             } else {
-                // If no saved config, initialize the theme preview
+                // If no saved config, initialize the theme preview and set default mode
                 updateThemePreview(availableThemes[currentThemeIndex]);
+                switchChatMode('window');
+            }
+            
+            // Show or hide popup settings based on initial mode
+            const popupSettings = document.querySelectorAll('.popup-setting');
+            if (config.chatMode === 'popup') {
+                popupSettings.forEach(el => el.style.display = 'flex');
+            } else {
+                popupSettings.forEach(el => el.style.display = 'none');
             }
             
             addSystemMessage('Welcome to Twitch Chat Overlay');
