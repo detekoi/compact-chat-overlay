@@ -280,7 +280,8 @@
             width: var(--chat-width); /* Match chat width */
         }
         
-        #popup-container.hidden {
+        /* Initial state - popup container is hidden by default */
+        #popup-container {
             display: none;
         }
         
@@ -349,7 +350,7 @@
     </style>
 </head>
 <body>
-    <div id="popup-container" class="hidden">
+    <div id="popup-container">
         <!-- Popup messages will be inserted here -->
     </div>
     
@@ -740,11 +741,11 @@
             config.chatMode = mode;
             
             if (mode === 'window') {
-                chatContainer.classList.remove('hidden');
-                popupContainer.classList.add('hidden');
+                chatContainer.style.display = 'block';
+                popupContainer.style.display = 'none';
             } else { // popup mode
-                chatContainer.classList.add('hidden');
-                popupContainer.classList.remove('hidden');
+                chatContainer.style.display = 'none';
+                popupContainer.style.display = 'flex';
             }
         }
         
