@@ -269,7 +269,7 @@
         /* Popup mode styles */
         #popup-container {
             position: fixed;
-            pointer-events: none; /* Allow clicking through */
+            pointer-events: none; /* Allow clicking through for messages */
             z-index: 1000;
             display: flex;
             flex-direction: column;
@@ -278,6 +278,10 @@
             top: 0;
             left: 0;
             width: var(--chat-width); /* Match chat width */
+            min-height: 50px; /* Allow hovering over an empty area */
+            padding: 10px;
+            box-sizing: border-box;
+            position: relative; /* For positioning the settings button */
         }
         
         /* Initial state - popup container is hidden by default */
@@ -306,6 +310,40 @@
         
         .popup-message.from-top {
             animation-name: slideInDown, fadeOut;
+        }
+        
+        /* Settings button for popup mode */
+        #popup-settings-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.25);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 8px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10;
+            pointer-events: auto; /* Make button clickable */
+        }
+        
+        #popup-container:hover #popup-settings-btn {
+            opacity: 0.7;
+        }
+        
+        #popup-settings-btn:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 1;
+            transform: scale(1.1);
         }
         
         .popup-message .timestamp {
@@ -351,6 +389,7 @@
 </head>
 <body>
     <div id="popup-container">
+        <button id="popup-settings-btn">⚙️</button>
         <!-- Popup messages will be inserted here -->
     </div>
     
@@ -650,13 +689,21 @@
         const channelInput = document.getElementById('channel-input');
         const connectBtn = document.getElementById('connect-btn');
         const settingsBtn = document.getElementById('settings-btn');
+        const popupSettingsBtn = document.getElementById('popup-settings-btn');
         const configPanel = document.getElementById('config-panel');
         const popupContainer = document.getElementById('popup-container');
         
         // Dragging functionality removed as it's not needed for OBS browser sources
 
-        // Settings button
+        // Settings button for window mode
         settingsBtn.addEventListener('click', () => {
+            // When opening settings, make sure the panel reflects current config
+            updateConfigPanelFromConfig();
+            configPanel.classList.toggle('visible');
+        });
+        
+        // Settings button for popup mode
+        popupSettingsBtn.addEventListener('click', () => {
             // When opening settings, make sure the panel reflects current config
             updateConfigPanelFromConfig();
             configPanel.classList.toggle('visible');
