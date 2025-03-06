@@ -65,14 +65,14 @@
         /* Transparent Theme */
         :root.transparent-theme {
             --chat-bg-color: rgba(0, 0, 0, 0);
-            --chat-border-color: rgba(255, 255, 255, 0.2);
+            --chat-border-color: transparent;
             --chat-text-color: #ffffff;
             --username-color: #ff9800;
             --timestamp-color: rgba(255, 255, 255, 0.6);
             
             /* Popup styles */
             --popup-bg-color: rgba(0, 0, 0, 0.5);  /* Slightly darker for visibility */
-            --popup-border-color: rgba(255, 255, 255, 0.3);
+            --popup-border-color: transparent;
             --popup-text-color: #ffffff;
             --popup-username-color: #ff9800;
         }
@@ -496,6 +496,7 @@
                     <button type="button" class="color-btn" data-color="#ffffff33" data-target="border">Trans</button>
                     <button type="button" class="color-btn" data-color="#ff6bcb" data-target="border">Pink</button>
                     <button type="button" class="color-btn" data-color="#00ffb3" data-target="border">Cyber</button>
+                    <button type="button" class="color-btn" data-color="transparent" data-target="border">None</button>
                 </div>
                 <input type="color" id="border-color" value="#9147ff" style="visibility: hidden; width: 0; height: 0;">
             </div>
