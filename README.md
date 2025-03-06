@@ -2,7 +2,7 @@
 
 A lightweight, customizable Twitch chat overlay for streamers using OBS or other broadcasting software.
 
-![Compact Chat Overlay Screenshot](preview.png)
+![Compact Chat Overlay Screenshot](assets/images/screenshots/preview.png)
 
 ## Try It Now
 
@@ -85,7 +85,7 @@ If you prefer to run everything locally:
 
 The Chat Scene Creator makes it easy to manage multiple chat overlays:
 
-![Chat Scene Creator Interface](preview.png)
+![Chat Scene Creator Interface](assets/images/screenshots/scenecreator.png)
 
 1. **Create chat scenes** with descriptive names for different parts of your stream
 2. **Customize settings** for each scene:
