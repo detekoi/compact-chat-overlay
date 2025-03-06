@@ -274,11 +274,10 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            /* Position will be set via JS based on selected corner */
-            top: auto;
-            right: auto;
-            bottom: auto;
-            left: auto;
+            /* Fixed position at top-left, just like the chat window */
+            top: 0;
+            left: 0;
+            width: var(--chat-width); /* Match chat width */
         }
         
         #popup-container.hidden {
@@ -291,12 +290,21 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
             padding: 8px 12px;
-            max-width: 400px;
-            min-width: 200px;
+            width: 100%; /* Use container width */
             margin-bottom: 8px;
-            animation: slideIn 0.3s forwards, fadeOut 0.3s forwards;
+            animation-duration: 0.3s, 0.3s;
+            animation-fill-mode: forwards, forwards;
             animation-delay: 0s, 5s; /* Will be customized via JS */
             opacity: 0; /* Start invisible */
+        }
+        
+        /* Different animation classes */
+        .popup-message.from-bottom {
+            animation-name: slideInUp, fadeOut;
+        }
+        
+        .popup-message.from-top {
+            animation-name: slideInDown, fadeOut;
         }
         
         .popup-message .timestamp {
@@ -322,9 +330,16 @@
             margin: 0 2px;
         }
         
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        /* Slide in from bottom animation */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Slide in from top animation */
+        @keyframes slideInDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
         @keyframes fadeOut {
@@ -532,20 +547,16 @@
         </div>
         
         <div class="config-row popup-setting">
-            <label>Position:</label>
-            <select id="popup-position">
-                <option value="top-left">Top Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="bottom-right" selected>Bottom Right</option>
-            </select>
-        </div>
-        
-        <div class="config-row popup-setting">
-            <label>Offset:</label>
+            <label>Animation Direction:</label>
             <div>
-                <label>X: <input type="number" id="popup-offset-x" value="20" min="0" max="200" style="width: 50px;"></label>
-                <label style="margin-left: 10px;">Y: <input type="number" id="popup-offset-y" value="20" min="0" max="200" style="width: 50px;"></label>
+                <label>
+                    <input type="radio" name="popup-direction" value="from-bottom" checked>
+                    From Bottom
+                </label>
+                <label style="margin-left: 10px;">
+                    <input type="radio" name="popup-direction" value="from-top">
+                    From Top
+                </label>
             </div>
         </div>
         
@@ -622,12 +633,9 @@
             
             // Popup mode settings
             popup: {
-                position: 'bottom-right',
-                offsetX: 20,
-                offsetY: 20,
+                direction: 'from-bottom', // from-bottom or from-top
                 duration: 5, // seconds
-                maxMessages: 3,
-                theme: 'dark' // Inherits from main theme
+                maxMessages: 3
             }
         };
         
@@ -727,7 +735,7 @@
             };
         }
 
-        // Popup mode functions
+        // Switch between window and popup modes
         function switchChatMode(mode) {
             config.chatMode = mode;
             
@@ -737,39 +745,6 @@
             } else { // popup mode
                 chatContainer.classList.add('hidden');
                 popupContainer.classList.remove('hidden');
-                updatePopupPosition();
-            }
-        }
-        
-        // Update popup position based on settings
-        function updatePopupPosition() {
-            const { position, offsetX, offsetY } = config.popup;
-            
-            // Reset all position properties
-            popupContainer.style.top = 'auto';
-            popupContainer.style.right = 'auto';
-            popupContainer.style.bottom = 'auto';
-            popupContainer.style.left = 'auto';
-            
-            // Set position based on corner selection
-            switch (position) {
-                case 'top-left':
-                    popupContainer.style.top = `${offsetY}px`;
-                    popupContainer.style.left = `${offsetX}px`;
-                    break;
-                case 'top-right':
-                    popupContainer.style.top = `${offsetY}px`;
-                    popupContainer.style.right = `${offsetX}px`;
-                    break;
-                case 'bottom-left':
-                    popupContainer.style.bottom = `${offsetY}px`;
-                    popupContainer.style.left = `${offsetX}px`;
-                    break;
-                case 'bottom-right':
-                default:
-                    popupContainer.style.bottom = `${offsetY}px`;
-                    popupContainer.style.right = `${offsetX}px`;
-                    break;
             }
         }
         
@@ -777,7 +752,7 @@
         function showPopupMessage(username, message, userColor, emotes = {}) {
             // Create popup element
             const popup = document.createElement('div');
-            popup.className = 'popup-message';
+            popup.className = `popup-message ${config.popup.direction}`;
             
             // Set animation duration
             popup.style.animationDelay = `0s, ${config.popup.duration}s`;
@@ -1385,22 +1360,13 @@
             });
         });
         
-        // Popup position
-        document.getElementById('popup-position').addEventListener('change', (e) => {
-            config.popup.position = e.target.value;
-            updatePopupPosition();
-        });
-        
-        // Popup offset X
-        document.getElementById('popup-offset-x').addEventListener('input', (e) => {
-            config.popup.offsetX = parseInt(e.target.value);
-            updatePopupPosition();
-        });
-        
-        // Popup offset Y
-        document.getElementById('popup-offset-y').addEventListener('input', (e) => {
-            config.popup.offsetY = parseInt(e.target.value);
-            updatePopupPosition();
+        // Popup animation direction
+        document.querySelectorAll('input[name="popup-direction"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    config.popup.direction = e.target.value;
+                }
+            });
         });
         
         // Popup duration
@@ -1441,9 +1407,7 @@
                 
                 // Popup mode settings
                 popup: {
-                    position: document.getElementById('popup-position').value,
-                    offsetX: parseInt(document.getElementById('popup-offset-x').value),
-                    offsetY: parseInt(document.getElementById('popup-offset-y').value),
+                    direction: document.querySelector('input[name="popup-direction"]:checked').value,
                     duration: parseInt(document.getElementById('popup-duration').value),
                     maxMessages: parseInt(document.getElementById('popup-max-messages').value)
                 }
@@ -1528,9 +1492,7 @@
             
             // Update popup mode controls
             document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`).checked = true;
-            document.getElementById('popup-position').value = config.popup.position;
-            document.getElementById('popup-offset-x').value = config.popup.offsetX;
-            document.getElementById('popup-offset-y').value = config.popup.offsetY;
+            document.querySelector(`input[name="popup-direction"][value="${config.popup.direction}"]`).checked = true;
             document.getElementById('popup-duration').value = config.popup.duration;
             document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
             document.getElementById('popup-max-messages').value = config.popup.maxMessages;
@@ -1777,7 +1739,6 @@
                     updateConfigPanelFromConfig();
                     
                     // Initialize popup mode
-                    updatePopupPosition();
                     switchChatMode(config.chatMode || 'window');
                     
                     // If the channel was previously saved, auto-connect
