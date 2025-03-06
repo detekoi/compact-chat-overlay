@@ -284,6 +284,24 @@
             position: relative; /* For positioning the settings button */
         }
         
+        /* Enable pointer events on form elements when in popup mode */
+        #popup-container #channel-form,
+        #popup-container input,
+        #popup-container button {
+            pointer-events: auto;
+        }
+        
+        /* Style adjustments for channel form in popup mode */
+        #popup-container #channel-form {
+            background-color: var(--popup-bg-color);
+            border: 2px solid var(--popup-border-color);
+            border-radius: var(--chat-border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
         /* Initial state - popup container is hidden by default */
         #popup-container {
             display: none;
@@ -764,8 +782,9 @@
             
             channel = newChannel;
             
-            // Hide the channel form after connection
-            document.getElementById('channel-form').style.display = 'none';
+            // Hide the channel form after connection regardless of which container it's in
+            const channelForm = document.getElementById('channel-form');
+            channelForm.style.display = 'none';
             
             chatMessages.innerHTML = '';
             
@@ -814,6 +833,17 @@
             
             socket.onclose = () => {
                 addSystemMessage(`Disconnected from ${channel}'s chat`);
+                
+                // Show the channel form again when disconnected
+                const channelForm = document.getElementById('channel-form');
+                channelForm.style.display = 'block';
+                
+                // Make sure it's in the right container based on mode
+                if (config.chatMode === 'popup' && channelForm.parentNode !== popupContainer) {
+                    popupContainer.appendChild(channelForm);
+                } else if (config.chatMode === 'window' && channelForm.parentNode !== chatContainer) {
+                    chatContainer.insertBefore(channelForm, chatContainer.firstChild.nextSibling);
+                }
             };
             
             socket.onerror = (error) => {
@@ -825,11 +855,27 @@
         // Switch between window and popup modes
         function switchChatMode(mode) {
             config.chatMode = mode;
+            const channelForm = document.getElementById('channel-form');
             
             if (mode === 'window') {
+                // Move channel form back to chat container if it was in popup
+                if (channelForm.parentNode === popupContainer) {
+                    chatContainer.insertBefore(channelForm, chatContainer.firstChild.nextSibling);
+                }
+                
                 chatContainer.style.display = 'block';
                 popupContainer.style.display = 'none';
             } else { // popup mode
+                // Show channel form in popup mode if not connected
+                if (!socket || socket.readyState !== WebSocket.OPEN) {
+                    channelForm.style.display = 'block';
+                    
+                    // Move channel form to popup container if not already there
+                    if (channelForm.parentNode !== popupContainer) {
+                        popupContainer.appendChild(channelForm);
+                    }
+                }
+                
                 chatContainer.style.display = 'none';
                 popupContainer.style.display = 'flex';
             }
