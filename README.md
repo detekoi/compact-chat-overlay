@@ -23,7 +23,7 @@ Create and manage multiple chat scenes for your stream in seconds!
   - Border color
   - Text color
   - Font size
-  - Window width
+  - Window width and height
   - Usernames - use original Twitch colors or pick a custom color
   - Show/hide timestamps
 - **Simple Interface**: Clean design that integrates well with OBS and other broadcasting software.
@@ -35,20 +35,20 @@ Create and manage multiple chat scenes for your stream in seconds!
 ### Quick Start Guide (Recommended Method)
 
 1. **Visit the online version** at [detekoi.github.io/compact-chat-overlay](https://detekoi.github.io/compact-chat-overlay/)
-2. **Use the Chat Scene Creator** to easily set up and manage your chat scenes
-3. **Create your first chat scene** by clicking the "New Chat Scene" button
-4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting"
-5. **Copy the generated URL** for adding to OBS
-6. **Add to OBS** following the provided instructions
+2. **Use the Chat Scene Creator** to easily set up and manage your chat scenes.
+3. **Create your first chat scene** by clicking the "New Chat Scene" button.
+4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting."
+5. **Copy the generated URL** for adding to OBS.
+6. **Add to OBS** following the provided instructions.
 
 ### Alternative: Local Installation
 
 If you prefer to run everything locally:
 
-1. **Download** this repository or clone it to your computer
-2. **Open the index.html file** in your browser
-3. **Select "Chat Scene Creator"** from the landing page
-4. Follow the same steps as above to create and manage chat scenes
+1. **Download** this repository or clone it to your computer.
+2. **Open the index.html file** in your browser.
+3. **Select "Chat Scene Creator"** from the landing page.
+4. Follow the same steps as above to create and manage chat scenes.
 
 ### Setting Up in OBS
 
@@ -58,6 +58,28 @@ If you prefer to run everything locally:
 4. **IF YOU CAN'T PASTE:** Uncheck "Local file" option even though you're using a local file.
 5. Set Width: 320 and Height: 600 (recommended size).
 6. Click "OK" to add the browser source.
+
+### Setting Up in StreamElements OBS.Live
+
+1. In StreamElements OBS.Live, navigate to the **Overlay Editor**.
+2. Click the **+ Add Widget** button and select **Static/Custom** → **Custom Widget**.
+3. Name your widget (e.g., "Twitch Chat Overlay").
+4. In the Custom Widget settings, select the **Settings** tab.
+5. Find the **Custom URL** option and paste your chat overlay URL.
+6. Set the Width to 320 and Height to 600 (recommended size).
+7. Click **Done** to add the browser source to your overlay.
+
+### Setting Up in Streamlabs Desktop
+
+1. In Streamlabs Desktop, click the **+** button in the **Sources** panel.
+2. Select **Browser Source** from the list of available sources.
+3. Name your source (e.g., "Twitch Chat Overlay").
+4. In the Browser Source Properties:
+   - Paste the URL from the Chat Scene Creator in the **URL** field.
+   - Set Width to 320 and Height to 600 (recommended size).
+   - Ensure "Shutdown source when not visible" is unchecked.
+   - Leave other settings at their defaults.
+5. Click **Add Source** to create the browser source.
 
 ### Using the Chat Scene Creator
 
@@ -100,6 +122,7 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 - **Username Colors**: Choose whether to use Twitch's colors or your custom color.
 - **Font Size**: Adjust the text size with a slider.
 - **Width**: Change the width of the chat window.
+- **Height**: Change the height of the chat window.
 - **Max Messages**: Control how many chat messages to show before removing older ones.
 - **Show Timestamps**: Toggle message timestamps on/off.
 
@@ -114,9 +137,9 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 2. Each scene maintains its own separate settings with unique styling.
 
 3. Use descriptive scene names like:
-   - `?scene=gaming` for your gaming scene
-   - `?scene=talking` for your talking/webcam scene
-   - `?scene=intro` for your stream intro scene
+   - `?scene=gaming` for your gaming scene.
+   - `?scene=talking` for your talking/webcam scene.
+   - `?scene=intro` for your stream intro scene.
 
 ## Customization Tips
 
@@ -145,15 +168,9 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 MIT License - Feel free to modify and use as needed.
 
-## Acknowledgements
-
-- Natural theme inspired by the visual style of Polar Bear Cafe anime
-- Built for streamers who want a clean, customizable chat overlay
-- Themed designs inspired by popular streaming aesthetics
-
 ## Support & Contributions
 
 If you find this useful or have suggestions for improvements, feel free to:
-- Star the repository
-- Submit issues or pull requests
-- Fork and customize it for your own needs
+- Star the repository.
+- Submit issues or pull requests.
+- Fork and customize it for your own needs.
