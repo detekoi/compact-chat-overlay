@@ -468,6 +468,57 @@
             <div class="theme-preview" id="theme-preview"></div>
         </div>
         
+        <div class="section-divider">Display Mode</div>
+        
+        <div class="config-row">
+            <label>Chat Mode:</label>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label>
+                    <input type="radio" name="chat-mode" value="window" checked>
+                    Window
+                </label>
+                <label>
+                    <input type="radio" name="chat-mode" value="popup">
+                    Popup
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Animation Direction:</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                <label>
+                    <input type="radio" name="popup-direction" value="from-top">
+                    From Top
+                </label>
+                <label>
+                    <input type="radio" name="popup-direction" value="from-left">
+                    From Left
+                </label>
+                <label>
+                    <input type="radio" name="popup-direction" value="from-bottom" checked>
+                    From Bottom
+                </label>
+                <label>
+                    <input type="radio" name="popup-direction" value="from-right">
+                    From Right
+                </label>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Duration (seconds):</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="range" id="popup-duration" min="2" max="10" value="5">
+                <span id="popup-duration-value">5s</span>
+            </div>
+        </div>
+        
+        <div class="config-row popup-setting">
+            <label>Max Messages:</label>
+            <input type="number" id="popup-max-messages" value="3" min="1" max="10">
+        </div>
+        
         <div class="section-divider">Colors</div>
         
         <div class="config-row">
@@ -618,57 +669,6 @@
         <div class="config-row">
             <label for="show-timestamps">Show Timestamps:</label>
             <input type="checkbox" id="show-timestamps" checked>
-        </div>
-        
-        <div class="section-divider">Display Mode</div>
-        
-        <div class="config-row">
-            <label>Chat Mode:</label>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label>
-                    <input type="radio" name="chat-mode" value="window" checked>
-                    Window
-                </label>
-                <label>
-                    <input type="radio" name="chat-mode" value="popup">
-                    Popup
-                </label>
-            </div>
-        </div>
-        
-        <div class="config-row popup-setting">
-            <label>Animation Direction:</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <label>
-                    <input type="radio" name="popup-direction" value="from-top">
-                    From Top
-                </label>
-                <label>
-                    <input type="radio" name="popup-direction" value="from-left">
-                    From Left
-                </label>
-                <label>
-                    <input type="radio" name="popup-direction" value="from-bottom" checked>
-                    From Bottom
-                </label>
-                <label>
-                    <input type="radio" name="popup-direction" value="from-right">
-                    From Right
-                </label>
-            </div>
-        </div>
-        
-        <div class="config-row popup-setting">
-            <label>Duration (seconds):</label>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <input type="range" id="popup-duration" min="2" max="10" value="5">
-                <span id="popup-duration-value">5s</span>
-            </div>
-        </div>
-        
-        <div class="config-row popup-setting">
-            <label>Max Messages:</label>
-            <input type="number" id="popup-max-messages" value="3" min="1" max="10">
         </div>
         
         <style>
