@@ -1261,7 +1261,15 @@
             bgColorPreview.style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
             
             // Other colors
-            borderColorPreview.style.backgroundColor = borderColorInput.value;
+            if (borderColorInput.value === 'transparent') {
+                // For transparent borders, show a checkered pattern instead of black
+                borderColorPreview.style.backgroundColor = 'transparent';
+                borderColorPreview.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'8\' viewBox=\'0 0 8 8\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.1\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M0 0h4v4H0V0zm4 4h4v4H4V4z\'/%3E%3C/g%3E%3C/svg%3E")';
+            } else {
+                borderColorPreview.style.backgroundColor = borderColorInput.value;
+                borderColorPreview.style.backgroundImage = 'none';
+            }
+            
             textColorPreview.style.backgroundColor = textColorInput.value;
             usernameColorPreview.style.backgroundColor = usernameColorInput.value;
         }
@@ -1278,6 +1286,19 @@
                 } else if (target === 'border') {
                     borderColorInput.value = color;
                     document.documentElement.style.setProperty('--chat-border-color', color);
+                    document.documentElement.style.setProperty('--popup-border-color', color);
+                    
+                    // Special handling for None border to ensure it works for preview
+                    if (color === 'transparent') {
+                        // Force the theme preview to update with a truly transparent border
+                        setTimeout(() => {
+                            const themePreview = document.getElementById('theme-preview');
+                            themePreview.style.border = 'none';
+                            // Add a very subtle dotted outline to indicate no border
+                            themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
+                            themePreview.style.outlineOffset = '-1px';
+                        }, 0);
+                    }
                 } else if (target === 'text') {
                     textColorInput.value = color;
                     document.documentElement.style.setProperty('--chat-text-color', color);
@@ -1376,6 +1397,17 @@
             // Then apply the selected theme if it's not default
             if (theme.value !== 'default') {
                 document.documentElement.classList.add(theme.value);
+                
+                // Special handling for transparent theme with theme preview
+                if (theme.value === 'transparent-theme') {
+                    // Force fix for theme preview border
+                    setTimeout(() => {
+                        const themePreview = document.getElementById('theme-preview');
+                        themePreview.style.border = 'none';
+                        themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
+                        themePreview.style.outlineOffset = '-1px';
+                    }, 0);
+                }
             }
             
             // If requested, update the control values to match the theme
@@ -1468,11 +1500,12 @@
                 }
             }
             
-            // 3. Handle border - special case for transparent border
+            // 3. Handle border
             if (borderColor === 'transparent') {
+                // For transparent borders, remove the border completely
                 themePreview.style.border = 'none';
-                // Add a dotted pattern to indicate a transparent border
-                themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.2)';
+                // And add a very subtle dotted outline to indicate no border
+                themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
                 themePreview.style.outlineOffset = '-1px';
             } else {
                 themePreview.style.border = `2px solid ${borderColor}`;
