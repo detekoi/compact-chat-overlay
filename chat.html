@@ -472,8 +472,8 @@
         <div class="section-divider">Display Mode</div>
         
         <div class="config-row">
-            <label>Chat Mode:</label>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div id="chat-mode-label">Chat Mode:</div>
+            <div style="display: flex; flex-direction: column; gap: 5px;" role="radiogroup" aria-labelledby="chat-mode-label">
                 <label>
                     <input type="radio" name="chat-mode" value="window" checked>
                     Window
@@ -486,8 +486,8 @@
         </div>
         
         <div class="config-row popup-setting">
-            <label>Animation Direction:</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <div id="animation-direction-label">Animation Direction:</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;" role="radiogroup" aria-labelledby="animation-direction-label">
                 <label>
                     <input type="radio" name="popup-direction" value="from-top">
                     From Top
@@ -508,7 +508,7 @@
         </div>
         
         <div class="config-row popup-setting">
-            <label>Duration (seconds):</label>
+            <label for="popup-duration">Duration (seconds):</label>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <input type="range" id="popup-duration" min="2" max="10" value="5">
                 <span id="popup-duration-value">5s</span>
@@ -516,7 +516,7 @@
         </div>
         
         <div class="config-row popup-setting">
-            <label>Max Messages:</label>
+            <label for="popup-max-messages">Max Messages:</label>
             <input type="number" id="popup-max-messages" value="3" min="1" max="10">
         </div>
         
@@ -701,8 +701,8 @@
         </style>
         
         <div class="config-row" id="channel-actions" style="margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.3); padding-top: 15px;">
-            <label>Channel Actions:</label>
-            <div>
+            <div id="channel-actions-label">Channel Actions:</div>
+            <div aria-labelledby="channel-actions-label">
                 <button id="disconnect-btn" style="background-color: #aa5555; margin-top: 0;">Disconnect</button>
             </div>
         </div>
