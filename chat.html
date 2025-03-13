@@ -348,13 +348,13 @@
         
         /* Settings button hover area for popup mode */
         .popup-settings-area {
-            position: absolute;
-            top: 0;
-            right: 0;
+            position: fixed; /* Fixed position instead of absolute */
+            top: 10px;
+            right: 10px;
             width: 60px;
             height: 60px;
             pointer-events: auto; /* Make area clickable */
-            z-index: 9;
+            z-index: 9999; /* Higher z-index to ensure it's above everything */
             display: flex;
             align-items: flex-start;
             justify-content: flex-end;
@@ -363,31 +363,34 @@
 
         /* Settings button for popup mode */
         #popup-settings-btn {
-            background-color: rgba(0, 0, 0, 0.25);
+            background-color: rgba(0, 0, 0, 0.4);
             color: white;
-            border: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             cursor: pointer;
             font-size: 18px;
             padding: 8px;
-            width: 35px;
-            height: 35px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
             opacity: 0;
             transition: all 0.3s ease;
-            z-index: 10;
+            z-index: 9999; /* Higher z-index to ensure it's clickable */
             pointer-events: auto; /* Make button clickable */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Add shadow for better visibility */
         }
         
-        .popup-settings-area:hover #popup-settings-btn {
+        /* Show settings button when hovering over any part of the page in popup mode */
+        body.popup-mode:hover #popup-settings-btn {
             opacity: 0.7;
         }
         
         #popup-settings-btn:hover {
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.5);
             opacity: 1;
             transform: scale(1.1);
         }
@@ -871,6 +874,9 @@
             const channelForm = document.getElementById('channel-form');
             
             if (mode === 'window') {
+                // Remove popup-mode class from body
+                document.body.classList.remove('popup-mode');
+                
                 // Move channel form back to chat container if it was in popup
                 if (channelForm.parentNode === popupContainer) {
                     chatContainer.insertBefore(channelForm, chatContainer.firstChild.nextSibling);
@@ -879,6 +885,9 @@
                 chatContainer.style.display = 'block';
                 popupContainer.style.display = 'none';
             } else { // popup mode
+                // Add popup-mode class to body
+                document.body.classList.add('popup-mode');
+                
                 // Show channel form in popup mode if not connected
                 if (!socket || socket.readyState !== WebSocket.OPEN) {
                     channelForm.style.display = 'block';
