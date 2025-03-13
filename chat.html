@@ -70,8 +70,8 @@
             --username-color: #ff9800;
             --timestamp-color: rgba(255, 255, 255, 0.6);
             
-            /* Popup styles */
-            --popup-bg-color: rgba(0, 0, 0, 0.5);  /* Slightly darker for visibility */
+            /* Popup styles - match window transparency */
+            --popup-bg-color: rgba(0, 0, 0, 0);
             --popup-border-color: transparent;
             --popup-text-color: #ffffff;
             --popup-username-color: #ff9800;
@@ -319,6 +319,11 @@
             animation-fill-mode: forwards, forwards;
             animation-delay: 0s, 5s; /* Will be customized via JS */
             opacity: 0; /* Start invisible */
+        }
+        
+        /* Remove box shadow for transparent theme */
+        :root.transparent-theme .popup-message {
+            box-shadow: none;
         }
         
         /* Different animation classes */
@@ -658,7 +663,7 @@
             <input type="range" id="chat-width" min="200" max="500" value="300">
             <span id="chat-width-value">300px</span>
         </div>
-        <div class="config-row">
+        <div class="config-row window-only-setting">
             <label for="chat-height">Height:</label>
             <input type="range" id="chat-height" min="100" max="800" value="600">
             <span id="chat-height-value">600px</span>
@@ -697,6 +702,9 @@
             }
             .popup-setting {
                 display: none; /* Hidden by default, will be shown when popup mode is selected */
+            }
+            .window-only-setting {
+                display: flex; /* Shown by default, will be hidden when popup mode is selected */
             }
         </style>
         
@@ -1322,22 +1330,26 @@
             
             const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
             document.documentElement.style.setProperty('--chat-bg-color', bgColor);
+            document.documentElement.style.setProperty('--popup-bg-color', bgColor);
         }
 
         borderColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
+            document.documentElement.style.setProperty('--popup-border-color', borderColorInput.value);
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
         });
 
         textColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-text-color', textColorInput.value);
+            document.documentElement.style.setProperty('--popup-text-color', textColorInput.value);
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
         });
 
         usernameColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--username-color', usernameColorInput.value);
+            document.documentElement.style.setProperty('--popup-username-color', usernameColorInput.value);
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
         });
@@ -1373,15 +1385,18 @@
                 bgOpacityInput.value = theme.colors.bgOpacity;
                 updateBgColor();
                 
-                // Update other colors
+                // Update other colors for both window and popup modes
                 borderColorInput.value = theme.colors.border;
                 document.documentElement.style.setProperty('--chat-border-color', theme.colors.border);
+                document.documentElement.style.setProperty('--popup-border-color', theme.colors.border);
                 
                 textColorInput.value = theme.colors.text;
                 document.documentElement.style.setProperty('--chat-text-color', theme.colors.text);
+                document.documentElement.style.setProperty('--popup-text-color', theme.colors.text);
                 
                 usernameColorInput.value = theme.colors.username;
                 document.documentElement.style.setProperty('--username-color', theme.colors.username);
+                document.documentElement.style.setProperty('--popup-username-color', theme.colors.username);
                 
                 // Update color previews
                 updateColorPreviews();
@@ -1430,8 +1445,17 @@
             }
             
             // Create a mini version of the chat with theme/custom colors
-            themePreview.style.backgroundColor = backgroundColor;
-            themePreview.style.opacity = bgOpacity;
+            if (theme.value === 'transparent-theme' || (backgroundColor === '#000000' && bgOpacity === 0)) {
+                // Special handling for transparent theme
+                themePreview.style.backgroundColor = 'transparent';
+                themePreview.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'8\' height=\'8\' viewBox=\'0 0 8 8\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.05\'%3E%3Cpath fill-rule=\'evenodd\' d=\'M0 0h4v4H0V0zm4 4h4v4H4V4z\'/%3E%3C/g%3E%3C/svg%3E")';
+                themePreview.style.opacity = 1;
+            } else {
+                themePreview.style.backgroundColor = backgroundColor;
+                themePreview.style.opacity = bgOpacity;
+                themePreview.style.backgroundImage = 'none';
+            }
+            
             themePreview.style.border = `2px solid ${borderColor}`;
             themePreview.style.color = textColor;
             
@@ -1645,12 +1669,18 @@
             const popupMaxMessagesEl = document.getElementById('popup-max-messages');
             if (popupMaxMessagesEl && config.popup) popupMaxMessagesEl.value = config.popup.maxMessages;
             
-            // Show/hide popup settings based on selected mode
+            // Show/hide mode-specific settings based on selected mode
             const popupSettings = document.querySelectorAll('.popup-setting');
+            const windowOnlySettings = document.querySelectorAll('.window-only-setting');
+            
             if (config.chatMode === 'popup') {
+                // Show popup settings, hide window-only settings
                 popupSettings.forEach(el => el.style.display = 'flex');
+                windowOnlySettings.forEach(el => el.style.display = 'none');
             } else {
+                // Hide popup settings, show window-only settings
                 popupSettings.forEach(el => el.style.display = 'none');
+                windowOnlySettings.forEach(el => el.style.display = 'flex');
             }
             
             // Update theme carousel
@@ -1677,11 +1707,17 @@
             if (config.theme !== 'default') {
                 document.documentElement.classList.add(config.theme);
             } else {
-                // Only update these if using default theme - the themed values come from CSS
+                // Update CSS variables for both window and popup mode when using default theme
                 document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
                 document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                 document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                 document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                
+                // Also update popup-specific variables to match window styles for default theme
+                document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--popup-text-color', config.textColor);
+                document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
             }
             
             // Apply the current chat mode
