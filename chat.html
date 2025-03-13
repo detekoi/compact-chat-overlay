@@ -668,7 +668,7 @@
             <input type="range" id="chat-height" min="100" max="800" value="600">
             <span id="chat-height-value">600px</span>
         </div>
-        <div class="config-row">
+        <div class="config-row window-only-setting">
             <label for="max-messages">Max Messages:</label>
             <input type="number" id="max-messages" min="5" max="100" value="50">
         </div>
@@ -911,10 +911,19 @@
                 messageHTML += `<span class="timestamp">[${hours}:${minutes}]</span>`;
             }
             
-            // Add username with color
-            const usernameColor = config.overrideUsernameColors ? 
-                'var(--popup-username-color)' : userColor;
+            // Add username with color - ensure proper color variable usage
+            let usernameColor;
+            if (config.overrideUsernameColors) {
+                // Get the actual computed value of the CSS variable for direct application
+                const computedUsernameColor = getComputedStyle(document.documentElement).getPropertyValue('--popup-username-color').trim();
+                usernameColor = computedUsernameColor;
+            } else {
+                usernameColor = userColor;
+            }
             messageHTML += `<span class="username" style="color: ${usernameColor}">${username}:</span>`;
+            
+            // Apply text color directly rather than relying on CSS inheritance
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--popup-text-color').trim();
             
             // Process message text with emotes
             let messageText = ' ';
@@ -940,10 +949,13 @@
                 messageText += message;
             }
             
-            messageHTML += `<span class="message-text">${messageText}</span>`;
+            messageHTML += `<span class="message-text" style="color: ${textColor}">${messageText}</span>`;
             
             // Set popup content
             popup.innerHTML = messageHTML;
+            
+            // Apply current font size setting explicitly to this popup
+            popup.style.fontSize = `var(--font-size)`;
             
             // Add to container
             popupContainer.appendChild(popup);
