@@ -1294,9 +1294,7 @@
                         setTimeout(() => {
                             const themePreview = document.getElementById('theme-preview');
                             themePreview.style.border = 'none';
-                            // Add a very subtle dotted outline to indicate no border
-                            themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
-                            themePreview.style.outlineOffset = '-1px';
+                            themePreview.style.outline = 'none';
                         }, 0);
                     }
                 } else if (target === 'text') {
@@ -1404,8 +1402,7 @@
                     setTimeout(() => {
                         const themePreview = document.getElementById('theme-preview');
                         themePreview.style.border = 'none';
-                        themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
-                        themePreview.style.outlineOffset = '-1px';
+                        themePreview.style.outline = 'none';
                     }, 0);
                 }
             }
@@ -1504,9 +1501,7 @@
             if (borderColor === 'transparent') {
                 // For transparent borders, remove the border completely
                 themePreview.style.border = 'none';
-                // And add a very subtle dotted outline to indicate no border
-                themePreview.style.outline = '1px dashed rgba(255, 255, 255, 0.15)';
-                themePreview.style.outlineOffset = '-1px';
+                themePreview.style.outline = 'none';
             } else {
                 themePreview.style.border = `2px solid ${borderColor}`;
                 themePreview.style.outline = 'none';
