@@ -15,7 +15,7 @@
             --username-color: #9147ff; /* Default if no color is specified */
             --timestamp-color: #adadb8;
             --font-size: 14px;
-            --chat-width: 300px;
+            --chat-width: 100%;
             --chat-height: 600px;
             --chat-border-radius: 8px;
             --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
@@ -663,8 +663,8 @@
         </div>
         <div class="config-row">
             <label for="chat-width">Width:</label>
-            <input type="range" id="chat-width" min="200" max="500" value="300">
-            <span id="chat-width-value">300px</span>
+            <input type="range" id="chat-width" min="3" max="100" value="100">
+            <span id="chat-width-value">100%</span>
         </div>
         <div class="config-row window-only-setting">
             <label for="chat-height">Height:</label>
@@ -736,7 +736,7 @@
             textColor: '#efeff1',
             usernameColor: '#9147ff',
             fontSize: 14,
-            chatWidth: 300,
+            chatWidth: 100,
             chatHeight: 600,
             maxMessages: 50,
             showTimestamps: true,
@@ -1283,8 +1283,9 @@
 
         chatWidthInput.addEventListener('input', () => {
             const value = chatWidthInput.value;
-            chatWidthValue.textContent = `${value}px`;
-            document.documentElement.style.setProperty('--chat-width', `${value}px`);
+            chatWidthValue.textContent = `${value}%`;
+            document.documentElement.style.setProperty('--chat-width', `${value}%`);
+            updatePreviewFromCurrentSettings();
         });
         
         chatHeightInput.addEventListener('input', () => {
@@ -1711,7 +1712,7 @@
             }
             
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
-            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
             // Get scene ID from URL parameter
@@ -1759,7 +1760,7 @@
             fontSizeInput.value = config.fontSize;
             fontSizeValue.textContent = `${config.fontSize}px`;
             chatWidthInput.value = config.chatWidth;
-            chatWidthValue.textContent = `${config.chatWidth}px`;
+            chatWidthValue.textContent = `${config.chatWidth}%`;
             maxMessagesInput.value = config.maxMessages;
             showTimestampsInput.checked = config.showTimestamps;
             overrideUsernameColorsInput.checked = config.overrideUsernameColors;
@@ -1805,7 +1806,7 @@
             
             // Apply visual preview
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
-            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+            document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
             // Apply theme
@@ -1886,12 +1887,18 @@
                 textColor: '#efeff1',
                 usernameColor: '#9147ff',
                 fontSize: 14,
-                chatWidth: 300,
+                chatWidth: 100,
                 chatHeight: 600,
                 maxMessages: 50,
                 showTimestamps: true,
                 theme: 'default',
-                overrideUsernameColors: false
+                overrideUsernameColors: false,
+                chatMode: 'window', // Add default chat mode
+                popup: {
+                    direction: 'from-bottom',
+                    duration: 5,
+                    maxMessages: 3
+                }
             };
             
             // Update form display only - don't commit changes yet
@@ -1913,12 +1920,43 @@
             fontSizeInput.value = defaultConfig.fontSize;
             fontSizeValue.textContent = `${defaultConfig.fontSize}px`;
             chatWidthInput.value = defaultConfig.chatWidth;
-            chatWidthValue.textContent = `${defaultConfig.chatWidth}px`;
+            chatWidthValue.textContent = `${defaultConfig.chatWidth}%`;
             chatHeightInput.value = defaultConfig.chatHeight;
             chatHeightValue.textContent = `${defaultConfig.chatHeight}px`;
             maxMessagesInput.value = defaultConfig.maxMessages;
             showTimestampsInput.checked = defaultConfig.showTimestamps;
             overrideUsernameColorsInput.checked = defaultConfig.overrideUsernameColors;
+            
+            // Update chat mode to default window mode
+            const chatModeInput = document.querySelector(`input[name="chat-mode"][value="${defaultConfig.chatMode}"]`);
+            if (chatModeInput) chatModeInput.checked = true;
+            
+            // Update popup settings
+            const popupDirectionInput = document.querySelector(`input[name="popup-direction"][value="${defaultConfig.popup.direction}"]`);
+            if (popupDirectionInput) popupDirectionInput.checked = true;
+            
+            const popupDurationEl = document.getElementById('popup-duration');
+            if (popupDurationEl) popupDurationEl.value = defaultConfig.popup.duration;
+            
+            const popupDurationValueEl = document.getElementById('popup-duration-value');
+            if (popupDurationValueEl) popupDurationValueEl.textContent = `${defaultConfig.popup.duration}s`;
+            
+            const popupMaxMessagesEl = document.getElementById('popup-max-messages');
+            if (popupMaxMessagesEl) popupMaxMessagesEl.value = defaultConfig.popup.maxMessages;
+            
+            // Show/hide appropriate settings based on default chat mode
+            const popupSettings = document.querySelectorAll('.popup-setting');
+            const windowOnlySettings = document.querySelectorAll('.window-only-setting');
+            
+            if (defaultConfig.chatMode === 'popup') {
+                // Show popup settings, hide window-only settings
+                popupSettings.forEach(el => el.style.display = 'flex');
+                windowOnlySettings.forEach(el => el.style.display = 'none');
+            } else {
+                // Hide popup settings, show window-only settings
+                popupSettings.forEach(el => el.style.display = 'none');
+                windowOnlySettings.forEach(el => el.style.display = 'flex');
+            }
             
             // Update theme to default
             currentThemeIndex = availableThemes.findIndex(theme => theme.value === 'default');
@@ -1930,11 +1968,14 @@
             document.documentElement.style.setProperty('--chat-text-color', defaultConfig.textColor);
             document.documentElement.style.setProperty('--username-color', defaultConfig.usernameColor);
             document.documentElement.style.setProperty('--font-size', `${defaultConfig.fontSize}px`);
-            document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}px`);
+            document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${defaultConfig.chatHeight}px`);
             
             // Apply theme and update preview
             applyTheme(defaultConfig.theme);
+            
+            // Apply chat mode
+            switchChatMode(defaultConfig.chatMode);
             
             // Update theme index to match default theme
             currentThemeIndex = availableThemes.findIndex(theme => theme.value === 'default');
@@ -1972,7 +2013,7 @@
                     document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                     document.documentElement.style.setProperty('--username-color', config.usernameColor);
                     document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
-                    document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}px`);
+                    document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
                     document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
                     
                     // Set override username colors
@@ -1985,6 +2026,9 @@
                     // Reset tempConfig
                     tempConfig = null;
                     
+                    // Make sure to switch to the correct chat mode
+                    switchChatMode(config.chatMode);
+                    
                     // Update preview to reflect restored settings
                     updatePreviewFromCurrentSettings();
                 } catch (e) {
@@ -1996,6 +2040,10 @@
                 tempConfig = null;
                 updateConfigPanelFromConfig();
                 applyTheme(config.theme);
+                
+                // Make sure to switch to the correct chat mode
+                switchChatMode(config.chatMode);
+                
                 updatePreviewFromCurrentSettings();
             }
             
