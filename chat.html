@@ -1625,11 +1625,24 @@
             overrideUsernameColorsInput.checked = config.overrideUsernameColors;
             
             // Update popup mode controls
-            document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`).checked = true;
-            document.querySelector(`input[name="popup-direction"][value="${config.popup.direction}"]`).checked = true;
-            document.getElementById('popup-duration').value = config.popup.duration;
-            document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
-            document.getElementById('popup-max-messages').value = config.popup.maxMessages;
+            const chatModeInput = document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`);
+            if (chatModeInput) chatModeInput.checked = true;
+            
+            // Handle popup direction (safely check if property and element exist)
+            if (config.popup && config.popup.direction) {
+                const popupDirectionInput = document.querySelector(`input[name="popup-direction"][value="${config.popup.direction}"]`);
+                if (popupDirectionInput) popupDirectionInput.checked = true;
+            }
+            
+            // Safely update other popup settings
+            const popupDurationEl = document.getElementById('popup-duration');
+            if (popupDurationEl && config.popup) popupDurationEl.value = config.popup.duration;
+            
+            const popupDurationValueEl = document.getElementById('popup-duration-value');
+            if (popupDurationValueEl && config.popup) popupDurationValueEl.textContent = `${config.popup.duration}s`;
+            
+            const popupMaxMessagesEl = document.getElementById('popup-max-messages');
+            if (popupMaxMessagesEl && config.popup) popupMaxMessagesEl.value = config.popup.maxMessages;
             
             // Show/hide popup settings based on selected mode
             const popupSettings = document.querySelectorAll('.popup-setting');
