@@ -454,8 +454,9 @@
     <div id="config-panel">
         <h3>Chat Settings</h3>
         <div class="config-row theme-section">
-            <label for="theme-buttons">Theme:</label>
-            <div id="theme-buttons" class="theme-buttons-container">
+            <!-- Using aria-labelledby instead of for, since this controls a non-form element -->
+            <div class="theme-selector-label" id="theme-selector-label">Theme:</div>
+            <div id="theme-buttons" class="theme-buttons-container" role="group" aria-labelledby="theme-selector-label">
                 <div class="current-theme-display" id="current-theme">Dark (Default)</div>
                 <div class="theme-navigation">
                     <button type="button" id="prev-theme" class="theme-nav-btn">◀</button>
