@@ -115,9 +115,15 @@
             box-sizing: border-box;
         }
         
-        /* Apply config font to config panel elements specifically */
-        #config-panel, #config-panel * {
+        /* Apply config font to config panel elements specifically, but exclude the theme preview */
+        #config-panel, 
+        #config-panel *:not(.theme-preview *) {
             font-family: var(--config-font-family);
+        }
+        
+        /* Ensure theme preview uses the selected font, not the config font */
+        .theme-preview * {
+            font-family: inherit;
         }
         
         /* Font Face Declarations */
@@ -1765,7 +1771,10 @@
                 </div>
             </div>`;
             
-            // Also set it directly on the container to be sure
+            // Also set it directly on the theme preview element itself to be sure
+            themePreview.style.fontFamily = fontFamily;
+            
+            // And directly on the inner content
             const previewContent = themePreview.querySelector('div > div');
             if (previewContent) {
                 previewContent.style.fontFamily = fontFamily;
