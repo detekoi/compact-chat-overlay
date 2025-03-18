@@ -16,8 +16,6 @@
             --timestamp-color: #adadb8;
             --font-size: 14px;
             --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            --font-weight: normal;
-            --font-width: 100%;
             --chat-width: 100%;
             --chat-height: 600px;
             --chat-border-radius: 8px;
@@ -115,6 +113,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+        
+        /* Apply config font to config panel elements specifically */
+        #config-panel, #config-panel * {
             font-family: var(--config-font-family);
         }
         
@@ -256,6 +258,10 @@
             padding: 10px;
             font-size: var(--font-size);
             color: var(--chat-text-color);
+            /* Set font properties directly here */
+            font-family: var(--font-family);
+            font-weight: var(--font-weight);
+            font-stretch: var(--font-width);
             /* Hide scrollbar */
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -269,9 +275,9 @@
             margin-bottom: 8px;
             word-wrap: break-word;
             animation: fadeIn 0.3s ease-in-out;
-            font-family: var(--font-family);
-            font-weight: var(--font-weight);
-            font-stretch: var(--font-width);
+            font-family: inherit;
+            font-weight: inherit;
+            font-stretch: inherit;
         }
 
         @keyframes fadeIn {
@@ -718,6 +724,7 @@
                 border-radius: var(--chat-border-radius);
                 overflow: hidden;
                 position: relative;
+                font-family: var(--config-font-family);
             }
             .theme-preview::after {
                 content: "Preview";
@@ -750,11 +757,6 @@
             <label for="font-size">Font Size:</label>
             <input type="range" id="font-size" min="10" max="24" value="14">
             <span id="font-size-value">14px</span>
-        </div>
-        <div class="config-row font-weight-control" style="display: none;">
-            <label for="font-weight">Font Weight:</label>
-            <input type="range" id="font-weight" min="100" max="900" step="100" value="400">
-            <span id="font-weight-value">400</span>
         </div>
         <div class="config-row">
             <label for="chat-width">Width:</label>
@@ -1018,6 +1020,9 @@
             // Set animation duration
             popup.style.animationDelay = `0s, ${config.popup.duration}s`;
             
+            // Set the font family directly - use the current selected font
+            popup.style.fontFamily = availableFonts[currentFontIndex].value;
+            
             // We don't need to set CSS variables here as we're applying styles directly
             
             // Directly apply background color from input
@@ -1212,6 +1217,9 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message';
             
+            // Explicitly set message to inherit font from container
+            messageDiv.style.fontFamily = 'inherit';
+            
             // Add timestamp if enabled
             if (config.showTimestamps) {
                 const timestamp = document.createElement('span');
@@ -1279,6 +1287,7 @@
             messageDiv.className = 'chat-message';
             messageDiv.style.color = '#adadb8';
             messageDiv.style.fontStyle = 'italic';
+            messageDiv.style.fontFamily = 'inherit'; // Use inherit to get the font from the container
             messageDiv.textContent = `System: ${message}`;
             
             chatMessages.appendChild(messageDiv);
@@ -1319,6 +1328,7 @@
             { value: "'MedievalSharp', serif", name: "Medieval" },
             { value: "'Tektur', sans-serif", name: "Tektur" },
             { value: "Arial, sans-serif", name: "Arial" },
+            { value: "Times New Roman, serif", name: "Times (Serif)" },
             { value: "'Courier New', monospace", name: "Courier New" }
         ];
         
@@ -1409,17 +1419,6 @@
             document.documentElement.style.setProperty('--font-size', `${value}px`);
             updatePreviewFromCurrentSettings();
         });
-        
-        // Font weight slider for variable fonts
-        const fontWeightInput = document.getElementById('font-weight');
-        const fontWeightValue = document.getElementById('font-weight-value');
-        
-        fontWeightInput.addEventListener('input', () => {
-            const value = fontWeightInput.value;
-            fontWeightValue.textContent = value;
-            document.documentElement.style.setProperty('--font-weight', value);
-            updatePreviewFromCurrentSettings();
-        });
 
         chatWidthInput.addEventListener('input', () => {
             const value = chatWidthInput.value;
@@ -1452,19 +1451,18 @@
             // Apply the font to chat only (not to settings)
             document.documentElement.style.setProperty('--font-family', currentFont.value);
             
-            // Show/hide font weight control for variable fonts
-            const fontWeightControl = document.querySelector('.font-weight-control');
-            if (currentFont.name === "Tektur") {
-                fontWeightControl.style.display = 'flex';
-                // Reset font weight to default when changing to Tektur
-                document.documentElement.style.setProperty('--font-weight', '400');
-                document.getElementById('font-weight').value = 400;
-                document.getElementById('font-weight-value').textContent = '400';
-            } else {
-                fontWeightControl.style.display = 'none';
-                // Reset to normal weight for other fonts
-                document.documentElement.style.setProperty('--font-weight', 'normal');
-            }
+            // Make sure chat container and popup messages have the font applied
+            document.getElementById('chat-container').style.fontFamily = currentFont.value;
+            
+            // Update all existing chat messages to use the new font
+            document.querySelectorAll('.chat-message').forEach(msg => {
+                msg.style.fontFamily = 'inherit'; // Use inherit to get the font from the container
+            });
+            
+            // Apply to popup messages if they exist
+            document.querySelectorAll('.popup-message').forEach(msg => {
+                msg.style.fontFamily = currentFont.value;
+            });
             
             // Update live preview
             updatePreviewFromCurrentSettings();
@@ -1759,19 +1757,16 @@
             // Generate a username with original or override color based on settings
             const usernameColorDisplay = overrideColors ? usernameColor : '#ff4500'; // Simulated Twitch color
             
-            // Get the current font family value from the carousel
-            const fontFamily = availableFonts[currentFontIndex].value;
-            // Get font weight
-            let fontWeight = "normal";
+            // Get the current font family value
+            const fontFamily = document.getElementById('font-family') ? document.getElementById('font-family').value : availableFonts[currentFontIndex].value;
             
-            if (availableFonts[currentFontIndex].name === "Tektur") {
-                fontWeight = document.getElementById('font-weight').value;
-            }
-            
-            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: ${fontFamily}; font-weight: ${fontWeight};">
-                ${timestamp}
-                <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
-                <span>Chat message</span>
+            // Use config font for preview container, but specific font for the preview message
+            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize};">
+                <div style="font-family: ${fontFamily};">
+                    ${timestamp}
+                    <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
+                    <span>Chat message</span>
+                </div>
             </div>`;
         }
         
@@ -1864,7 +1859,6 @@
                 usernameColor: usernameColorInput.value,
                 fontSize: parseInt(fontSizeInput.value),
                 fontFamily: availableFonts[currentFontIndex].value,
-                fontWeight: availableFonts[currentFontIndex].name === "Tektur" ? fontWeightInput.value : "normal",
                 chatWidth: parseInt(chatWidthInput.value),
                 chatHeight: parseInt(chatHeightInput.value),
                 maxMessages: parseInt(maxMessagesInput.value),
@@ -1906,7 +1900,6 @@
             
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', config.fontFamily);
-            document.documentElement.style.setProperty('--font-weight', config.fontWeight);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -1962,21 +1955,6 @@
                 if (fontIndex >= 0) {
                     currentFontIndex = fontIndex;
                     currentFontDisplay.textContent = availableFonts[currentFontIndex].name;
-                    
-                    // Show/hide font weight control
-                    const fontWeightControl = document.querySelector('.font-weight-control');
-                    if (availableFonts[currentFontIndex].name === "Tektur") {
-                        fontWeightControl.style.display = 'flex';
-                        // Update font weight slider value
-                        if (config.fontWeight) {
-                            fontWeightInput.value = config.fontWeight;
-                            fontWeightValue.textContent = config.fontWeight;
-                            document.documentElement.style.setProperty('--font-weight', config.fontWeight);
-                        }
-                    } else {
-                        fontWeightControl.style.display = 'none';
-                        document.documentElement.style.setProperty('--font-weight', 'normal');
-                    }
                 }
             }
             chatWidthInput.value = config.chatWidth;
@@ -2027,7 +2005,6 @@
             // Apply visual preview
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', config.fontFamily);
-            document.documentElement.style.setProperty('--font-weight', config.fontWeight || 'normal');
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -2110,7 +2087,6 @@
                 usernameColor: '#9147ff',
                 fontSize: 14,
                 fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-                fontWeight: "normal",
                 chatWidth: 100,
                 chatHeight: 600,
                 maxMessages: 50,
@@ -2202,7 +2178,6 @@
             document.documentElement.style.setProperty('--username-color', defaultConfig.usernameColor);
             document.documentElement.style.setProperty('--font-size', `${defaultConfig.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', defaultConfig.fontFamily);
-            document.documentElement.style.setProperty('--font-weight', defaultConfig.fontWeight);
             document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${defaultConfig.chatHeight}px`);
             
