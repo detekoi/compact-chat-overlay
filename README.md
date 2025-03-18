@@ -129,9 +129,9 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
   - Default (system sans-serif)
   - Atkinson Hyperlegible (accessible font designed for high legibility)
   - Press Start 2P (pixelated retro gaming font)
-  - Jacquard (pixel-based monospace)
+  - Jacquard (medieval-style pixel font)
   - Medieval (fantasy-style serif font)
-  - Tektur (variable font with modern geometric design)
+  - Tektur (modern geometric design)
   - System fonts (Arial, Times, Courier New)
 - **Font Size**: Adjust the text size with a slider.
 - **Width**: Change the width of the chat window.
@@ -174,7 +174,8 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
 
 ### Font Selection Tips
-- For **retro or pixel art games**, try the "Press Start 2P" or "Jacquard" fonts
+- For **retro or pixel art games**, try the "Press Start 2P" font
+- For **medieval or fantasy pixel games**, try the "Jacquard" font
 - For **maximum readability**, use "Atkinson Hyperlegible" which is designed for accessibility
 - For **fantasy/RPG streams**, the "Medieval" font adds thematic styling
 - For **modern/tech streams**, the "Tektur" font provides a clean geometric look
