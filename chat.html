@@ -718,7 +718,8 @@
                 border-radius: var(--chat-border-radius);
                 overflow: hidden;
                 position: relative;
-                font-family: var(--config-font-family);
+                /* Allow inner elements to override font */
+                font-family: inherit;
             }
             .theme-preview::after {
                 content: "Preview";
@@ -1754,14 +1755,21 @@
             // Always use the currently selected font in the carousel
             const fontFamily = availableFonts[currentFontIndex].value;
             
-            // Use config font for preview container, but specific font for the preview message
+            // Set the preview content with explicit font styling
             themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize};">
-                <div style="font-family: ${fontFamily}; color: ${textColor};">
+                <!-- Force the specific font with !important to override any inheritance -->
+                <div style="font-family: ${fontFamily} !important; color: ${textColor};">
                     ${timestamp}
                     <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
                     <span>Chat message</span>
                 </div>
             </div>`;
+            
+            // Also set it directly on the container to be sure
+            const previewContent = themePreview.querySelector('div > div');
+            if (previewContent) {
+                previewContent.style.fontFamily = fontFamily;
+            }
         }
         
         // Update the preview whenever colors or settings change
