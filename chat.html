@@ -16,6 +16,8 @@
             --timestamp-color: #adadb8;
             --font-size: 14px;
             --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            --font-weight: normal;
+            --font-width: 100%;
             --chat-width: 100%;
             --chat-height: 600px;
             --chat-border-radius: 8px;
@@ -113,7 +115,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: var(--font-family);
+            font-family: var(--config-font-family);
         }
         
         /* Font Face Declarations */
@@ -154,6 +156,31 @@
             src: url('assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf') format('truetype');
             font-weight: bold;
             font-style: italic;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Jacquard';
+            src: url('assets/fonts/Jacquard12-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'MedievalSharp';
+            src: url('assets/fonts/MedievalSharp-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Tektur';
+            src: url('assets/fonts/Tektur-VariableFont_wdth,wght.ttf') format('truetype');
+            font-weight: 100 900;
+            font-stretch: 75% 100%;
+            font-style: normal;
             font-display: swap;
         }
 
@@ -243,6 +270,8 @@
             word-wrap: break-word;
             animation: fadeIn 0.3s ease-in-out;
             font-family: var(--font-family);
+            font-weight: var(--font-weight);
+            font-stretch: var(--font-width);
         }
 
         @keyframes fadeIn {
@@ -366,6 +395,8 @@
             animation-delay: 0s, 5s; /* Will be customized via JS */
             opacity: 0; /* Start invisible */
             font-family: var(--font-family);
+            font-weight: var(--font-weight);
+            font-stretch: var(--font-width);
         }
         
         /* Remove box shadow and border for transparent theme */
@@ -719,6 +750,11 @@
             <label for="font-size">Font Size:</label>
             <input type="range" id="font-size" min="10" max="24" value="14">
             <span id="font-size-value">14px</span>
+        </div>
+        <div class="config-row font-weight-control" style="display: none;">
+            <label for="font-weight">Font Weight:</label>
+            <input type="range" id="font-weight" min="100" max="900" step="100" value="400">
+            <span id="font-weight-value">400</span>
         </div>
         <div class="config-row">
             <label for="chat-width">Width:</label>
@@ -1279,6 +1315,9 @@
             { value: "'Inter', 'Helvetica Neue', Arial, sans-serif", name: "Default" },
             { value: "'Atkinson Hyperlegible', sans-serif", name: "Atkinson Hyperlegible" },
             { value: "'Press Start 2P', cursive", name: "Press Start 2P" },
+            { value: "'Jacquard', monospace", name: "Jacquard" },
+            { value: "'MedievalSharp', serif", name: "Medieval" },
+            { value: "'Tektur', sans-serif", name: "Tektur" },
             { value: "Arial, sans-serif", name: "Arial" },
             { value: "'Courier New', monospace", name: "Courier New" }
         ];
@@ -1370,6 +1409,17 @@
             document.documentElement.style.setProperty('--font-size', `${value}px`);
             updatePreviewFromCurrentSettings();
         });
+        
+        // Font weight slider for variable fonts
+        const fontWeightInput = document.getElementById('font-weight');
+        const fontWeightValue = document.getElementById('font-weight-value');
+        
+        fontWeightInput.addEventListener('input', () => {
+            const value = fontWeightInput.value;
+            fontWeightValue.textContent = value;
+            document.documentElement.style.setProperty('--font-weight', value);
+            updatePreviewFromCurrentSettings();
+        });
 
         chatWidthInput.addEventListener('input', () => {
             const value = chatWidthInput.value;
@@ -1401,6 +1451,20 @@
             
             // Apply the font to chat only (not to settings)
             document.documentElement.style.setProperty('--font-family', currentFont.value);
+            
+            // Show/hide font weight control for variable fonts
+            const fontWeightControl = document.querySelector('.font-weight-control');
+            if (currentFont.name === "Tektur") {
+                fontWeightControl.style.display = 'flex';
+                // Reset font weight to default when changing to Tektur
+                document.documentElement.style.setProperty('--font-weight', '400');
+                document.getElementById('font-weight').value = 400;
+                document.getElementById('font-weight-value').textContent = '400';
+            } else {
+                fontWeightControl.style.display = 'none';
+                // Reset to normal weight for other fonts
+                document.documentElement.style.setProperty('--font-weight', 'normal');
+            }
             
             // Update live preview
             updatePreviewFromCurrentSettings();
@@ -1695,10 +1759,16 @@
             // Generate a username with original or override color based on settings
             const usernameColorDisplay = overrideColors ? usernameColor : '#ff4500'; // Simulated Twitch color
             
-            // Get the current font family value
-            const fontFamily = document.getElementById('font-family').value || "'Inter', 'Helvetica Neue', Arial, sans-serif";
+            // Get the current font family value from the carousel
+            const fontFamily = availableFonts[currentFontIndex].value;
+            // Get font weight
+            let fontWeight = "normal";
             
-            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: ${fontFamily};">
+            if (availableFonts[currentFontIndex].name === "Tektur") {
+                fontWeight = document.getElementById('font-weight').value;
+            }
+            
+            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: ${fontFamily}; font-weight: ${fontWeight};">
                 ${timestamp}
                 <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
                 <span>Chat message</span>
@@ -1794,6 +1864,7 @@
                 usernameColor: usernameColorInput.value,
                 fontSize: parseInt(fontSizeInput.value),
                 fontFamily: availableFonts[currentFontIndex].value,
+                fontWeight: availableFonts[currentFontIndex].name === "Tektur" ? fontWeightInput.value : "normal",
                 chatWidth: parseInt(chatWidthInput.value),
                 chatHeight: parseInt(chatHeightInput.value),
                 maxMessages: parseInt(maxMessagesInput.value),
@@ -1835,6 +1906,7 @@
             
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', config.fontFamily);
+            document.documentElement.style.setProperty('--font-weight', config.fontWeight);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -1890,6 +1962,21 @@
                 if (fontIndex >= 0) {
                     currentFontIndex = fontIndex;
                     currentFontDisplay.textContent = availableFonts[currentFontIndex].name;
+                    
+                    // Show/hide font weight control
+                    const fontWeightControl = document.querySelector('.font-weight-control');
+                    if (availableFonts[currentFontIndex].name === "Tektur") {
+                        fontWeightControl.style.display = 'flex';
+                        // Update font weight slider value
+                        if (config.fontWeight) {
+                            fontWeightInput.value = config.fontWeight;
+                            fontWeightValue.textContent = config.fontWeight;
+                            document.documentElement.style.setProperty('--font-weight', config.fontWeight);
+                        }
+                    } else {
+                        fontWeightControl.style.display = 'none';
+                        document.documentElement.style.setProperty('--font-weight', 'normal');
+                    }
                 }
             }
             chatWidthInput.value = config.chatWidth;
@@ -1940,6 +2027,7 @@
             // Apply visual preview
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', config.fontFamily);
+            document.documentElement.style.setProperty('--font-weight', config.fontWeight || 'normal');
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -2022,6 +2110,7 @@
                 usernameColor: '#9147ff',
                 fontSize: 14,
                 fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+                fontWeight: "normal",
                 chatWidth: 100,
                 chatHeight: 600,
                 maxMessages: 50,
@@ -2113,6 +2202,7 @@
             document.documentElement.style.setProperty('--username-color', defaultConfig.usernameColor);
             document.documentElement.style.setProperty('--font-size', `${defaultConfig.fontSize}px`);
             document.documentElement.style.setProperty('--font-family', defaultConfig.fontFamily);
+            document.documentElement.style.setProperty('--font-weight', defaultConfig.fontWeight);
             document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${defaultConfig.chatHeight}px`);
             
