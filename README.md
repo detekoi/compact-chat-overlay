@@ -174,12 +174,12 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
 
 ### Font Selection Tips
-- For **retro or pixel art games**, try the "Press Start 2P" font
-- For **medieval or fantasy pixel games**, try the "Jacquard" font
-- For **maximum readability**, use "Atkinson Hyperlegible" which is designed for accessibility
-- For **fantasy/RPG streams**, the "Medieval" font adds thematic styling
-- For **modern/tech streams**, the "Tektur" font provides a clean geometric look
-- Use **system fonts** (Arial, Times, Courier) for maximum performance and compatibility
+- For **retro or pixel art games**, try the "Press Start 2P" font.
+- For **medieval or fantasy pixel games**, try the "Jacquard" font.
+- For **maximum readability**, use "Atkinson Hyperlegible" which is designed for accessibility.
+- For **fantasy/RPG streams**, the "Medieval" font adds thematic styling.
+- For **modern/tech streams**, the "Tektur" font provides a clean geometric look.
+- Use **system fonts** (Arial, Times, Courier) for maximum performance and compatibility.
 
 ### Popup Mode Tips
 - Use popup mode for a more dynamic, attention-grabbing chat experience.
