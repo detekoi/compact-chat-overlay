@@ -15,6 +15,7 @@
             --username-color: #9147ff; /* Default if no color is specified */
             --timestamp-color: #adadb8;
             --font-size: 14px;
+            --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
             --chat-width: 100%;
             --chat-height: 600px;
             --chat-border-radius: 8px;
@@ -30,6 +31,7 @@
             --config-bg-color: rgba(35, 35, 35, 0.95);
             --config-text-color: #ffffff;
             --config-border-color: #9147ff;
+            --config-font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
         }
 
         /* Light Theme */
@@ -111,7 +113,48 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            font-family: var(--font-family);
+        }
+        
+        /* Font Face Declarations */
+        @font-face {
+            font-family: 'Press Start 2P';
+            src: url('assets/fonts/PressStart2P-Regular.txt.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Atkinson Hyperlegible';
+            src: url('assets/fonts/AtkinsonHyperlegible-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Atkinson Hyperlegible';
+            src: url('assets/fonts/AtkinsonHyperlegible-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Atkinson Hyperlegible';
+            src: url('assets/fonts/AtkinsonHyperlegible-Italic.ttf') format('truetype');
+            font-weight: normal;
+            font-style: italic;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Atkinson Hyperlegible';
+            src: url('assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf') format('truetype');
+            font-weight: bold;
+            font-style: italic;
+            font-display: swap;
         }
 
         body {
@@ -133,6 +176,7 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            font-family: var(--config-font-family);
         }
 
         #config-panel.visible {
@@ -198,6 +242,7 @@
             margin-bottom: 8px;
             word-wrap: break-word;
             animation: fadeIn 0.3s ease-in-out;
+            font-family: var(--font-family);
         }
 
         @keyframes fadeIn {
@@ -320,6 +365,7 @@
             animation-fill-mode: forwards, forwards;
             animation-delay: 0s, 5s; /* Will be customized via JS */
             opacity: 0; /* Start invisible */
+            font-family: var(--font-family);
         }
         
         /* Remove box shadow and border for transparent theme */
@@ -659,6 +705,16 @@
             <label for="override-username-colors">Override Username Colors:</label>
             <input type="checkbox" id="override-username-colors">
         </div>
+        <div class="config-row font-section">
+            <div class="font-selector-label" id="font-selector-label">Font:</div>
+            <div id="font-buttons" class="font-buttons-container" role="group" aria-labelledby="font-selector-label">
+                <div class="current-font-display" id="current-font">Default</div>
+                <div class="font-navigation">
+                    <button type="button" id="prev-font" class="font-nav-btn">◀</button>
+                    <button type="button" id="next-font" class="font-nav-btn">▶</button>
+                </div>
+            </div>
+        </div>
         <div class="config-row">
             <label for="font-size">Font Size:</label>
             <input type="range" id="font-size" min="10" max="24" value="14">
@@ -696,15 +752,28 @@
                 border-radius: 4px;
                 min-width: 150px;
             }
-            .theme-navigation {
+            .theme-navigation, .font-navigation {
                 display: flex;
                 justify-content: space-between;
             }
-            .theme-nav-btn {
+            .theme-nav-btn, .font-nav-btn {
                 margin-top: 0;
                 padding: 3px 10px;
                 flex: 1;
                 max-width: 70px;
+            }
+            .font-buttons-container {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            .current-font-display {
+                text-align: center;
+                padding: 5px;
+                background-color: rgba(0, 0, 0, 0.2);
+                border-radius: 4px;
+                min-width: 150px;
+                font-family: var(--config-font-family, 'Inter', 'Helvetica Neue', Arial, sans-serif);
             }
             .popup-setting {
                 display: none; /* Hidden by default, will be shown when popup mode is selected */
@@ -739,6 +808,7 @@
             textColor: '#efeff1',
             usernameColor: '#9147ff',
             fontSize: 14,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
             chatWidth: 100,
             chatHeight: 600,
             maxMessages: 50,
@@ -1204,6 +1274,17 @@
         const nextThemeBtn = document.getElementById('next-theme');
         const currentThemeDisplay = document.getElementById('current-theme');
         
+        // Define available fonts
+        const availableFonts = [
+            { value: "'Inter', 'Helvetica Neue', Arial, sans-serif", name: "Default" },
+            { value: "'Atkinson Hyperlegible', sans-serif", name: "Atkinson Hyperlegible" },
+            { value: "'Press Start 2P', cursive", name: "Press Start 2P" },
+            { value: "Arial, sans-serif", name: "Arial" },
+            { value: "'Courier New', monospace", name: "Courier New" }
+        ];
+        
+        let currentFontIndex = 0;
+        
         // Define available themes with their color values
         const availableThemes = [
             { 
@@ -1296,6 +1377,34 @@
             document.documentElement.style.setProperty('--chat-width', `${value}%`);
             updatePreviewFromCurrentSettings();
         });
+        
+        // Font navigation buttons
+        const prevFontBtn = document.getElementById('prev-font');
+        const nextFontBtn = document.getElementById('next-font');
+        const currentFontDisplay = document.getElementById('current-font');
+        
+        // Previous font button
+        prevFontBtn.addEventListener('click', () => {
+            currentFontIndex = (currentFontIndex - 1 + availableFonts.length) % availableFonts.length;
+            updateFontDisplay();
+        });
+        
+        // Next font button
+        nextFontBtn.addEventListener('click', () => {
+            currentFontIndex = (currentFontIndex + 1) % availableFonts.length;
+            updateFontDisplay();
+        });
+        
+        function updateFontDisplay() {
+            const currentFont = availableFonts[currentFontIndex];
+            currentFontDisplay.textContent = currentFont.name;
+            
+            // Apply the font to chat only (not to settings)
+            document.documentElement.style.setProperty('--font-family', currentFont.value);
+            
+            // Update live preview
+            updatePreviewFromCurrentSettings();
+        }
         
         chatHeightInput.addEventListener('input', () => {
             const value = chatHeightInput.value;
@@ -1586,7 +1695,10 @@
             // Generate a username with original or override color based on settings
             const usernameColorDisplay = overrideColors ? usernameColor : '#ff4500'; // Simulated Twitch color
             
-            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: 'Inter', sans-serif;">
+            // Get the current font family value
+            const fontFamily = document.getElementById('font-family').value || "'Inter', 'Helvetica Neue', Arial, sans-serif";
+            
+            themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize}; font-family: ${fontFamily};">
                 ${timestamp}
                 <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
                 <span>Chat message</span>
@@ -1681,6 +1793,7 @@
                 textColor: textColorInput.value,
                 usernameColor: usernameColorInput.value,
                 fontSize: parseInt(fontSizeInput.value),
+                fontFamily: availableFonts[currentFontIndex].value,
                 chatWidth: parseInt(chatWidthInput.value),
                 chatHeight: parseInt(chatHeightInput.value),
                 maxMessages: parseInt(maxMessagesInput.value),
@@ -1721,6 +1834,7 @@
             }
             
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+            document.documentElement.style.setProperty('--font-family', config.fontFamily);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -1768,6 +1882,16 @@
             usernameColorInput.value = config.usernameColor;
             fontSizeInput.value = config.fontSize;
             fontSizeValue.textContent = `${config.fontSize}px`;
+            
+            // Update the font carousel to match the current config value
+            if (config.fontFamily) {
+                // Find the matching font index
+                const fontIndex = availableFonts.findIndex(font => font.value === config.fontFamily);
+                if (fontIndex >= 0) {
+                    currentFontIndex = fontIndex;
+                    currentFontDisplay.textContent = availableFonts[currentFontIndex].name;
+                }
+            }
             chatWidthInput.value = config.chatWidth;
             chatWidthValue.textContent = `${config.chatWidth}%`;
             maxMessagesInput.value = config.maxMessages;
@@ -1815,6 +1939,7 @@
             
             // Apply visual preview
             document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+            document.documentElement.style.setProperty('--font-family', config.fontFamily);
             document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
             
@@ -1896,6 +2021,7 @@
                 textColor: '#efeff1',
                 usernameColor: '#9147ff',
                 fontSize: 14,
+                fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
                 chatWidth: 100,
                 chatHeight: 600,
                 maxMessages: 50,
@@ -1928,6 +2054,15 @@
             usernameColorInput.value = defaultConfig.usernameColor;
             fontSizeInput.value = defaultConfig.fontSize;
             fontSizeValue.textContent = `${defaultConfig.fontSize}px`;
+            
+            // Update font carousel
+            if (defaultConfig.fontFamily) {
+                const fontIndex = availableFonts.findIndex(font => font.value === defaultConfig.fontFamily);
+                if (fontIndex >= 0) {
+                    currentFontIndex = fontIndex;
+                    currentFontDisplay.textContent = availableFonts[currentFontIndex].name;
+                }
+            }
             chatWidthInput.value = defaultConfig.chatWidth;
             chatWidthValue.textContent = `${defaultConfig.chatWidth}%`;
             chatHeightInput.value = defaultConfig.chatHeight;
@@ -1977,6 +2112,7 @@
             document.documentElement.style.setProperty('--chat-text-color', defaultConfig.textColor);
             document.documentElement.style.setProperty('--username-color', defaultConfig.usernameColor);
             document.documentElement.style.setProperty('--font-size', `${defaultConfig.fontSize}px`);
+            document.documentElement.style.setProperty('--font-family', defaultConfig.fontFamily);
             document.documentElement.style.setProperty('--chat-width', `${defaultConfig.chatWidth}%`);
             document.documentElement.style.setProperty('--chat-height', `${defaultConfig.chatHeight}px`);
             
