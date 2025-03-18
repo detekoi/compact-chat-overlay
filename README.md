@@ -19,11 +19,12 @@ Create and manage multiple chat scenes for your stream in seconds!
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See changes in real-time before applying them.
 - **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
+- **Font Customization**: Choose from multiple font options including gaming-style pixel fonts, accessible fonts, and variable fonts.
 - **Customizable Appearance**:
   - Background color & opacity
   - Border color
   - Text color
-  - Font size
+  - Font selection and size
   - Window width and height
   - Usernames - use original Twitch colors or pick a custom color
   - Show/hide timestamps
@@ -124,6 +125,14 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 - **Border**: Change the border color using theme-specific presets or choose "None" for borderless display.
 - **Text**: Set the message text color.
 - **Username Colors**: Choose whether to use Twitch's colors or your custom color.
+- **Font**: Select from various fonts including:
+  - Default (system sans-serif)
+  - Atkinson Hyperlegible (accessible font designed for high legibility)
+  - Press Start 2P (pixelated retro gaming font)
+  - Jacquard (pixel-based monospace)
+  - Medieval (fantasy-style serif font)
+  - Tektur (variable font with modern geometric design)
+  - System fonts (Arial, Times, Courier New)
 - **Font Size**: Adjust the text size with a slider.
 - **Width**: Change the width of the chat window.
 - **Height**: Change the height of the chat window.
@@ -163,6 +172,13 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - Try the **Cyberpunk** theme for a neon-style game streaming aesthetic.
 - For retro games or cozy streams, the **Natural** theme offers earthy, warm tones.
 - For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
+
+### Font Selection Tips
+- For **retro or pixel art games**, try the "Press Start 2P" or "Jacquard" fonts
+- For **maximum readability**, use "Atkinson Hyperlegible" which is designed for accessibility
+- For **fantasy/RPG streams**, the "Medieval" font adds thematic styling
+- For **modern/tech streams**, the "Tektur" font provides a clean geometric look
+- Use **system fonts** (Arial, Times, Courier) for maximum performance and compatibility
 
 ### Popup Mode Tips
 - Use popup mode for a more dynamic, attention-grabbing chat experience.
