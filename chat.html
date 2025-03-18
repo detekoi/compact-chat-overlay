@@ -1751,12 +1751,12 @@
             // Generate a username with original or override color based on settings
             const usernameColorDisplay = overrideColors ? usernameColor : '#ff4500'; // Simulated Twitch color
             
-            // Get the current font family value
-            const fontFamily = document.getElementById('font-family') ? document.getElementById('font-family').value : availableFonts[currentFontIndex].value;
+            // Always use the currently selected font in the carousel
+            const fontFamily = availableFonts[currentFontIndex].value;
             
             // Use config font for preview container, but specific font for the preview message
             themePreview.innerHTML = `<div style="padding: 5px; font-size: ${fontSize};">
-                <div style="font-family: ${fontFamily};">
+                <div style="font-family: ${fontFamily}; color: ${textColor};">
                     ${timestamp}
                     <span style="color: ${usernameColorDisplay}; font-weight: bold;">Username:</span>
                     <span>Chat message</span>
