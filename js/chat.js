@@ -790,7 +790,7 @@
             };
             
             popupSettingsBtn.style.cursor = 'pointer';
-            popupSettingsBtn.style.opacity = '0.9';  // Make it more visible
+            // Don't set opacity here to allow CSS hover control
         }
         
         // Variable to store original config when opening settings
@@ -1184,15 +1184,15 @@
             
             // Update the HTML example first so we can style its elements
             themePreview.innerHTML = `
-                <div>
+                <div class="preview-chat-message">
                     ${config.showTimestamps ? '<span class="timestamp">12:34</span> ' : ''}
                     <span class="preview-username">Username:</span> 
-                    <span class="preview-message">Chat message</span>
+                    <span class="preview-message">Example chat message</span>
                 </div>
-                <div class="preview-timestamp">
+                <div class="preview-chat-message">
                     ${config.showTimestamps ? '<span class="timestamp">12:35</span> ' : ''}
-                    <span class="preview-username" style="opacity: 0.9;">AnotherUser:</span> 
-                    <span class="preview-message">Another example message</span>
+                    <span class="preview-username">AnotherUser:</span> 
+                    <span class="preview-message">This is how your chat will look</span>
                 </div>
             `;
             
@@ -1295,10 +1295,12 @@
                 }
             }
             
-            // Apply the current font family
+            // Apply the current font family and size
             const fontFamily = availableFonts[currentFontIndex].value;
+            const fontSize = fontSizeSlider.value;
             document.documentElement.style.setProperty('--font-family', fontFamily);
             themePreview.style.fontFamily = fontFamily;
+            themePreview.style.fontSize = `${fontSize}px`;
         }
         
         // Update the preview whenever colors or settings change
