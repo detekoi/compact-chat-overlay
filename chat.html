@@ -13,7 +13,8 @@
         <div class="popup-settings-area">
             <button id="popup-settings-btn">⚙️</button>
         </div>
-        <!-- Popup messages will be inserted here -->
+        <!-- Dedicated container for popup messages -->
+        <div id="popup-messages"></div>
     </div>
     
     <div id="chat-container">
@@ -40,7 +41,9 @@
         </div>
         
         <div class="theme-preview-container">
-            <div class="theme-preview" id="theme-preview"></div>
+            <div class="theme-preview" id="theme-preview">
+                <!-- The theme preview content will be dynamically populated by JavaScript -->
+            </div>
         </div>
         
         <div class="section-divider">Display Mode</div>
@@ -99,7 +102,10 @@
         <div class="config-row">
             <label for="bg-color">Background:</label>
             <div class="color-picker">
-                <div class="color-preview" id="bg-color-preview"></div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                    <div class="color-preview" id="bg-color-preview"></div>
+                    <input type="range" id="bg-opacity" min="0" max="100" value="80" style="flex-grow: 1;">
+                </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#121212" data-target="bg">Dark</button>
                     <button type="button" class="color-btn" data-color="#ffffff" data-target="bg">Light</button>
@@ -108,14 +114,15 @@
                     <button type="button" class="color-btn" data-color="#ffdeec" data-target="bg">Pink</button>
                     <button type="button" class="color-btn" data-color="#0c0c28" data-target="bg">Cyber</button>
                 </div>
-                <input type="range" id="bg-opacity" min="0" max="100" value="80" style="width: 100%">
                 <input type="color" id="bg-color" value="#121212" style="visibility: hidden; width: 0; height: 0;">
             </div>
         </div>
         <div class="config-row">
             <label for="border-color">Border:</label>
             <div class="color-picker">
-                <div class="color-preview" id="border-color-preview"></div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                    <div class="color-preview" id="border-color-preview"></div>
+                </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#444444" data-target="border">Dark</button>
                     <button type="button" class="color-btn" data-color="#cccccc" data-target="border">Light</button>
@@ -130,7 +137,9 @@
         <div class="config-row">
             <label for="text-color">Text:</label>
             <div class="color-picker">
-                <div class="color-preview" id="text-color-preview"></div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                    <div class="color-preview" id="text-color-preview"></div>
+                </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#efeff1" data-target="text">Light</button>
                     <button type="button" class="color-btn" data-color="#1a1a1a" data-target="text">Dark</button>
@@ -144,7 +153,9 @@
         <div class="config-row">
             <label for="username-color">Username:</label>
             <div class="color-picker">
-                <div class="color-preview" id="username-color-preview"></div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                    <div class="color-preview" id="username-color-preview"></div>
+                </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#9147ff" data-target="username">Twitch</button>
                     <button type="button" class="color-btn" data-color="#508d69" data-target="username">Natural</button>
