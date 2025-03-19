@@ -214,21 +214,38 @@
                 let message = data.message;
                 
                 // Parse emotes if available
-                if (data.emotes) {
+                if (data.emotes && typeof data.emotes === 'object') {
                     const emotePositions = [];
                     
-                    // Build a list of all emote positions
-                    for (const emoteId in data.emotes) {
-                        const emotePositionArray = data.emotes[emoteId];
-                        
-                        for (const position of emotePositionArray) {
-                            const [start, end] = position.split('-').map(Number);
-                            emotePositions.push({
-                                start,
-                                end,
-                                id: emoteId
-                            });
+                    try {
+                        // Build a list of all emote positions
+                        for (const emoteId in data.emotes) {
+                            if (!data.emotes.hasOwnProperty(emoteId)) continue;
+                            
+                            const emotePositionArray = data.emotes[emoteId];
+                            if (!Array.isArray(emotePositionArray)) continue;
+                            
+                            for (const position of emotePositionArray) {
+                                if (!position || !position.includes('-')) continue;
+                                
+                                const [startStr, endStr] = position.split('-');
+                                const start = parseInt(startStr, 10);
+                                const end = parseInt(endStr, 10);
+                                
+                                // Validate the positions are valid numbers and in range
+                                if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start > end || end >= data.message.length) {
+                                    continue;
+                                }
+                                
+                                emotePositions.push({
+                                    start,
+                                    end,
+                                    id: emoteId
+                                });
+                            }
                         }
+                    } catch (err) {
+                        console.error('Error processing emotes:', err);
                     }
                     
                     // Sort emote positions from end to start to avoid position shifts
@@ -236,22 +253,29 @@
                     
                     // Replace each emote with an img tag
                     for (const emote of emotePositions) {
-                        const emoteCode = message.substring(emote.start, emote.end + 1);
-                        const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0`;
-                        
-                        // Create the replacement HTML
-                        const emoteHtml = `<img class="emote" src="${emoteUrl}" alt="${emoteCode}" title="${emoteCode}" />`;
-                        
-                        // Replace the emote in the message
-                        message = message.substring(0, emote.start) + emoteHtml + message.substring(emote.end + 1);
+                        try {
+                            const emoteCode = message.substring(emote.start, emote.end + 1);
+                            const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0`;
+                            
+                            // Create the replacement HTML with proper escaping
+                            const emoteHtml = `<img class="emote" src="${emoteUrl}" alt="${emoteCode.replace(/"/g, '&quot;')}" title="${emoteCode.replace(/"/g, '&quot;')}" />`;
+                            
+                            // Replace the emote in the message
+                            message = message.substring(0, emote.start) + emoteHtml + message.substring(emote.end + 1);
+                        } catch (err) {
+                            console.error('Error replacing emote:', err);
+                        }
                     }
                 }
                 
-                // Replace URLs with clickable links (if any exist)
-                message = message.replace(
-                    /(https?:\/\/[^\s]+)/g, 
-                    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-                );
+                // Skip URL processing entirely if message contains emote tags
+                if (!message.includes('<img class="emote"')) {
+                    // Only process URLs in messages without emotes
+                    message = message.replace(
+                        /(\bhttps?:\/\/[^\s<]+)/g,
+                        (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+                    );
+                }
                 
                 // Badge functionality removed - requires Twitch API auth
                 
@@ -396,11 +420,20 @@
                         // Parse tags if present (IRCv3)
                         let tags = {};
                         if (message.startsWith('@')) {
-                            const tagPart = message.slice(1, message.indexOf(' '));
-                            tagPart.split(';').forEach(tag => {
-                                const [key, value] = tag.split('=');
-                                tags[key] = value;
-                            });
+                            try {
+                                const tagEnd = message.indexOf(' ');
+                                if (tagEnd > 0) {
+                                    const tagPart = message.slice(1, tagEnd);
+                                    tagPart.split(';').forEach(tag => {
+                                        if (tag && tag.includes('=')) {
+                                            const [key, value] = tag.split('=');
+                                            if (key) tags[key] = value || '';
+                                        }
+                                    });
+                                }
+                            } catch (err) {
+                                console.error('Error parsing IRC tags:', err);
+                            }
                         }
                         
                         // Extract username from message
@@ -414,13 +447,19 @@
                         // Parse emotes
                         let emotes = null;
                         if (tags.emotes) {
-                            emotes = {};
-                            const emoteGroups = tags.emotes.split('/');
-                            emoteGroups.forEach(group => {
-                                if (!group) return;
-                                const [emoteId, positions] = group.split(':');
-                                emotes[emoteId] = positions.split(',');
-                            });
+                            try {
+                                emotes = {};
+                                const emoteGroups = tags.emotes.split('/');
+                                emoteGroups.forEach(group => {
+                                    if (!group || !group.includes(':')) return;
+                                    const [emoteId, positions] = group.split(':');
+                                    if (emoteId && positions) {
+                                        emotes[emoteId] = positions.split(',').filter(pos => pos && pos.includes('-'));
+                                    }
+                                });
+                            } catch (err) {
+                                console.error('Error parsing emotes:', err, tags.emotes);
+                            }
                         }
                         
                         // Badge parsing removed - requires Twitch API auth
