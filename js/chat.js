@@ -294,8 +294,6 @@
                     limitMessages();
                     // Auto-scroll to the bottom
                     scrollToBottom();
-                    // Force scroll again after a short delay to ensure it takes effect
-                    setTimeout(scrollToBottom, 50);
                 } else if (config.chatMode === 'popup') {
                     // For popup mode, limit messages and set auto-remove timer
                     // Limit popup messages - Use Array.from to create a static array instead of live NodeList
@@ -529,11 +527,6 @@
             // If we were at the bottom before, make sure we stay there
             if (isAtBottom) {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                
-                // Force scroll again to ensure the latest messages are visible
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 0);
             }
         }
         
@@ -543,15 +536,9 @@
                 // Get the chat container element
                 const chatContainer = document.getElementById('chat-container');
                 
-                // Ensure we always show the bottom of chat by directly manipulating both containers
+                // Ensure we always show the bottom of chat
                 if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
                 if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-                
-                // Try again after a delay to ensure it works
-                setTimeout(() => {
-                    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-                    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 100);
             }
         }
         

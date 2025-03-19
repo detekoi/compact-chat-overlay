@@ -1021,11 +1021,9 @@ button:hover {
     display: flex;
     flex-direction: column;
     width: 100%;
-    overflow-y: visible;
     flex-grow: 1;
     margin-top: auto; /* Push content to the bottom */
     justify-content: flex-end; /* Align content to the bottom */
-    min-height: 80%; /* Ensure we have room for messages */
 }
 
 .chat-message {
