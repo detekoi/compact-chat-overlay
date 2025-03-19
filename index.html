@@ -4,64 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Compact Chat Overlay</title>
-    <style>
-        body {
-            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            background-color: #f7f7f8;
-            color: #18181b;
-            text-align: center;
-        }
-        h1 {
-            color: #9147ff;
-            margin-bottom: 20px;
-        }
-        .card {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-        }
-        .card p {
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-        .buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-        }
-        .button {
-            background-color: #9147ff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            cursor: pointer;
-            font-size: 16px;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        .button:hover {
-            background-color: #772ce8;
-        }
-        .button.secondary {
-            background-color: #f0f0f0;
-            color: #18181b;
-        }
-        .button.secondary:hover {
-            background-color: #e0e0e0;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="card">
@@ -72,7 +15,7 @@
             <a href="chat.html" class="button secondary">Just Take Me to Chat</a>
         </div>
         <p style="margin-top: 20px; font-size: 14px;">
-            <a href="https://github.com/detekoi/compact-chat-overlay" target="_blank" style="color: #9147ff; text-decoration: none;">
+            <a href="https://github.com/detekoi/compact-chat-overlay" target="_blank" style="color: var(--link-color); text-decoration: none;">
                 View Documentation on GitHub →
             </a>
         </p>
