@@ -417,6 +417,8 @@
                     
                     // Handle PRIVMSG (chat messages)
                     if (message.includes('PRIVMSG')) {
+                        // Debug log for troubleshooting message format issues
+                        console.debug('Received Twitch message:', message);
                         // Parse tags if present (IRCv3)
                         let tags = {};
                         if (message.startsWith('@')) {
@@ -436,13 +438,41 @@
                             }
                         }
                         
-                        // Extract username from message
-                        const usernameMatch = message.match(/:(.*?)!/);
-                        const username = usernameMatch ? usernameMatch[1] : 'Anonymous';
+                        // Extract username from message - handling both standard and non-standard formats
+                        let username = 'Anonymous';
+                        try {
+                            // First try the display-name from tags (most reliable)
+                            if (tags['display-name']) {
+                                username = tags['display-name'];
+                            } else {
+                                // Fall back to extracting from message
+                                const usernameMatch = message.match(/:(.*?)!/);
+                                if (usernameMatch && usernameMatch[1]) {
+                                    username = usernameMatch[1];
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error extracting username:', err);
+                        }
                         
-                        // Extract message content
-                        const messageMatch = message.match(/PRIVMSG #\w+ :(.*)/);
-                        const messageContent = messageMatch ? messageMatch[1] : '';
+                        // Extract message content more reliably
+                        let messageContent = '';
+                        try {
+                            // Look for the PRIVMSG part and extract everything after the colon
+                            const messageParts = message.split('PRIVMSG #');
+                            if (messageParts.length > 1) {
+                                // Get the channel and message part
+                                const channelAndMessage = messageParts[1];
+                                // Find the first colon after the channel name
+                                const colonIndex = channelAndMessage.indexOf(' :');
+                                if (colonIndex !== -1) {
+                                    // Extract everything after the colon
+                                    messageContent = channelAndMessage.substring(colonIndex + 2);
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Error extracting message content:', err);
+                        }
                         
                         // Parse emotes
                         let emotes = null;
@@ -463,6 +493,13 @@
                         }
                         
                         // Badge parsing removed - requires Twitch API auth
+                        
+                        // Log parsed data for debugging
+                        console.debug('Parsed message data:', {
+                            username,
+                            messageContent,
+                            emotes: tags.emotes
+                        });
                         
                         // Add the chat message
                         addChatMessage({
