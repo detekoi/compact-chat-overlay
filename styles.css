@@ -1122,10 +1122,13 @@ button:hover {
     gap: 8px;
     padding: 10px;
     width: 100%;
-    /* Position based on popup direction */
+    /* Position based on popup direction, will be modified by JavaScript */
     position: absolute;
-    bottom: 10px; /* Default for from-bottom */
-    left: 0;
+    /* Initial values - these will be adjusted by JavaScript */
+    bottom: auto;
+    top: auto;
+    left: auto;
+    right: auto;
     max-height: calc(100vh - 20px);
     overflow: hidden;
 }

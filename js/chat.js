@@ -969,38 +969,32 @@
                     // Get direction with fallback
                     const direction = config.popup.direction || 'from-bottom';
                     
-                    // Reset all position properties
-                    popupMessages.style.top = '';
-                    popupMessages.style.bottom = '';
-                    popupMessages.style.left = '';
-                    popupMessages.style.right = '';
-                    popupMessages.style.transform = '';
+                    // Create a simplified positioning object
+                    const position = {
+                        top: null,
+                        bottom: null
+                    };
                     
                     // Set position based on direction
                     switch(direction) {
                         case 'from-top':
-                            popupMessages.style.top = '10px';
-                            popupMessages.style.left = '0';
+                        case 'from-left':
+                        case 'from-right':
+                            position.top = '10px';
+                            position.bottom = 'auto';
                             break;
                         case 'from-bottom':
-                            popupMessages.style.bottom = '10px';
-                            popupMessages.style.left = '0';
-                            break;
-                        case 'from-left':
-                            popupMessages.style.left = '10px';
-                            popupMessages.style.top = '50%';
-                            popupMessages.style.transform = 'translateY(-50%)';
-                            break;
-                        case 'from-right':
-                            popupMessages.style.right = '10px';
-                            popupMessages.style.top = '50%';
-                            popupMessages.style.transform = 'translateY(-50%)';
-                            break;
                         default:
-                            // Default to bottom if direction is invalid
-                            popupMessages.style.bottom = '10px';
-                            popupMessages.style.left = '0';
+                            position.bottom = '10px';
+                            position.top = 'auto';
                     }
+                    
+                    // Clear the style completely first
+                    popupMessages.removeAttribute('style');
+                    
+                    // Apply new styles, only setting vertical position
+                    popupMessages.style.top = position.top;
+                    popupMessages.style.bottom = position.bottom;
                 }
             } catch (error) {
                 console.error('Error switching chat mode:', error);
@@ -1357,6 +1351,42 @@
             input.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     config.popup.direction = e.target.value;
+                    
+                    // Immediately update popup position when direction is changed
+                    if (config.chatMode === 'popup') {
+                        const popupMessages = document.getElementById('popup-messages');
+                        if (popupMessages) {
+                            // Get direction
+                            const direction = config.popup.direction;
+                            
+                            // Create a simplified positioning object
+                            const position = {
+                                top: null,
+                                bottom: null
+                            };
+                            
+                            // Set position based on direction
+                            switch(direction) {
+                                case 'from-top':
+                                case 'from-left':
+                                case 'from-right':
+                                    position.top = '10px';
+                                    position.bottom = 'auto';
+                                    break;
+                                case 'from-bottom':
+                                default:
+                                    position.bottom = '10px';
+                                    position.top = 'auto';
+                            }
+                            
+                            // Clear the style completely first
+                            popupMessages.removeAttribute('style');
+                            
+                            // Apply new styles, only setting vertical position
+                            popupMessages.style.top = position.top;
+                            popupMessages.style.bottom = position.bottom;
+                        }
+                    }
                 }
             });
         });
