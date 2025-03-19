@@ -715,6 +715,9 @@
                     return;
                 }
                 
+                // Store the current configuration for cancel functionality
+                originalConfig = JSON.parse(JSON.stringify(config));
+                
                 panel.classList.add('visible');
                 // Also directly set the style in case the CSS isn't working
                 panel.style.display = 'block';
@@ -734,6 +737,9 @@
                 
                 const panel = document.getElementById('config-panel');
                 if (panel) {
+                    // Store original config for cancel functionality
+                    originalConfig = JSON.parse(JSON.stringify(config));
+                    
                     panel.classList.add('visible');
                     panel.style.display = 'block';
                     updateConfigPanelFromConfig();
@@ -757,6 +763,9 @@
                 
                 const panel = document.getElementById('config-panel');
                 if (panel) {
+                    // Store original config for cancel functionality
+                    originalConfig = JSON.parse(JSON.stringify(config));
+                    
                     panel.classList.add('visible');
                     panel.style.display = 'block';
                     updateConfigPanelFromConfig();
@@ -769,14 +778,49 @@
             popupSettingsBtn.style.opacity = '0.9';  // Make it more visible
         }
         
+        // Variable to store original config when opening settings
+        let originalConfig = null;
+
         // Close settings panel function
         function closeConfigPanel() {
             configPanel.classList.remove('visible');
             configPanel.style.display = 'none';
         }
         
-        // Close button click handler
-        cancelConfigBtn.addEventListener('click', closeConfigPanel);
+        // Cancel button click handler
+        cancelConfigBtn.addEventListener('click', () => {
+            // Restore original config if it exists
+            if (originalConfig) {
+                // Restore config from backup
+                config = JSON.parse(JSON.stringify(originalConfig));
+                
+                // Re-apply the original settings to the UI
+                applyTheme(config.theme);
+                
+                // Reset CSS variables to original values
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
+                document.documentElement.style.setProperty('--font-family', config.fontFamily);
+                document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
+                document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
+                
+                // Apply original username color override setting
+                if (config.overrideUsernameColors) {
+                    document.documentElement.classList.add('override-username-colors');
+                } else {
+                    document.documentElement.classList.remove('override-username-colors');
+                }
+                
+                // Apply original chat mode
+                switchChatMode(config.chatMode);
+            }
+            
+            // Close the panel
+            closeConfigPanel();
+        });
         
         // Update theme preview based on current color settings
         function updateColorPreviews() {
