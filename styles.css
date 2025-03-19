@@ -1522,6 +1522,14 @@ body.popup-mode:hover #popup-settings-btn {
     color: #5f4339;
 }
 
+.obs-tips-box {
+    margin-top: 10px; 
+    padding: 8px; 
+    background-color: #f5f5f5; 
+    border-radius: 4px; 
+    font-size: 13px;
+}
+
 .obs-info-box {
     margin-top: 10px; 
     padding: 10px; 
@@ -1561,11 +1569,54 @@ body.popup-mode:hover #popup-settings-btn {
     border-radius: 0 0 6px 6px;
 }
 
+/* Modal styles */
+.modal-container {
+    display: none; 
+    position: fixed; 
+    z-index: 100; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0,0,0,0.5); 
+    align-items: center; 
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: white; 
+    padding: 20px; 
+    border-radius: 8px; 
+    width: 400px; 
+    max-width: 90%;
+}
+
+.modal-label {
+    display: block; 
+    margin-bottom: 5px;
+}
+
+.modal-description {
+    font-size: 12px; 
+    color: #666; 
+    margin-top: 4px;
+}
+
+/* Button hover states */
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
 @media (prefers-color-scheme: dark) {
     .settings-note {
         background-color: var(--warning-bg-color);
         color: #eee8e5;
         border-left-color: #ffd600;
+    }
+    
+    .obs-tips-box {
+        background-color: var(--neutral-bg-color);
+        color: #e0e0e0;
     }
     
     .obs-info-box {
@@ -1590,5 +1641,18 @@ body.popup-mode:hover #popup-settings-btn {
     .accordion-content-custom {
         border-color: #444444;
         background-color: #232323;
+    }
+    
+    .modal-content {
+        background-color: #2a2a2a;
+        color: #e0e0e0;
+    }
+    
+    .modal-description {
+        color: #aaaaaa;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #404040;
     }
 }
