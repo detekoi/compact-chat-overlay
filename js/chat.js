@@ -120,7 +120,7 @@
             { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff' },
             { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64' },
             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec' },
-            { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(70, 25, 70, 0.85)', borderColor: '#ff8ad8', textColor: '#feebf9', usernameColor: '#ff8ad8' }
+            { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(255, 222, 236, 0.85)', borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670' }
         ];
         
         // Show status indicators and messages
@@ -290,9 +290,12 @@
                 targetContainer.appendChild(messageElement);
                 
                 if (config.chatMode === 'window') {
-                    // Auto-scroll and limit messages for window mode
+                    // Limit messages to maintain performance
                     limitMessages();
+                    // Auto-scroll to the bottom
                     scrollToBottom();
+                    // Force scroll again after a short delay to ensure it takes effect
+                    setTimeout(scrollToBottom, 50);
                 } else if (config.chatMode === 'popup') {
                     // For popup mode, limit messages and set auto-remove timer
                     // Limit popup messages - Use Array.from to create a static array instead of live NodeList
@@ -515,15 +518,40 @@
         
         // Limit the number of messages based on settings
         function limitMessages() {
+            // Save scroll position information
+            const isAtBottom = Math.abs((chatMessages.scrollHeight - chatMessages.scrollTop) - chatMessages.clientHeight) < 5;
+            
+            // Remove excess messages
             while (chatMessages.children.length > config.maxMessages) {
                 chatMessages.removeChild(chatMessages.firstChild);
+            }
+            
+            // If we were at the bottom before, make sure we stay there
+            if (isAtBottom) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Force scroll again to ensure the latest messages are visible
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 0);
             }
         }
         
         // Scroll chat to bottom
         function scrollToBottom() {
             if (config.chatMode === 'window') {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                // Get the chat container element
+                const chatContainer = document.getElementById('chat-container');
+                
+                // Ensure we always show the bottom of chat by directly manipulating both containers
+                if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+                if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Try again after a delay to ensure it works
+                setTimeout(() => {
+                    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
+                    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
             }
         }
         

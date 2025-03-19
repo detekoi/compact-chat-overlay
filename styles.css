@@ -994,7 +994,9 @@ button:hover {
 #chat-container {
     width: var(--chat-width);
     height: var(--chat-height);
-    overflow-y: auto;
+    overflow-y: scroll; /* Force scrollbar to be present */
+    display: flex;
+    flex-direction: column;
     background-color: var(--chat-bg-color);
     border-radius: var(--chat-border-radius);
     padding: 10px;
@@ -1002,7 +1004,7 @@ button:hover {
     color: var(--chat-text-color);
     /* Set font properties directly here */
     font-family: var(--font-family);
-    /* Hide scrollbar */
+    /* Hide scrollbar but keep functionality */
     scrollbar-width: none;
     -ms-overflow-style: none;
     /* Use proper border handling to support transparent borders */
@@ -1012,6 +1014,18 @@ button:hover {
 
 #chat-container::-webkit-scrollbar {
     display: none;
+}
+
+/* Add specific styles for #chat-messages container */
+#chat-messages {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-y: visible;
+    flex-grow: 1;
+    margin-top: auto; /* Push content to the bottom */
+    justify-content: flex-end; /* Align content to the bottom */
+    min-height: 80%; /* Ensure we have room for messages */
 }
 
 .chat-message {
@@ -1046,6 +1060,7 @@ button:hover {
 
 #channel-form {
     margin-bottom: 15px;
+    order: -1; /* Place form at the top */
 }
 
 #channel-input {
