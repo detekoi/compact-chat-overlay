@@ -1681,6 +1681,16 @@
                         document.documentElement.classList.remove('override-username-colors');
                     }
                     
+                    // Set color CSS variables directly
+                    document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                    document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                    document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                    document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                    document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                    document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
+                    document.documentElement.style.setProperty('--popup-text-color', config.textColor);
+                    document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                    
                     // Update form fields and visual settings
                     updateConfigPanelFromConfig();
                     
