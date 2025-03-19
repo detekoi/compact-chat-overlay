@@ -116,7 +116,7 @@
         let currentThemeIndex = 0;
         const availableThemes = [
             { name: 'Default', value: 'default', bgColor: 'rgba(18, 18, 18, 0.8)', borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff' },
-            { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'rgba(255, 255, 255, 0.1)', textColor: '#ffffff', usernameColor: '#9147ff' },
+            { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff' },
             { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff' },
             { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64' },
             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec' },
@@ -571,14 +571,26 @@
                 const color = e.target.getAttribute('data-color');
                 const target = e.target.getAttribute('data-target');
                 
+                // Mark this button as active and remove active class from sibling buttons
+                const allButtonsForTarget = document.querySelectorAll(`.color-btn[data-target="${target}"]`);
+                allButtonsForTarget.forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                
                 // Set the appropriate color input based on target
                 if (target === 'bg') {
                     bgColorInput.value = color;
                     updateBgColor();
                 } else if (target === 'border') {
-                    borderColorInput.value = color;
-                    document.documentElement.style.setProperty('--chat-border-color', color);
-                    document.documentElement.style.setProperty('--popup-border-color', color);
+                    // For border, handle "transparent" specially
+                    if (color === 'transparent') {
+                        borderColorInput.value = color;
+                        document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                        document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                    } else {
+                        borderColorInput.value = color;
+                        document.documentElement.style.setProperty('--chat-border-color', color);
+                        document.documentElement.style.setProperty('--popup-border-color', color);
+                    }
                 } else if (target === 'text') {
                     textColorInput.value = color;
                     document.documentElement.style.setProperty('--chat-text-color', color);
@@ -907,6 +919,12 @@
                 document.documentElement.style.setProperty('--popup-text-color', theme.textColor);
                 document.documentElement.style.setProperty('--popup-username-color', theme.usernameColor);
                 
+                // Special handling for Transparent theme to ensure border is transparent
+                if (theme.value === 'transparent-theme') {
+                    document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                    document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                }
+                
                 // Only update config if we explicitly want to - this prevents
                 // unwanted config overrides during save operations
                 if (config.theme === theme.value) {
@@ -949,7 +967,23 @@
                     }
                 }
                 
-                if (borderColorInput) borderColorInput.value = theme.borderColor;
+                // Special handling for transparent border
+                if (borderColorInput) {
+                    if (theme.value === 'transparent-theme' || theme.borderColor === 'transparent') {
+                        borderColorInput.value = 'transparent';
+                        // Also update the None button to appear active
+                        const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+                        borderButtons.forEach(btn => {
+                            if (btn.getAttribute('data-color') === 'transparent') {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        });
+                    } else {
+                        borderColorInput.value = theme.borderColor;
+                    }
+                }
                 if (textColorInput) textColorInput.value = theme.textColor;
                 if (usernameColorInput) usernameColorInput.value = theme.usernameColor;
                 
@@ -1052,7 +1086,14 @@
             if (theme.value !== 'default' && !useCustom) {
                 // Apply predefined theme colors directly
                 themePreview.style.backgroundColor = theme.bgColor;
-                themePreview.style.border = `2px solid ${theme.borderColor}`;
+                
+                // Special handling for transparent border in themes
+                if (theme.borderColor === 'transparent') {
+                    themePreview.style.border = 'none';
+                } else {
+                    themePreview.style.border = `2px solid ${theme.borderColor}`;
+                }
+                
                 themePreview.style.color = theme.textColor;
                 
                 // Add the theme class for any additional styles (especially important for transparent theme)
@@ -1094,7 +1135,12 @@
                     themePreview.style.opacity = opacity;
                 }
                 
-                themePreview.style.border = `2px solid ${borderColorInput.value || '#9147ff'}`;
+                // Handle transparent borders properly
+                if (borderColorInput.value === 'transparent') {
+                    themePreview.style.border = 'none';
+                } else {
+                    themePreview.style.border = `2px solid ${borderColorInput.value || '#9147ff'}`;
+                }
                 
                 // Apply text colors
                 if (usernameElems && usernameElems.length) {
@@ -1216,6 +1262,25 @@
                     return element.value || defaultValue;
                 };
                 
+                // Special function to handle border-color which might be 'transparent'
+                const getBorderColor = () => {
+                    // Check for transparency special case
+                    const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+                    for (const btn of borderButtons) {
+                        if (btn.classList.contains('active') && btn.getAttribute('data-color') === 'transparent') {
+                            return 'transparent';
+                        }
+                    }
+                    
+                    // If the Transparent theme is currently selected, use transparent
+                    if (availableThemes[currentThemeIndex].value === 'transparent-theme') {
+                        return 'transparent';
+                    }
+                    
+                    // Otherwise use the color input value
+                    return borderColorInput.value || '#9147ff';
+                };
+                
                 // Build color value with opacity
                 const getRgbaColor = () => {
                     try {
@@ -1239,7 +1304,7 @@
                     
                     // Window mode settings
                     bgColor: getRgbaColor(),
-                    borderColor: getValue(borderColorInput, '#9147ff'),
+                    borderColor: getBorderColor(),
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
                     fontSize: getValue(fontSizeSlider, 14),
@@ -1296,6 +1361,12 @@
                 document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
                 document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                 document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                
+                // Double-check transparent border is applied correctly
+                if (config.borderColor === 'transparent' || config.theme === 'transparent-theme') {
+                    document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                    document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                }
                 
                 // Update CSS variables for fonts and dimensions
                 document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
@@ -1395,6 +1466,12 @@
                         document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                         document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                        
+                        // Special handling for transparent borders
+                        if (config.borderColor === 'transparent' || config.theme === 'transparent-theme') {
+                            document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                            document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                        }
                         
                         // Set font and size
                         document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
@@ -1506,6 +1583,18 @@
                 
                 // Update form fields
                 borderColorInput.value = config.borderColor;
+                
+                // Mark the appropriate border color button as active
+                const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+                borderButtons.forEach(btn => {
+                    const btnColor = btn.getAttribute('data-color');
+                    if ((config.borderColor === 'transparent' && btnColor === 'transparent') || 
+                        (config.borderColor !== 'transparent' && btnColor === config.borderColor)) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
                 textColorInput.value = config.textColor;
                 usernameColorInput.value = config.usernameColor;
                 fontSizeSlider.value = config.fontSize;
@@ -1513,6 +1602,18 @@
                 
                 // Update color previews
                 updateColorPreviews();
+                
+                // Mark the appropriate border color button as active if using transparent
+                if (config.borderColor === 'transparent') {
+                    const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+                    borderButtons.forEach(btn => {
+                        if (btn.getAttribute('data-color') === 'transparent') {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
                 
                 // Update the font carousel to match the current config value
                 if (config.fontFamily) {

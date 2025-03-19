@@ -996,7 +996,6 @@ button:hover {
     height: var(--chat-height);
     overflow-y: auto;
     background-color: var(--chat-bg-color);
-    border: 2px solid var(--chat-border-color);
     border-radius: var(--chat-border-radius);
     padding: 10px;
     font-size: var(--font-size);
@@ -1006,6 +1005,9 @@ button:hover {
     /* Hide scrollbar */
     scrollbar-width: none;
     -ms-overflow-style: none;
+    /* Use proper border handling to support transparent borders */
+    border: 2px solid;
+    border-color: var(--chat-border-color);
 }
 
 #chat-container::-webkit-scrollbar {
@@ -1140,7 +1142,6 @@ button:hover {
 
 .popup-message {
     background-color: var(--popup-bg-color);
-    border: 2px solid var(--popup-border-color);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     padding: 8px 12px;
@@ -1151,6 +1152,9 @@ button:hover {
     animation-delay: 0s, 5s; /* Will be customized via JS */
     opacity: 0; /* Start invisible */
     font-family: var(--font-family);
+    /* Use proper border handling to support transparent borders */
+    border: 2px solid;
+    border-color: var(--popup-border-color);
 }
 
 /* Remove box shadow and border for transparent theme */
@@ -1306,6 +1310,12 @@ body.popup-mode #popup-settings-btn {
     padding: 3px 5px;
     font-size: 11px;
     min-width: 0;
+}
+
+.color-btn.active {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
 }
 .theme-section {
     margin-bottom: 5px;
