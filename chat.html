@@ -979,6 +979,8 @@
         textColorInput.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-text-color', textColorInput.value);
             document.documentElement.style.setProperty('--popup-text-color', textColorInput.value);
+            // Update the config's textColor immediately when the input changes
+            config.textColor = textColorInput.value;
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
         });
