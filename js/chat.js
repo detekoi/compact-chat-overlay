@@ -253,25 +253,11 @@
                     '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
                 );
                 
-                // Add badges if available
-                let badgesHtml = '';
-                if (data.badges) {
-                    for (const badge in data.badges) {
-                        const version = data.badges[badge];
-                        
-                        // Special handling for subscriber badges
-                        if (badge === 'subscriber') {
-                            badgesHtml += `<img class="badge" src="https://static-cdn.jtvnw.net/badges/v1/${badge}/1" alt="${badge}" title="${badge}" /> `;
-                        } else {
-                            badgesHtml += `<img class="badge" src="https://static-cdn.jtvnw.net/badges/v1/${badge}/${version}/1" alt="${badge}" title="${badge}" /> `;
-                        }
-                    }
-                }
+                // Badge functionality removed - requires Twitch API auth
                 
                 // Assemble the chat message
                 messageElement.innerHTML = `
                     <span class="timestamp">${timestamp}</span>
-                    <span class="badges">${badgesHtml}</span>
                     <span class="username" style="color: ${userColor}">${data.username}:</span>
                     <span class="message-content">${message}</span>
                 `;
@@ -437,25 +423,14 @@
                             });
                         }
                         
-                        // Parse badges
-                        let badges = null;
-                        if (tags.badges) {
-                            badges = {};
-                            const badgeParts = tags.badges.split(',');
-                            badgeParts.forEach(part => {
-                                if (!part) return;
-                                const [badge, version] = part.split('/');
-                                badges[badge] = version;
-                            });
-                        }
+                        // Badge parsing removed - requires Twitch API auth
                         
                         // Add the chat message
                         addChatMessage({
                             username,
                             message: messageContent,
                             color: tags.color || null,
-                            emotes,
-                            badges
+                            emotes
                         });
                     }
                 });
