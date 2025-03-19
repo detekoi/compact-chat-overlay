@@ -78,13 +78,13 @@
                         
                         <div class="settings-section" style="margin-bottom: 20px;">
                             <div class="accordion" id="browserSettingsAccordion">
-                                <div class="accordion-header" style="cursor: pointer; background-color: #f1f3f4; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                <div class="accordion-header accordion-header-custom">
                                     <h3 style="margin: 0; font-size: 15px;">Advanced Browser Settings (Optional)</h3>
                                     <span class="accordion-icon">▼</span>
                                 </div>
-                                <div class="accordion-content" style="display: none; padding: 15px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 6px 6px;">
+                                <div class="accordion-content accordion-content-custom" style="display: none;">
                                     
-                                    <div class="settings-note" style="margin-bottom: 20px; padding: 10px; background-color: #fffde7; border-left: 3px solid #ffd600; font-size: 14px; color: #5f4339;">
+                                    <div class="settings-note">
                                         <strong>Note:</strong> These settings save to this browser only. When you add this scene to OBS, you'll need to configure these settings directly within OBS by <strong>right-clicking the browser source</strong> and selecting <strong>"Interact"</strong>.
                                     </div>
                                     
@@ -156,7 +156,7 @@
                                 </ol>
                             </div>
                             
-                            <div style="margin-top: 10px; padding: 10px; background-color: #e8f5e9; border-left: 3px solid #43a047; font-size: 13px; border-radius: 4px;">
+                            <div class="obs-info-box">
                                 <p><strong>⚠️ Settings in OBS:</strong> The configuration you save here (channel name, timestamps, etc.) will <strong>not automatically transfer to OBS</strong>. When you add this to OBS:</p>
                                 <ol style="margin-left: 20px; margin-top: 5px;">
                                     <li>Right-click the browser source and select <strong>"Interact"</strong>.</li>
@@ -168,8 +168,8 @@
                         </div>
                         
                         <!-- Preview functionality removed as it needs to be tested directly in OBS -->
-                        <div style="margin-top: 20px; text-align: center; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
-                            <p style="margin: 0; color: #666;">To preview your chat scene, add it to OBS as a browser source.</p>
+                        <div class="preview-info-box">
+                            <p>To preview your chat scene, add it to OBS as a browser source.</p>
                         </div>
                     </div>
                 </div>
