@@ -727,46 +727,64 @@
         // Close button click handler
         cancelConfigBtn.addEventListener('click', closeConfigPanel);
         
-        // Update color preview swatches
+        // Update theme preview based on current color settings
         function updateColorPreviews() {
-            // Get all color preview elements
-            const bgColorPreview = document.getElementById('bg-color-preview');
-            const borderColorPreview = document.getElementById('border-color-preview');
-            const textColorPreview = document.getElementById('text-color-preview');
-            const usernameColorPreview = document.getElementById('username-color-preview');
+            // The color preview swatches have been removed
+            // Now we only highlight the active color buttons and update the theme preview
             
-            // Update the color previews with their respective colors
-            if (bgColorPreview) {
-                const bgColor = bgColorInput.value || '#121212';
-                const opacity = parseInt(bgOpacityInput.value || 80) / 100;
-                const rgbaMatch = bgColor.match(/#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})/i);
-                
-                if (rgbaMatch) {
-                    const [, r, g, b] = rgbaMatch;
-                    const r_int = parseInt(r, 16);
-                    const g_int = parseInt(g, 16);
-                    const b_int = parseInt(b, 16);
-                    bgColorPreview.style.backgroundColor = `rgba(${r_int}, ${g_int}, ${b_int}, ${opacity})`;
-                } else {
-                    bgColorPreview.style.backgroundColor = bgColor;
-                    bgColorPreview.style.opacity = opacity;
-                }
-            }
+            // Highlight the active color buttons based on current values
+            highlightActiveColorButtons();
             
-            if (borderColorPreview) {
-                borderColorPreview.style.backgroundColor = borderColorInput.value || '#9147ff';
-            }
-            
-            if (textColorPreview) {
-                textColorPreview.style.backgroundColor = textColorInput.value || '#efeff1';
-            }
-            
-            if (usernameColorPreview) {
-                usernameColorPreview.style.backgroundColor = usernameColorInput.value || '#9147ff';
-            }
-            
-            // Also update the main theme preview to keep everything in sync
+            // Update the main theme preview to keep everything in sync
             updatePreviewFromCurrentSettings();
+        }
+        
+        // Helper function to highlight the active color buttons based on current values
+        function highlightActiveColorButtons() {
+            // Background color
+            const bgColorValue = bgColorInput.value || '#121212';
+            const bgButtons = document.querySelectorAll('.color-btn[data-target="bg"]');
+            bgButtons.forEach(btn => {
+                if (btn.getAttribute('data-color') === bgColorValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Border color
+            const borderColorValue = borderColorInput.value || '#9147ff';
+            const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+            borderButtons.forEach(btn => {
+                if ((borderColorValue === 'transparent' && btn.getAttribute('data-color') === 'transparent') || 
+                    (borderColorValue !== 'transparent' && btn.getAttribute('data-color') === borderColorValue)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Text color
+            const textColorValue = textColorInput.value || '#efeff1';
+            const textButtons = document.querySelectorAll('.color-btn[data-target="text"]');
+            textButtons.forEach(btn => {
+                if (btn.getAttribute('data-color') === textColorValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Username color
+            const usernameColorValue = usernameColorInput.value || '#9147ff';
+            const usernameButtons = document.querySelectorAll('.color-btn[data-target="username"]');
+            usernameButtons.forEach(btn => {
+                if (btn.getAttribute('data-color') === usernameColorValue) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
         
         // Toggle between window and popup modes
@@ -1583,37 +1601,14 @@
                 
                 // Update form fields
                 borderColorInput.value = config.borderColor;
-                
-                // Mark the appropriate border color button as active
-                const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
-                borderButtons.forEach(btn => {
-                    const btnColor = btn.getAttribute('data-color');
-                    if ((config.borderColor === 'transparent' && btnColor === 'transparent') || 
-                        (config.borderColor !== 'transparent' && btnColor === config.borderColor)) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
                 textColorInput.value = config.textColor;
                 usernameColorInput.value = config.usernameColor;
                 fontSizeSlider.value = config.fontSize;
                 fontSizeValue.textContent = `${config.fontSize}px`;
                 
-                // Update color previews
-                updateColorPreviews();
-                
-                // Mark the appropriate border color button as active if using transparent
-                if (config.borderColor === 'transparent') {
-                    const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
-                    borderButtons.forEach(btn => {
-                        if (btn.getAttribute('data-color') === 'transparent') {
-                            btn.classList.add('active');
-                        } else {
-                            btn.classList.remove('active');
-                        }
-                    });
-                }
+                // Highlight active color buttons and update theme preview
+                highlightActiveColorButtons();
+                updatePreviewFromCurrentSettings();
                 
                 // Update the font carousel to match the current config value
                 if (config.fontFamily) {

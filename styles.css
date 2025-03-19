@@ -1316,6 +1316,9 @@ body.popup-mode #popup-settings-btn {
     outline: 2px solid #ffffff;
     outline-offset: -2px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+    transform: scale(1.05);
+    position: relative;
+    z-index: 1;
 }
 .theme-section {
     margin-bottom: 5px;
