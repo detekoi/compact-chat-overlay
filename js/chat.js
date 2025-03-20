@@ -925,6 +925,16 @@
                         chatContainer.style.display = 'none';
                     }
                     
+                    // Move channel form to popup container if not connected
+                    const channelForm = document.getElementById('channel-form');
+                    if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
+                        const popupSettingsArea = document.querySelector('.popup-settings-area');
+                        if (popupSettingsArea && !popupSettingsArea.contains(channelForm)) {
+                            popupSettingsArea.appendChild(channelForm);
+                        }
+                        channelForm.style.display = 'block';
+                    }
+                    
                     document.body.classList.add('popup-mode');
                     document.body.classList.remove('window-mode');
                     
@@ -939,6 +949,15 @@
                     
                     if (chatContainer) {
                         chatContainer.style.display = 'block';
+                    }
+                    
+                    // Move channel form back to main container if not connected
+                    const channelForm = document.getElementById('channel-form');
+                    if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
+                        if (!chatContainer.contains(channelForm)) {
+                            chatContainer.insertBefore(channelForm, chatMessages);
+                        }
+                        channelForm.style.display = 'block';
                     }
                     
                     document.body.classList.add('window-mode');
