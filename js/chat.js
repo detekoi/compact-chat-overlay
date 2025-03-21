@@ -295,6 +295,7 @@
                     // Auto-scroll to the bottom
                     scrollToBottom();
                 } else if (config.chatMode === 'popup') {
+                    
                     // For popup mode, limit messages and set auto-remove timer
                     // Limit popup messages - Use Array.from to create a static array instead of live NodeList
                     const popupMsgs = Array.from(targetContainer.querySelectorAll('.popup-message'));
@@ -619,11 +620,15 @@
         document.querySelectorAll('.color-btn').forEach(button => {
             // Set initial background color of buttons to match their data-color
             const color = button.getAttribute('data-color');
+            console.log(`DEBUG - Initializing color button: ${button.textContent.trim()}, data-color=${color}, data-target=${button.getAttribute('data-target')}`);
             button.style.backgroundColor = color;
             
             // For buttons with 'transparent' or very light colors, add a border
             if (color === 'transparent' || color === '#ffffff' || color === '#ffdeec' || color === '#f5f2e6') {
                 button.style.border = '1px solid #888';
+                if (color === 'transparent') {
+                    console.log(`DEBUG - Added border to transparent button "${button.textContent.trim()}"`);
+                }
             }
             
             // Make text color contrasting so it's readable
@@ -649,13 +654,24 @@
                 } else if (target === 'border') {
                     // For border, handle "transparent" specially
                     if (color === 'transparent') {
-                        borderColorInput.value = color;
+                        // Don't try to set 'transparent' on color input - it's not supported
+                        // Instead, just set the CSS variables and track the transparent state
                         document.documentElement.style.setProperty('--chat-border-color', 'transparent');
                         document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                        // Store the active state on the button itself for tracking
+                        document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
+                            if (btn.getAttribute('data-color') === 'transparent') {
+                                btn.setAttribute('data-is-transparent', 'true');
+                            }
+                        });
                     } else {
                         borderColorInput.value = color;
                         document.documentElement.style.setProperty('--chat-border-color', color);
                         document.documentElement.style.setProperty('--popup-border-color', color);
+                        // Clear transparent flag
+                        document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
+                            btn.removeAttribute('data-is-transparent');
+                        });
                     }
                 } else if (target === 'text') {
                     textColorInput.value = color;
@@ -675,8 +691,17 @@
         
         // Update border color
         borderColorInput.addEventListener('input', () => {
-            document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
-            document.documentElement.style.setProperty('--popup-border-color', borderColorInput.value);
+            console.log(`DEBUG - Border color input change: "${borderColorInput.value}"`);
+            // Special handling for transparent border
+            if (borderColorInput.value === 'transparent') {
+                console.log('DEBUG - Input event: Setting transparent border');
+                document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+            } else {
+                console.log(`DEBUG - Input event: Setting border to ${borderColorInput.value}`);
+                document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
+                document.documentElement.style.setProperty('--popup-border-color', borderColorInput.value);
+            }
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
         });
@@ -1022,6 +1047,7 @@
         }
         
         // Switch themes with the carousel
+        
         function applyTheme(themeName) {
             try {
                 // First find the theme object matching this name
@@ -1065,6 +1091,7 @@
                     document.documentElement.style.setProperty('--chat-border-color', 'transparent');
                     document.documentElement.style.setProperty('--popup-border-color', 'transparent');
                 }
+                
                 
                 // Only update config if we explicitly want to - this prevents
                 // unwanted config overrides during save operations
@@ -1303,7 +1330,7 @@
                 }
                 
                 // Special handling for transparent background
-                if (bgColor === '#00000000' || opacity === 0) {
+                if (bgColor === '#000' || opacity === 0) {
                     themePreview.classList.add('transparent-theme');
                 }
             }
@@ -1443,12 +1470,23 @@
                 
                 // Special function to handle border-color which might be 'transparent'
                 const getBorderColor = () => {
-                    // Check for transparency special case
+                    // First check our custom attribute for transparent state
+                    const transparentButton = document.querySelector('.color-btn[data-target="border"][data-is-transparent="true"]');
+                    if (transparentButton) {
+                        return 'transparent';
+                    }
+                    
+                    // Check if the "None" (transparent) button is active
                     const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
                     for (const btn of borderButtons) {
                         if (btn.classList.contains('active') && btn.getAttribute('data-color') === 'transparent') {
-                            return 'transparent';
+                            return 'transparent'; // The transparent button is active
                         }
+                    }
+                    
+                    // Check if the CSS variable is set to transparent
+                    if (getComputedStyle(document.documentElement).getPropertyValue('--chat-border-color').trim() === 'transparent') {
+                        return 'transparent';
                     }
                     
                     // If the Transparent theme is currently selected, use transparent
@@ -1478,12 +1516,26 @@
                 };
                 
                 // Create updated config object with all settings
+                console.log('DEBUG - Building new config object...');
+                
+                // Log the state before creating config
+                console.log(`DEBUG - Current border color button state:`);
+                document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
+                    console.log(`- Button "${btn.textContent.trim()}" (${btn.getAttribute('data-color')}): active=${btn.classList.contains('active')}`);
+                });
+                console.log(`DEBUG - borderColorInput.value = "${borderColorInput.value}"`);
+                console.log(`DEBUG - borderColorInput.type = "${borderColorInput.type}"`);
+                console.log(`DEBUG - CSS variable --chat-border-color = "${getComputedStyle(document.documentElement).getPropertyValue('--chat-border-color')}"`);
+                
+                const borderColorValue = getBorderColor();
+                console.log(`DEBUG - getBorderColor() returned: "${borderColorValue}"`);
+                
                 const newConfig = {
                     chatMode: chatModeRadio.value,
                     
                     // Window mode settings
                     bgColor: getRgbaColor(),
-                    borderColor: getBorderColor(),
+                    borderColor: borderColorValue,
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
                     fontSize: getValue(fontSizeSlider, 14),
@@ -1603,7 +1655,7 @@
                             
                             // Window mode settings
                             bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.8)',
-                            borderColor: parsedConfig.borderColor || '#9147ff',
+                            borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
                             textColor: parsedConfig.textColor || '#efeff1',
                             usernameColor: parsedConfig.usernameColor || '#9147ff',
                             fontSize: parsedConfig.fontSize || 14,
@@ -1931,5 +1983,6 @@
         updateFontDisplay();
         updateThemeDisplay();
         loadSavedConfig();
+        
     }
 })();
