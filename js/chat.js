@@ -620,15 +620,11 @@
         document.querySelectorAll('.color-btn').forEach(button => {
             // Set initial background color of buttons to match their data-color
             const color = button.getAttribute('data-color');
-            console.log(`DEBUG - Initializing color button: ${button.textContent.trim()}, data-color=${color}, data-target=${button.getAttribute('data-target')}`);
             button.style.backgroundColor = color;
             
             // For buttons with 'transparent' or very light colors, add a border
             if (color === 'transparent' || color === '#ffffff' || color === '#ffdeec' || color === '#f5f2e6') {
                 button.style.border = '1px solid #888';
-                if (color === 'transparent') {
-                    console.log(`DEBUG - Added border to transparent button "${button.textContent.trim()}"`);
-                }
             }
             
             // Make text color contrasting so it's readable
@@ -691,14 +687,11 @@
         
         // Update border color
         borderColorInput.addEventListener('input', () => {
-            console.log(`DEBUG - Border color input change: "${borderColorInput.value}"`);
             // Special handling for transparent border
             if (borderColorInput.value === 'transparent') {
-                console.log('DEBUG - Input event: Setting transparent border');
                 document.documentElement.style.setProperty('--chat-border-color', 'transparent');
                 document.documentElement.style.setProperty('--popup-border-color', 'transparent');
             } else {
-                console.log(`DEBUG - Input event: Setting border to ${borderColorInput.value}`);
                 document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
                 document.documentElement.style.setProperty('--popup-border-color', borderColorInput.value);
             }
@@ -1516,26 +1509,12 @@
                 };
                 
                 // Create updated config object with all settings
-                console.log('DEBUG - Building new config object...');
-                
-                // Log the state before creating config
-                console.log(`DEBUG - Current border color button state:`);
-                document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
-                    console.log(`- Button "${btn.textContent.trim()}" (${btn.getAttribute('data-color')}): active=${btn.classList.contains('active')}`);
-                });
-                console.log(`DEBUG - borderColorInput.value = "${borderColorInput.value}"`);
-                console.log(`DEBUG - borderColorInput.type = "${borderColorInput.type}"`);
-                console.log(`DEBUG - CSS variable --chat-border-color = "${getComputedStyle(document.documentElement).getPropertyValue('--chat-border-color')}"`);
-                
-                const borderColorValue = getBorderColor();
-                console.log(`DEBUG - getBorderColor() returned: "${borderColorValue}"`);
-                
                 const newConfig = {
                     chatMode: chatModeRadio.value,
                     
                     // Window mode settings
                     bgColor: getRgbaColor(),
-                    borderColor: borderColorValue,
+                    borderColor: getBorderColor(),
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
                     fontSize: getValue(fontSizeSlider, 14),
