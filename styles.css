@@ -229,6 +229,22 @@
 }
 
 @font-face {
+    font-family: 'EB Garamond';
+    src: url('assets/fonts/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
+    font-weight: 400 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'EB Garamond';
+    src: url('assets/fonts/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
+    font-weight: 400 800;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
     font-family: 'MedievalSharp';
     src: url('assets/fonts/MedievalSharp-Regular.ttf') format('truetype');
     font-weight: normal;
