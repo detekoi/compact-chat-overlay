@@ -14,7 +14,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ## Try It Now
 
-**[➡️ Use the Online Chat Scene Creator](https://detekoi.github.io/compact-chat-overlay/)**
+**[➡️ Online Version](https://detekoi.github.io/compact-chat-overlay/)**
 
 Create and manage multiple chat scenes for your stream in seconds!
 
