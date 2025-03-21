@@ -1259,7 +1259,7 @@
             
             try {
                 // Call your Cloud Run service
-                const response = await fetch('http://localhost:8091/api/generate-theme', {
+                const response = await fetch('https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
