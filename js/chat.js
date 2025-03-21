@@ -28,6 +28,8 @@
             maxMessages: 50,
             showTimestamps: true,
             overrideUsernameColors: false,
+            borderRadius: '8px',
+            boxShadow: 'none',
             
             // Popup mode settings
             popup: {
@@ -85,6 +87,10 @@
         const chatHeightValue = document.getElementById('chat-height-value');
         const maxMessagesInput = document.getElementById('max-messages');
         const showTimestampsInput = document.getElementById('show-timestamps');
+        
+        // Border radius and box shadow presets
+        const borderRadiusPresets = document.getElementById('border-radius-presets');
+        const boxShadowPresets = document.getElementById('box-shadow-presets');
         
         // Font selection carousel
         const prevFontBtn = document.getElementById('prev-font');
@@ -1700,6 +1706,8 @@
                     maxMessages: getValue(maxMessagesInput, 50),
                     showTimestamps: getValue(showTimestampsInput, true),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false),
+                    borderRadius: config.borderRadius || '8px',
+                    boxShadow: config.boxShadow || 'none',
                     theme: availableThemes[currentThemeIndex]?.value || 'default',
                     lastChannel: channel || config.lastChannel || '',
                     
@@ -1759,6 +1767,13 @@
                 document.documentElement.style.setProperty('--font-family', config.fontFamily);
                 document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
                 document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
+                document.documentElement.style.setProperty('--chat-border-radius', config.borderRadius);
+                
+                // Apply box shadow using the preset value if set
+                if (config.boxShadow) {
+                    const boxShadowValue = getBoxShadowValue(config.boxShadow);
+                    document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
+                }
                 
                 // Apply username color override setting
                 if (config.overrideUsernameColors) {
@@ -1820,6 +1835,8 @@
                             maxMessages: parsedConfig.maxMessages || 50,
                             showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
                             overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
+                            borderRadius: parsedConfig.borderRadius || '8px',
+                            boxShadow: parsedConfig.boxShadow || 'soft',
                             theme: parsedConfig.theme || 'default',
                             lastChannel: parsedConfig.lastChannel || '',
                             
@@ -1864,6 +1881,13 @@
                         document.documentElement.style.setProperty('--font-family', config.fontFamily);
                         document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
                         document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
+                        
+                        // Apply border radius and box shadow
+                        document.documentElement.style.setProperty('--chat-border-radius', config.borderRadius);
+                        if (config.boxShadow) {
+                            const boxShadowValue = getBoxShadowValue(config.boxShadow);
+                            document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
+                        }
                         
                         // Apply theme class if needed
                         if (config.theme !== 'default') {
@@ -1953,6 +1977,93 @@
         }
         
         // Update config panel from current config
+        // Helper function to get box shadow value based on preset
+        function getBoxShadowValue(preset) {
+            switch(preset) {
+                case 'none':
+                    return 'none';
+                case 'soft':
+                    return 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px';
+                case 'simple3d':
+                    return 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px';
+                case 'intense3d':
+                    return 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px';
+                case 'sharp':
+                    return '8px 8px 0px 0px rgba(0, 0, 0, 0.9)';
+                default:
+                    return 'none';
+            }
+        }
+        
+        // Apply border radius to chat container
+        function applyBorderRadius(value) {
+            document.documentElement.style.setProperty('--chat-border-radius', value);
+            config.borderRadius = value;
+            
+            // Highlight active button
+            if (borderRadiusPresets) {
+                const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
+                buttons.forEach(btn => {
+                    if (btn.dataset.value === value) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        }
+        
+        // Apply box shadow to chat container
+        function applyBoxShadow(preset) {
+            const shadowValue = getBoxShadowValue(preset);
+            document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
+            config.boxShadow = preset;
+            
+            // Highlight active button
+            if (boxShadowPresets) {
+                const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
+                buttons.forEach(btn => {
+                    if (btn.dataset.value === preset) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        }
+        
+        // Add event listeners for border radius presets
+        if (borderRadiusPresets) {
+            const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.dataset.value;
+                    applyBorderRadius(value);
+                });
+                
+                // Highlight the default/current value
+                if (btn.dataset.value === config.borderRadius) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Add event listeners for box shadow presets
+        if (boxShadowPresets) {
+            const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.dataset.value;
+                    applyBoxShadow(value);
+                });
+                
+                // Highlight the default/current value
+                if (btn.dataset.value === config.boxShadow) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
         function updateConfigPanelFromConfig() {
             try {
                 // Handle color setting
@@ -2046,6 +2157,29 @@
                         channelActions.style.display = 'none';
                     }
                 }
+                
+                // Update border radius and box shadow buttons
+                if (borderRadiusPresets) {
+                    const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
+                    buttons.forEach(btn => {
+                        if (btn.dataset.value === config.borderRadius) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
+                
+                if (boxShadowPresets) {
+                    const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
+                    buttons.forEach(btn => {
+                        if (btn.dataset.value === config.boxShadow) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                }
             } catch (error) {
                 console.error('Error updating config panel:', error);
             }
@@ -2102,6 +2236,8 @@
                 theme: 'default',
                 overrideUsernameColors: false,
                 chatMode: 'window',
+                borderRadius: '8px',
+                boxShadow: 'soft',
                 popup: {
                     direction: 'from-bottom',
                     duration: 5,

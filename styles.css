@@ -1026,6 +1026,8 @@ button:hover {
     /* Use proper border handling to support transparent borders */
     border: 2px solid;
     border-color: var(--chat-border-color);
+    /* Box shadow */
+    box-shadow: var(--chat-box-shadow, none);
 }
 
 #chat-container::-webkit-scrollbar {
@@ -1175,8 +1177,8 @@ button:hover {
 
 .popup-message {
     background-color: var(--popup-bg-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-radius: var(--chat-border-radius);
+    box-shadow: var(--chat-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.2));
     padding: 8px 12px;
     width: 100%; /* Use container width */
     margin-bottom: 8px;
@@ -1387,13 +1389,34 @@ button:hover {
     min-width: 0;
 }
 
-.color-btn.active {
+.color-btn.active, .preset-btn.active {
     outline: 2px solid #ffffff;
     outline-offset: -2px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
     transform: scale(1.05);
     position: relative;
     z-index: 1;
+}
+
+.preset-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 175px;
+}
+
+.preset-btn {
+    flex: 1 1 calc(33% - 5px);
+    margin: 0;
+    padding: 3px 5px;
+    font-size: 11px;
+    min-width: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 .theme-section {
     margin-bottom: 5px;
