@@ -111,7 +111,8 @@
     <pre id="output">Results will appear here...</pre>
     
     <script>
-        document.getElementById('generateBtn').addEventListener('click', async () => {
+        // Function to generate a theme based on the prompt
+        async function generateTheme() {
             const prompt = document.getElementById('prompt').value.trim();
             const outputElem = document.getElementById('output');
             const loadingElem = document.getElementById('loading');
@@ -227,6 +228,17 @@
                 // Hide loading indicator
                 loadingElem.style.display = 'none';
                 generateBtn.disabled = false;
+            }
+        }
+        
+        // Add event listener for the Generate button
+        document.getElementById('generateBtn').addEventListener('click', generateTheme);
+        
+        // Add event listener for Enter key in the prompt input
+        document.getElementById('prompt').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent form submission
+                generateTheme();
             }
         });
     </script>
