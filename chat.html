@@ -97,6 +97,22 @@
             <input type="number" id="popup-max-messages" value="3" min="1" max="10">
         </div>
         
+        <div class="section-divider">AI Theme Generator</div>
+        
+        <div class="config-row">
+            <label for="theme-prompt">Game or Vibe:</label>
+            <input type="text" id="theme-prompt" placeholder="e.g., Minecraft, Cozy Vibes">
+        </div>
+        
+        <div class="config-row">
+            <button id="generate-theme-btn">Generate Theme</button>
+            <div id="theme-loading-indicator" style="display: none;">Generating...</div>
+        </div>
+        
+        <div class="config-row" id="generated-theme-result" style="display: none;">
+            <div>Generated: <span id="generated-theme-name"></span></div>
+        </div>
+        
         <div class="section-divider">Colors</div>
         
         <div class="config-row">

@@ -97,6 +97,13 @@
         const currentThemeDisplay = document.getElementById('current-theme');
         const themePreview = document.getElementById('theme-preview');
         
+        // AI Theme Generator elements
+        const themePromptInput = document.getElementById('theme-prompt');
+        const generateThemeBtn = document.getElementById('generate-theme-btn');
+        const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
+        const generatedThemeResult = document.getElementById('generated-theme-result');
+        const generatedThemeName = document.getElementById('generated-theme-name');
+        
         // Connection and chat state
         let socket = null;
         let channel = '';
@@ -1188,6 +1195,103 @@
             updateFontDisplay();
         });
         
+        // AI Theme Generator function
+        async function generateThemeFromPrompt() {
+            const prompt = themePromptInput.value.trim();
+            
+            if (!prompt) {
+                addSystemMessage('Please enter a game or vibe for your theme');
+                return;
+            }
+            
+            // Show loading indicator
+            themeLoadingIndicator.style.display = 'block';
+            generateThemeBtn.disabled = true;
+            
+            try {
+                // Call your Cloud Run service
+                const response = await fetch('https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${data.error || 'Unknown error'}`); 
+                }
+                
+                // Extract the generated JSON from the response
+                const generatedText = data.candidates[0]?.content?.parts[0]?.text;
+                
+                if (!generatedText) {
+                    throw new Error('No response from theme generator API');
+                }
+                
+                // Find and parse the JSON part
+                const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('Could not find valid JSON in the response');
+                }
+                
+                const themeData = JSON.parse(jsonMatch[0]);
+                
+                // Add the new theme to available themes
+                const newThemeValue = `generated-${Date.now()}`;
+                const newTheme = {
+                    name: themeData.theme_name,
+                    value: newThemeValue,
+                    bgColor: themeData.background_color,
+                    borderColor: themeData.border_color,
+                    textColor: themeData.text_color,
+                    usernameColor: themeData.username_color,
+                    description: themeData.description,
+                    isGenerated: true
+                };
+                
+                // Add the new theme to the start of the array
+                availableThemes.unshift(newTheme);
+                
+                // Update currentThemeIndex to point to our new theme
+                currentThemeIndex = 0;
+                
+                // Find the font index if specified
+                const fontName = themeData.font_family;
+                if (fontName) {
+                    const fontIndex = availableFonts.findIndex(font => 
+                        font.name === fontName || 
+                        font.name.toLowerCase() === fontName.toLowerCase()
+                    );
+                    
+                    if (fontIndex >= 0) {
+                        currentFontIndex = fontIndex;
+                        updateFontDisplay();
+                    }
+                }
+                
+                // Apply the new theme
+                updateThemeDisplay();
+                
+                // Show the result and theme name
+                generatedThemeResult.style.display = 'flex';
+                generatedThemeName.textContent = themeData.theme_name;
+                
+                // Display success message
+                addSystemMessage(`Generated "${themeData.theme_name}" theme based on "${prompt}"`);
+                
+            } catch (error) {
+                console.error('Error generating theme:', error);
+                addSystemMessage(`Error generating theme: ${error.message}`);
+            } finally {
+                // Hide loading indicator
+                themeLoadingIndicator.style.display = 'none';
+                generateThemeBtn.disabled = false;
+            }
+        }
+        
         // Initialize theme display
         function updateThemeDisplay() {
             currentThemeDisplay.textContent = availableThemes[currentThemeIndex].name;
@@ -1955,6 +2059,20 @@
                 if (e) e.preventDefault();
                 saveConfiguration();
                 return false;
+            });
+        }
+        
+        // Add generate theme button click handler
+        if (generateThemeBtn) {
+            generateThemeBtn.addEventListener('click', generateThemeFromPrompt);
+        }
+        
+        // Add prompt input enter key handler
+        if (themePromptInput) {
+            themePromptInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    generateThemeFromPrompt();
+                }
             });
         }
         

@@ -1301,6 +1301,50 @@ button:hover {
     to { opacity: 0; }
 }
 
+/* AI Theme Generator */
+#theme-prompt {
+    flex: 1;
+    min-width: 0;
+}
+
+#generate-theme-btn {
+    background-color: #9147ff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0;
+    transition: background-color 0.2s ease;
+}
+
+#generate-theme-btn:hover {
+    background-color: #772ce8;
+}
+
+#generate-theme-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+#theme-loading-indicator {
+    margin-left: 10px;
+    font-style: italic;
+    color: #aaa;
+}
+
+#generated-theme-result {
+    background-color: rgba(145, 71, 255, 0.2);
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #9147ff;
+    font-size: 14px;
+}
+
+#generated-theme-name {
+    font-weight: bold;
+}
+
 .color-picker {
     display: flex;
     flex-direction: column;

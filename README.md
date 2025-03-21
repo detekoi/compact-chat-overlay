@@ -4,6 +4,14 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![Compact Chat Overlay Screenshot](assets/images/screenshots/preview.png)
 
+## ✨ NEW: Custom Generated Themes!
+
+**Create personalized chat themes with a single prompt!** Simply describe a game, aesthetic, or mood, and the AI will generate a unique chat theme with perfectly matched colors and fonts.
+
+- Type "Minecraft," "Lady Gaga Monster era," or "Cozy forest vibes"
+- Get instant, custom-tailored themes in seconds
+- Perfectly coordinated colors and fonts
+
 ## Try It Now
 
 **[➡️ Use the Online Chat Scene Creator](https://detekoi.github.io/compact-chat-overlay/)**
@@ -12,6 +20,7 @@ Create and manage multiple chat scenes for your stream in seconds!
 
 ## Features
 
+- **AI Theme Generator**: Create unique, perfectly coordinated themes with a simple text prompt about any game or aesthetic!
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Compact & Clean Interface**: Displays chat messages in a minimalist window that can be added as a browser source.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
@@ -118,6 +127,10 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 
 ## Settings Options
 
+- **AI Theme Generator**: Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic.
+  - Example prompts: "Minecraft dungeons", "80s synthwave", "pastel kawaii", "dark fantasy RPG"
+  - AI automatically generates coordinated colors and selects a complementary font
+  - Generated themes appear at the top of your themes list for easy access
 - **Display Mode**: Choose between Window mode (traditional chat window) or Popup mode (toast notifications).
 - **Theme Selection**: Choose from Dark (neutral gray border), Light (subtle light border), Natural, Transparent (borderless), Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
@@ -163,6 +176,14 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
    - `?scene=intro` for your stream intro scene.
 
 ## Customization Tips
+
+### AI Theme Generator Tips
+- **Be specific with your prompts**: The more detailed your description, the better the theme will match your vision.
+- **Game-inspired themes**: Try entering game titles like "Stardew Valley," "Elden Ring," or "Valorant".
+- **Aesthetic-based themes**: Try prompts like "vaporwave," "cottagecore," "cyberpunk noir," or "lofi coffee shop".
+- **Seasonal themes**: Create themes for holidays with prompts like "Halloween spooky," "winter wonderland," or "summer beach vibes".
+- **Community themes**: Create themes that match your community's inside jokes or channel memes.
+- **Experiment with variations**: If you like a generated theme but want tweaks, try adding adjectives like "darker," "pastel," or "vibrant" to your prompt.
 
 ### Window Mode Tips
 - Use the **Light** theme for an airy, bright overlay on top of your gameplay or camera.
