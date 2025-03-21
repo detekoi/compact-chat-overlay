@@ -1133,6 +1133,22 @@
                     config.borderColor = theme.borderColor;
                     config.textColor = theme.textColor;
                     config.usernameColor = theme.usernameColor;
+                    
+                    // Apply border radius and box shadow if specified in the theme
+                    if (theme.borderRadius) {
+                        config.borderRadius = theme.borderRadius;
+                        document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadius);
+                        // Highlight the matching button in the UI
+                        applyBorderRadius(theme.borderRadius);
+                    }
+                    
+                    if (theme.boxShadow) {
+                        config.boxShadow = theme.boxShadow;
+                        const boxShadowValue = getBoxShadowValue(theme.boxShadow);
+                        document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
+                        // Highlight the matching button in the UI
+                        applyBoxShadow(theme.boxShadow);
+                    }
                 }
                 
                 // Update the theme index and display
@@ -1243,7 +1259,7 @@
             
             try {
                 // Call your Cloud Run service
-                const response = await fetch('https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme', {
+                const response = await fetch('http://localhost:8091/api/generate-theme', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1281,6 +1297,8 @@
                     borderColor: themeData.border_color,
                     textColor: themeData.text_color,
                     usernameColor: themeData.username_color,
+                    borderRadius: themeData.border_radius || '8px',
+                    boxShadow: themeData.box_shadow || 'soft',
                     description: themeData.description,
                     isGenerated: true
                 };
@@ -1435,6 +1453,17 @@
                     themePreview.style.border = 'none';
                 } else {
                     themePreview.style.border = `2px solid ${theme.borderColor}`;
+                }
+                
+                // Apply border radius if specified in the theme
+                if (theme.borderRadius) {
+                    themePreview.style.borderRadius = theme.borderRadius;
+                }
+                
+                // Apply box shadow if specified in the theme
+                if (theme.boxShadow) {
+                    const boxShadowValue = getBoxShadowValue(theme.boxShadow);
+                    themePreview.style.boxShadow = boxShadowValue;
                 }
                 
                 themePreview.style.color = theme.textColor;
@@ -1887,6 +1916,15 @@
                         if (config.boxShadow) {
                             const boxShadowValue = getBoxShadowValue(config.boxShadow);
                             document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
+                        }
+                        
+                        // If we have a generated theme, update buttons to show active border radius and box shadow
+                        if (config.theme.startsWith('generated-')) {
+                            // Find and highlight the matching border radius button
+                            applyBorderRadius(config.borderRadius);
+                            
+                            // Find and highlight the matching box shadow button
+                            applyBoxShadow(config.boxShadow);
                         }
                         
                         // Apply theme class if needed
