@@ -3,249 +3,179 @@
  * 
  * This script adds support for AI-generated tiled background graphics
  * to the Twitch Chat Overlay.
- * 
- * To apply this patch, copy and paste the code below into the browser
- * console after loading the chat overlay.
  */
 
 (function() {
     console.log('Applying background image patch...');
     
-    /**
-     * Enhancement 1: Add backgroundImage property to theme objects
-     */
-    function enhanceThemeObjects() {
-        // Add backgroundImage property to all available themes
-        if (window.availableThemes) {
-            window.availableThemes.forEach(theme => {
-                if (!theme.hasOwnProperty('backgroundImage')) {
-                    theme.backgroundImage = null;
-                }
-            });
-            console.log('Enhanced theme objects with backgroundImage property');
-        } else {
-            console.warn('Could not enhance theme objects: availableThemes not found');
+    // Ensure CSS variables exist for background images
+    document.documentElement.style.setProperty('--chat-bg-image', 'none');
+    document.documentElement.style.setProperty('--popup-bg-image', 'none');
+    
+    // Add CSS to ensure background images are properly displayed
+    const style = document.createElement('style');
+    style.textContent = `
+        #chat-container {
+            background-image: var(--chat-bg-image);
+            background-repeat: repeat;
+            background-size: auto;
         }
-    }
-
-    /**
-     * Enhancement 2: Enhance applyTheme to handle background images
-     */
-    function enhanceApplyTheme() {
-        if (!window.applyTheme) {
-            console.warn('Could not enhance applyTheme: function not found');
-            return;
+        .popup-message {
+            background-image: var(--popup-bg-image);
+            background-repeat: repeat;
+            background-size: auto;
         }
-
-        // Store reference to original function
-        const originalApplyTheme = window.applyTheme;
-
-        // Create enhanced version
-        window.applyTheme = function(themeName) {
-            // Call the original function first
-            originalApplyTheme.call(this, themeName);
-            
-            // Add background image handling
-            try {
-                const themeIndex = window.availableThemes.findIndex(theme => theme.value === themeName);
-                if (themeIndex !== -1) {
-                    const theme = window.availableThemes[themeIndex];
-                    
-                    // Apply background image if available
-                    if (theme.backgroundImage) {
-                        document.documentElement.style.setProperty('--chat-bg-image', `url("${theme.backgroundImage}")`);
-                        document.documentElement.style.setProperty('--popup-bg-image', `url("${theme.backgroundImage}")`);
-                    } else {
-                        document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                        document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                    }
-                    
-                    // Store the background image in config
-                    if (window.config) {
-                        window.config.backgroundImage = theme.backgroundImage;
-                    }
-                }
-            } catch (error) {
-                console.error('Error applying background image:', error);
-            }
-        };
-
-        console.log('Enhanced applyTheme function to handle background images');
-    }
-
-    /**
-     * Enhancement 3: Enhance updateThemePreview to display background images
-     */
-    function enhanceUpdateThemePreview() {
-        if (!window.updateThemePreview) {
-            console.warn('Could not enhance updateThemePreview: function not found');
-            return;
+        .theme-preview {
+            background-repeat: repeat;
+            background-size: auto;
         }
-
-        // Store reference to original function
-        const originalUpdateThemePreview = window.updateThemePreview;
-
-        // Create enhanced version
-        window.updateThemePreview = function(theme, useCustom = false) {
-            // Call the original function first
-            originalUpdateThemePreview.call(this, theme, useCustom);
-            
-            // Add background image handling
-            try {
-                // Get the preview element
-                const themePreview = document.getElementById('theme-preview');
-                if (!themePreview) return;
-                
-                if (theme.value !== 'default' && !useCustom) {
-                    // Apply background image if available
-                    if (theme.backgroundImage) {
-                        themePreview.style.backgroundImage = `url("${theme.backgroundImage}")`;
-                        themePreview.style.backgroundRepeat = 'repeat';
-                        themePreview.style.backgroundSize = 'auto';
-                    } else {
-                        themePreview.style.backgroundImage = 'none';
-                    }
-                } else {
-                    // Apply background image if available in config
-                    if (window.config && window.config.backgroundImage) {
-                        themePreview.style.backgroundImage = `url("${window.config.backgroundImage}")`;
-                        themePreview.style.backgroundRepeat = 'repeat';
-                        themePreview.style.backgroundSize = 'auto';
-                    } else {
-                        themePreview.style.backgroundImage = 'none';
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating theme preview with background image:', error);
-            }
-        };
-
-        console.log('Enhanced updateThemePreview function to display background images');
-    }
-
-    /**
-     * Enhancement 4: Enhance saveConfiguration to save background image
-     */
-    function enhanceSaveConfiguration() {
-        if (!window.saveConfiguration) {
-            console.warn('Could not enhance saveConfiguration: function not found');
-            return;
-        }
-
-        // Store reference to original function
-        const originalSaveConfiguration = window.saveConfiguration;
-
-        // Create enhanced version
-        window.saveConfiguration = function() {
-            // Store background image in config before saving
-            try {
-                if (window.config && window.availableThemes && window.currentThemeIndex >= 0) {
-                    window.config.backgroundImage = window.availableThemes[window.currentThemeIndex]?.backgroundImage || null;
-                }
-            } catch (error) {
-                console.error('Error storing background image in config:', error);
-            }
-            
-            // Call the original function
-            originalSaveConfiguration.call(this);
-            
-            // Apply background image CSS variable after saving
-            try {
-                if (window.config && window.config.backgroundImage) {
-                    document.documentElement.style.setProperty('--chat-bg-image', `url("${window.config.backgroundImage}")`);
-                    document.documentElement.style.setProperty('--popup-bg-image', `url("${window.config.backgroundImage}")`);
-                } else {
-                    document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                    document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                }
-            } catch (error) {
-                console.error('Error applying background image CSS variable after saving:', error);
-            }
-        };
-
-        console.log('Enhanced saveConfiguration function to save background image');
-    }
-
-    /**
-     * Enhancement 5: Enhance loadSavedConfig to load background image
-     */
-    function enhanceLoadSavedConfig() {
-        if (!window.loadSavedConfig) {
-            console.warn('Could not enhance loadSavedConfig: function not found');
-            return;
-        }
-
-        // Store reference to original function
-        const originalLoadSavedConfig = window.loadSavedConfig;
-
-        // Create enhanced version
-        window.loadSavedConfig = function() {
-            // Call the original function first
-            originalLoadSavedConfig.call(this);
-            
-            // Add background image handling
-            try {
-                if (window.config && window.config.backgroundImage) {
-                    document.documentElement.style.setProperty('--chat-bg-image', `url("${window.config.backgroundImage}")`);
-                    document.documentElement.style.setProperty('--popup-bg-image', `url("${window.config.backgroundImage}")`);
-                } else {
-                    document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                    document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                }
-            } catch (error) {
-                console.error('Error loading background image from config:', error);
-            }
-        };
-
-        console.log('Enhanced loadSavedConfig function to load background image');
-    }
-
-    /**
-     * Enhancement 6: Ensure reset config clears background image
-     */
-    function enhanceResetConfig() {
-        // Try to find the reset config button
-        const resetConfigBtn = document.getElementById('reset-config');
-        if (!resetConfigBtn) {
-            console.warn('Could not enhance reset config: button not found');
-            return;
-        }
-
-        // Add listener that runs after the original click handler
-        const originalClick = resetConfigBtn.onclick;
-        resetConfigBtn.onclick = null;
+    `;
+    document.head.appendChild(style);
+    
+    // Patch the generateThemeBtn click handler
+    function patchGenerateThemeBtn() {
+        const generateThemeBtn = document.getElementById('generate-theme-btn');
+        if (!generateThemeBtn) return;
         
-        resetConfigBtn.addEventListener('click', function(event) {
-            if (originalClick) {
-                // Call original event or let it proceed
-                // The reset logic will execute and clear the config
+        // Store the original click handler
+        const originalClick = generateThemeBtn.onclick;
+        generateThemeBtn.onclick = null;
+        
+        // Add our enhanced handler
+        generateThemeBtn.addEventListener('click', async function(event) {
+            // Get the theme prompt
+            const themePromptInput = document.getElementById('theme-prompt');
+            if (!themePromptInput) return;
+            
+            const prompt = themePromptInput.value.trim();
+            if (!prompt) {
+                alert('Please enter a game or vibe for your theme');
+                return;
             }
             
-            // Ensure background image is cleared after reset
-            setTimeout(() => {
-                document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                document.documentElement.style.setProperty('--popup-bg-image', 'none');
+            // Show loading indicator
+            const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
+            if (themeLoadingIndicator) {
+                themeLoadingIndicator.style.display = 'block';
+            }
+            generateThemeBtn.disabled = true;
+            
+            try {
+                // Call the proxy service
+                const response = await fetch('http://localhost:8091/api/generate-theme', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
                 
-                // Make sure config has backgroundImage property set to null
-                if (window.config) {
-                    window.config.backgroundImage = null;
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${data.error || 'Unknown error'}`);
                 }
                 
-                console.log('Reset background image settings');
-            }, 100); // Small delay to ensure reset completes first
+                // Handle the response
+                if (data.themeData && data.backgroundImage) {
+                    console.log('Received theme data and background image from API');
+                    
+                    // Create background image URL
+                    const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
+                    
+                    // Apply the background image
+                    document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);
+                    document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`);
+                    
+                    // Store the background image in config for later use
+                    // We'll put it in localStorage to persist
+                    const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
+                    const storageKey = `twitch-chat-overlay-bgimage-${sceneId}`;
+                    localStorage.setItem(storageKey, bgImageUrl);
+                }
+                
+                // Show theme info
+                const generatedThemeResult = document.getElementById('generated-theme-result');
+                const generatedThemeName = document.getElementById('generated-theme-name');
+                if (generatedThemeResult && generatedThemeName && data.themeData) {
+                    generatedThemeResult.style.display = 'flex';
+                    generatedThemeName.textContent = data.themeData.theme_name;
+                }
+                
+                // Call the original click handler to handle the rest of the theme properties
+                if (originalClick) {
+                    setTimeout(() => {
+                        // We delay a bit to make sure the background image is set first
+                        originalClick.call(generateThemeBtn, event);
+                    }, 100); 
+                }
+                
+            } catch (error) {
+                console.error('Error generating theme with background image:', error);
+                
+                // Fall back to original handler
+                if (originalClick) {
+                    originalClick.call(generateThemeBtn, event);
+                }
+            } finally {
+                // Hide loading indicator
+                if (themeLoadingIndicator) {
+                    themeLoadingIndicator.style.display = 'none';
+                }
+                generateThemeBtn.disabled = false;
+            }
         });
-
-        console.log('Enhanced reset config to clear background image');
+        
+        console.log('Enhanced generate theme button to handle background images');
     }
-
-    // Apply all enhancements
-    enhanceThemeObjects();
-    enhanceApplyTheme();
-    enhanceUpdateThemePreview();
-    enhanceSaveConfiguration();
-    enhanceLoadSavedConfig();
-    enhanceResetConfig();
-
+    
+    // Patch the reset-config button to clear background images
+    function patchResetConfig() {
+        const resetConfigBtn = document.getElementById('reset-config');
+        if (!resetConfigBtn) return;
+        
+        // Add an event listener that runs after other handlers
+        resetConfigBtn.addEventListener('click', function() {
+            // Clear the background image variables
+            document.documentElement.style.setProperty('--chat-bg-image', 'none');
+            document.documentElement.style.setProperty('--popup-bg-image', 'none');
+            
+            // Clear stored background image
+            const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
+            const storageKey = `twitch-chat-overlay-bgimage-${sceneId}`;
+            localStorage.removeItem(storageKey);
+            
+            console.log('Background image cleared on reset');
+        }, false);
+        
+        console.log('Enhanced reset config button to clear background images');
+    }
+    
+    // Load saved background image
+    function loadSavedBackgroundImage() {
+        const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
+        const storageKey = `twitch-chat-overlay-bgimage-${sceneId}`;
+        const savedImage = localStorage.getItem(storageKey);
+        
+        if (savedImage) {
+            document.documentElement.style.setProperty('--chat-bg-image', `url("${savedImage}")`);
+            document.documentElement.style.setProperty('--popup-bg-image', `url("${savedImage}")`);
+            console.log('Loaded saved background image');
+        }
+    }
+    
+    // Helper function to get URL parameters
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        const results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+    
+    // Apply patches
+    patchGenerateThemeBtn();
+    patchResetConfig();
+    loadSavedBackgroundImage();
+    
     console.log('Background image patch applied successfully!');
-    console.log('You can now use the AI Theme Generator to create themes with background images.');
 })();
