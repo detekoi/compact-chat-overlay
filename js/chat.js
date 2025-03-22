@@ -1125,6 +1125,16 @@
                     document.documentElement.style.setProperty('--popup-border-color', 'transparent');
                 }
                 
+                // Apply background image if available
+                if (theme.backgroundImage) {
+                    // Apply to both chat container and popup container
+                    document.documentElement.style.setProperty('--chat-bg-image', `url("${theme.backgroundImage}")`); 
+                    document.documentElement.style.setProperty('--popup-bg-image', `url("${theme.backgroundImage}")`); 
+                } else {
+                    // Clear previous background image if any
+                    document.documentElement.style.setProperty('--chat-bg-image', 'none');
+                    document.documentElement.style.setProperty('--popup-bg-image', 'none');
+                }
                 
                 // Only update config if we explicitly want to - this prevents
                 // unwanted config overrides during save operations
@@ -1133,6 +1143,7 @@
                     config.borderColor = theme.borderColor;
                     config.textColor = theme.textColor;
                     config.usernameColor = theme.usernameColor;
+                    config.backgroundImage = theme.backgroundImage;
                     
                     // Apply border radius and box shadow if specified in the theme
                     if (theme.borderRadius) {
@@ -1259,7 +1270,7 @@
             
             try {
                 // Call your Cloud Run service
-                const response = await fetch('https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme', {
+                const response = await fetch('http://localhost:8091/api/generate-theme', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1273,20 +1284,16 @@
                     throw new Error(`API Error: ${data.error || 'Unknown error'}`); 
                 }
                 
-                // Extract the generated JSON from the response
-                const generatedText = data.candidates[0]?.content?.parts[0]?.text;
+                // Extract the theme data
+                const themeData = data.themeData;
                 
-                if (!generatedText) {
-                    throw new Error('No response from theme generator API');
+                if (!themeData) {
+                    throw new Error('Could not find valid theme data in the response');
                 }
                 
-                // Find and parse the JSON part
-                const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-                if (!jsonMatch) {
-                    throw new Error('Could not find valid JSON in the response');
-                }
-                
-                const themeData = JSON.parse(jsonMatch[0]);
+                // Extract background image if available
+                const backgroundImage = data.backgroundImage;
+                const backgroundImageDataUrl = backgroundImage ? `data:${backgroundImage.mimeType};base64,${backgroundImage.data}` : null;
                 
                 // Add the new theme to available themes
                 const newThemeValue = `generated-${Date.now()}`;
@@ -1300,6 +1307,7 @@
                     borderRadius: themeData.border_radius || '8px',
                     boxShadow: themeData.box_shadow || 'soft',
                     description: themeData.description,
+                    backgroundImage: backgroundImageDataUrl, // Store the background image
                     isGenerated: true
                 };
                 
@@ -1448,6 +1456,15 @@
                 // Apply predefined theme colors directly
                 themePreview.style.backgroundColor = theme.bgColor;
                 
+                // Apply background image if available
+                if (theme.backgroundImage) {
+                    themePreview.style.backgroundImage = `url("${theme.backgroundImage}")`;
+                    themePreview.style.backgroundRepeat = 'repeat';
+                    themePreview.style.backgroundSize = 'auto';
+                } else {
+                    themePreview.style.backgroundImage = 'none';
+                }
+                
                 // Special handling for transparent border in themes
                 if (theme.borderColor === 'transparent') {
                     themePreview.style.border = 'none';
@@ -1505,6 +1522,15 @@
                 } else {
                     themePreview.style.backgroundColor = bgColor;
                     themePreview.style.opacity = opacity;
+                }
+                
+                // Apply background image from the current theme if available
+                if (config.backgroundImage) {
+                    themePreview.style.backgroundImage = `url("${config.backgroundImage}")`;
+                    themePreview.style.backgroundRepeat = 'repeat';
+                    themePreview.style.backgroundSize = 'auto';
+                } else {
+                    themePreview.style.backgroundImage = 'none';
                 }
                 
                 // Handle transparent borders properly
@@ -1719,6 +1745,12 @@
                     }
                 };
                 
+                // Get the current theme's background image if any
+                const currentTheme = availableThemes[currentThemeIndex];
+                const backgroundImage = currentTheme && currentTheme.backgroundImage ? 
+                    currentTheme.backgroundImage : 
+                    null;
+                
                 // Create updated config object with all settings
                 const newConfig = {
                     chatMode: chatModeRadio.value,
@@ -1738,6 +1770,7 @@
                     borderRadius: config.borderRadius || '8px',
                     boxShadow: config.boxShadow || 'none',
                     theme: availableThemes[currentThemeIndex]?.value || 'default',
+                    backgroundImage: backgroundImage,
                     lastChannel: channel || config.lastChannel || '',
                     
                     // Popup mode settings
@@ -1867,6 +1900,7 @@
                             borderRadius: parsedConfig.borderRadius || '8px',
                             boxShadow: parsedConfig.boxShadow || 'soft',
                             theme: parsedConfig.theme || 'default',
+                            backgroundImage: parsedConfig.backgroundImage || null,
                             lastChannel: parsedConfig.lastChannel || '',
                             
                             // Popup mode settings
@@ -1898,6 +1932,15 @@
                         document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                         document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                        
+                        // Apply background image if available
+                        if (config.backgroundImage) {
+                            document.documentElement.style.setProperty('--chat-bg-image', `url("${config.backgroundImage}")`); 
+                            document.documentElement.style.setProperty('--popup-bg-image', `url("${config.backgroundImage}")`); 
+                        } else {
+                            document.documentElement.style.setProperty('--chat-bg-image', 'none');
+                            document.documentElement.style.setProperty('--popup-bg-image', 'none');
+                        }
                         
                         // Special handling for transparent borders
                         if (config.borderColor === 'transparent' || config.theme === 'transparent-theme') {

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Background Image Patch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f6f6f6;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #9147ff;
+        }
+        .instructions {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #9147ff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .steps {
+            counter-reset: step-counter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .steps li {
+            position: relative;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            counter-increment: step-counter;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background-color: #9147ff;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            background-color: #9147ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background-color: #772ce8;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 5px solid #ffd600;
+            padding: 10px 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Apply Background Image Patch</h1>
+    <div class="instructions">
+        <h2>Instructions</h2>
+        <p>This patch adds support for AI-generated tiled background graphics to the Twitch Chat Overlay. The background images are generated using Gemini 2.0 Flash's image generation capabilities.</p>
+        
+        <h3>How to Apply the Patch</h3>
+        <ol class="steps">
+            <li>Open the Twitch Chat Overlay in your browser</li>
+            <li>Open the browser developer console:
+                <ul>
+                    <li>Chrome/Edge: Press <code>F12</code> or <code>Ctrl+Shift+J</code> (Windows) / <code>Cmd+Option+J</code> (Mac)</li>
+                    <li>Firefox: Press <code>F12</code> or <code>Ctrl+Shift+K</code> (Windows) / <code>Cmd+Option+K</code> (Mac)</li>
+                    <li>Safari: Press <code>Cmd+Option+C</code> (you must enable the Developer menu first)</li>
+                </ul>
+            </li>
+            <li>Copy and paste the entire content of the patch script (<code>background-image-patch.js</code>) into the console</li>
+            <li>Press <code>Enter</code> to run the patch</li>
+            <li>Generate a new theme using the AI Theme Generator in the settings panel</li>
+        </ol>
+        
+        <div class="note">
+            <strong>Note:</strong> This patch needs to be applied each time you reload the page. For a permanent solution, you would need to integrate these changes directly into the main <code>chat.js</code> file.
+        </div>
+        
+        <a href="chat.html" class="button" target="_blank">Open Chat Overlay</a>
+        <a href="js/background-image-patch.js" class="button" target="_blank">View Patch Script</a>
+    </div>
+    
+    <h2>How It Works</h2>
+    <p>The patch modifies several key functions in the chat.js file to handle background images:</p>
+    <ul>
+        <li><strong>Theme Generation:</strong> Updates the theme generation process to include background images from the AI</li>
+        <li><strong>Theme Application:</strong> Applies the background image as a tiled pattern to both the chat window and popups</li>
+        <li><strong>Theme Preview:</strong> Shows the background image in the theme preview</li>
+        <li><strong>Settings Save:</strong> Saves the background image with the theme configuration</li>
+    </ul>
+    
+    <h2>Testing</h2>
+    <p>After applying the patch, you can test it by:</p>
+    <ol>
+        <li>Open the settings panel (gear icon)</li>
+        <li>Enter a prompt in the "Game or Vibe" field (e.g., "cyberpunk", "forest", "underwater")</li>
+        <li>Click "Generate Theme"</li>
+        <li>The new theme should include a tiled background pattern that matches your prompt</li>
+    </ol>
+</body>
+</html>

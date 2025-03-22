@@ -11,12 +11,14 @@
     --chat-height: 600px;
     --chat-border-radius: 8px;
     --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
+    --chat-bg-image: none; /* Default: no background image */
     
     /* Popup Theme (same as chat by default) */
     --popup-bg-color: var(--chat-bg-color);
     --popup-border-color: var(--chat-border-color);
     --popup-text-color: var(--chat-text-color);
     --popup-username-color: var(--username-color);
+    --popup-bg-image: var(--chat-bg-image);
     
     /* Config Panel specific styles - not affected by chat themes */
     --config-bg-color: rgba(35, 35, 35, 0.95);
@@ -1014,6 +1016,9 @@ button:hover {
     display: flex;
     flex-direction: column;
     background-color: var(--chat-bg-color);
+    background-image: var(--chat-bg-image);
+    background-repeat: repeat;
+    background-size: auto;
     border-radius: var(--chat-border-radius);
     padding: 10px;
     font-size: var(--font-size);
@@ -1177,6 +1182,9 @@ button:hover {
 
 .popup-message {
     background-color: var(--popup-bg-color);
+    background-image: var(--popup-bg-image);
+    background-repeat: repeat;
+    background-size: auto;
     border-radius: var(--chat-border-radius);
     box-shadow: var(--chat-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.2));
     padding: 8px 12px;
