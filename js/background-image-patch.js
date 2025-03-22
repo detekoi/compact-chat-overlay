@@ -133,6 +133,11 @@
     
     // Save background image settings to localStorage
     function saveBackgroundImageSettings() {
+        // Clean up old images from localStorage first
+        if (window.storageCleanup && window.storageCleanup.cleanupThemeImages) {
+            window.storageCleanup.cleanupThemeImages();
+        }
+        
         const opacitySlider = document.getElementById('bg-image-opacity');
         const opacity = opacitySlider ? parseInt(opacitySlider.value) : 70;
         
@@ -212,6 +217,48 @@
             generateThemeBtn.disabled = true;
             
             try {
+                // Show current localStorage usage
+                if (window.storageCleanup && window.storageCleanup.getStorageUsageInfo) {
+                    const usageBefore = window.storageCleanup.getStorageUsageInfo();
+                    console.log('localStorage usage before cleanup:', usageBefore);
+                }
+                
+                // Clean up localStorage before generating a new theme
+                if (window.storageCleanup && window.storageCleanup.cleanupLocalStorage) {
+                    // Do an aggressive cleanup - force removal of all theme images
+                    // Generate a timestamp for the new theme we're about to create
+                    const newThemeId = Date.now().toString();
+                    const cleanupResult = window.storageCleanup.cleanupLocalStorage(newThemeId);
+                    console.log('Storage cleanup result:', cleanupResult);
+                    
+                    if (cleanupResult.warning) {
+                        console.warn(cleanupResult.warning);
+                        
+                        // If still near capacity, try a more aggressive approach
+                        console.log('Attempting more aggressive cleanup...');
+                        // Clear any theme-related items from localStorage
+                        // This is a last resort to avoid hitting storage limits
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && (key.includes('theme') || key.includes('bgimage'))) {
+                                if (key.startsWith('twitch-chat-overlay-config-default')) {
+                                    // Keep the default config
+                                    continue;
+                                }
+                                console.log('Emergency cleanup: removing', key);
+                                localStorage.removeItem(key);
+                                i--; // Adjust index
+                            }
+                        }
+                    }
+                }
+                
+                // Show storage usage after cleanup
+                if (window.storageCleanup && window.storageCleanup.getStorageUsageInfo) {
+                    const usageAfter = window.storageCleanup.getStorageUsageInfo();
+                    console.log('localStorage usage after cleanup:', usageAfter);
+                }
+                
                 // Call the proxy service
                 const response = await fetch('http://localhost:8091/api/generate-theme', {
                     method: 'POST',
@@ -235,8 +282,23 @@
                     const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
                     
                     // Apply the background image
-                    document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);
-                    document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`);
+                    document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);  
+                    document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`); 
+                    
+                    // Check if localStorage is near capacity after setting the image
+                    if (window.storageCleanup && window.storageCleanup.isLocalStorageNearCapacity) {
+                        if (window.storageCleanup.isLocalStorageNearCapacity(0.9)) {
+                            console.warn('localStorage is near capacity after setting background image!');
+                            // Optionally show a message to the user
+                            const chatMessages = document.getElementById('chat-messages');
+                            if (chatMessages) {
+                                const warningElement = document.createElement('div');
+                                warningElement.className = 'chat-message system-message';
+                                warningElement.innerHTML = `<span class="message-content">Warning: Local storage is getting full. Old themes have been removed.</span>`;
+                                chatMessages.appendChild(warningElement);
+                            }
+                        }
+                    }
                     
                     // Save the background image settings
                     saveBackgroundImageSettings();
