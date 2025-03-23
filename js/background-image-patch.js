@@ -165,6 +165,15 @@
         if (settings.imageUrl) {
             document.documentElement.style.setProperty('--chat-bg-image', `url("${settings.imageUrl}")`);
             document.documentElement.style.setProperty('--popup-bg-image', `url("${settings.imageUrl}")`);
+            
+            // Also apply to theme preview
+            const themePreview = document.getElementById('theme-preview');
+            if (themePreview) {
+                themePreview.style.backgroundImage = `url("${settings.imageUrl}")`;
+                themePreview.style.backgroundRepeat = 'repeat';
+                themePreview.style.backgroundSize = 'auto';
+            }
+            
             console.log('Loaded saved background image:', settings.imageUrl);
         }
         
@@ -281,9 +290,17 @@
                     // Create background image URL
                     const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
                     
-                    // Apply the background image
+                    // Apply the background image to all relevant elements
                     document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);  
                     document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`); 
+                    
+                    // Also apply to theme preview
+                    const themePreview = document.getElementById('theme-preview');
+                    if (themePreview) {
+                        themePreview.style.backgroundImage = `url("${bgImageUrl}")`;
+                        themePreview.style.backgroundRepeat = 'repeat';
+                        themePreview.style.backgroundSize = 'auto';
+                    }
                     
                     // Check if localStorage is near capacity after setting the image
                     if (window.storageCleanup && window.storageCleanup.isLocalStorageNearCapacity) {
@@ -363,6 +380,12 @@
             document.documentElement.style.setProperty('--popup-bg-image', 'none');
             document.documentElement.style.setProperty('--bg-image-opacity', '0.7'); // Reset opacity to default
             
+            // Also clear the theme preview background image
+            const themePreview = document.getElementById('theme-preview');
+            if (themePreview) {
+                themePreview.style.backgroundImage = 'none';
+            }
+            
             // Reset slider if it exists
             const slider = document.getElementById('bg-image-opacity');
             const valueDisplay = document.getElementById('bg-image-opacity-value');
@@ -394,6 +417,25 @@
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
     
+    // Function to synchronize background image across all components
+    function syncBackgroundImages() {
+        // Get current background image from CSS variable
+        const bgImage = getComputedStyle(document.documentElement).getPropertyValue('--chat-bg-image').trim();
+        
+        if (bgImage && bgImage !== 'none') {
+            // Apply to all components
+            document.documentElement.style.setProperty('--chat-bg-image', bgImage);
+            document.documentElement.style.setProperty('--popup-bg-image', bgImage);
+            
+            const themePreview = document.getElementById('theme-preview');
+            if (themePreview) {
+                themePreview.style.backgroundImage = bgImage;
+                themePreview.style.backgroundRepeat = 'repeat';
+                themePreview.style.backgroundSize = 'auto';
+            }
+        }
+    }
+    
     // Initialize the patch
     function init() {
         // First add UI elements
@@ -406,10 +448,27 @@
         patchGenerateThemeBtn();
         patchSaveConfigBtn();
         patchResetConfig();
+        
+        // Set up periodic background image sync
+        setInterval(syncBackgroundImages, 1000); // Check every second
     }
     
     // Apply patches
     init();
+    
+    // Add a MutationObserver to monitor theme preview changes
+    const themePreview = document.getElementById('theme-preview');
+    if (themePreview) {
+        const observer = new MutationObserver(function(mutations) {
+            // Sync background images when theme preview changes
+            syncBackgroundImages();
+        });
+        
+        observer.observe(themePreview, { 
+            attributes: true, 
+            attributeFilter: ['style', 'class'] 
+        });
+    }
     
     console.log('Background image patch applied successfully!');
 })();
