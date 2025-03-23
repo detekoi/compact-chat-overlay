@@ -80,68 +80,7 @@
         }
     };
 
-    // Create a test button for manually testing theme generation
-    function addTestButton() {
-        // Only add in development mode
-        if (window.location.hostname !== 'localhost' && 
-            window.location.hostname !== '127.0.0.1') {
-            return;
-        }
-        
-        const generateThemeBtn = document.getElementById('generate-theme-btn');
-        if (!generateThemeBtn) return;
-        
-        // Create test button
-        const testButton = document.createElement('button');
-        testButton.id = 'test-theme-btn';
-        testButton.className = 'btn';
-        testButton.textContent = 'Test Theme';
-        testButton.style.marginLeft = '10px';
-        testButton.style.backgroundColor = '#5a3c88';
-        
-        // Add click handler
-        testButton.addEventListener('click', async function() {
-            try {
-                // Show loading indicator
-                const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
-                if (themeLoadingIndicator) {
-                    themeLoadingIndicator.style.display = 'block';
-                    themeLoadingIndicator.textContent = 'Testing...';
-                }
-                
-                // Call the test endpoint
-                const response = await fetch('http://localhost:8091/api/test-theme');
-                const data = await response.json();
-                
-                console.log('Test theme received:', data);
-                
-                // Handle the theme data
-                if (data.themeData) {
-                    // Process the test theme using the global handleThemeData function
-                    await window.handleThemeData(data, 'test theme');
-                    
-                    if (typeof addSystemMessage === 'function') {
-                        addSystemMessage(`Test theme "${data.themeData.theme_name}" applied successfully`);
-                    }
-                }
-            } catch (error) {
-                console.error('Error applying test theme:', error);
-                if (typeof addSystemMessage === 'function') {
-                    addSystemMessage(`Error testing theme: ${error.message}`);
-                }
-            } finally {
-                // Hide loading indicator
-                const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
-                if (themeLoadingIndicator) {
-                    themeLoadingIndicator.style.display = 'none';
-                }
-            }
-        });
-        
-        // Insert after generate button
-        generateThemeBtn.parentNode.insertBefore(testButton, generateThemeBtn.nextSibling);
-        console.log('Added test theme button');
-    }
+    // Test button function removed
 
     // Wait until the page and original functions are loaded
     function applyPatch() {
@@ -404,9 +343,6 @@
                     console.error('Error selecting matching font:', error);
                 }
             }
-            
-            // Add test button to the UI when in development
-            addTestButton();
             
             console.log('Theme generator retry patch applied successfully');
         } catch (error) {

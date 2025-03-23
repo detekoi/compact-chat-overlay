@@ -11,6 +11,30 @@
     function initApp() {
         console.log('DOM is fully loaded, initializing application...');
         
+        // Remove any debug UI elements that might be present
+        setTimeout(function() {
+            // Remove debug button
+            const debugButton = document.querySelector('button[style*="position: fixed"][style*="top: 5px"][style*="right: 5px"]');
+            if (debugButton) {
+                debugButton.remove();
+                console.log('Removed debug button');
+            }
+            
+            // Remove test theme button
+            const testThemeBtn = document.getElementById('test-theme-btn');
+            if (testThemeBtn) {
+                testThemeBtn.remove();
+                console.log('Removed test theme button');
+            }
+            
+            // Remove debug panel
+            const debugPanel = document.getElementById('debug-panel');
+            if (debugPanel) {
+                debugPanel.remove();
+                console.log('Removed debug panel');
+            }
+        }, 1000); // Delay to ensure other scripts have run
+        
         // Config and state variables
         let config = {
             // Display mode

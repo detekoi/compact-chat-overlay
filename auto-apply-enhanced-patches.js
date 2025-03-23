@@ -16,7 +16,6 @@
         applyStorageCleanupPatch()
             .then(() => applyBackgroundImagePatch()) // Apply background image patch first 
             .then(() => applyThemeGeneratorPatch()) // Then theme generator patch
-            .then(() => applyDebugTools())          // Finally apply debug tools
             .then(() => {
                 console.log('All enhanced patches applied successfully!');
                 
@@ -111,37 +110,7 @@
         });
     }
     
-    // Apply the debug tools
-    function applyDebugTools() {
-        return new Promise((resolve, reject) => {
-            try {
-                // Only apply in development environment
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    console.log('Applying debug tools...');
-                    
-                    const script = document.createElement('script');
-                    script.src = 'js/utils/debug-tools.js';
-                    script.onload = function() {
-                        console.log('Debug tools loaded successfully');
-                        resolve();
-                    };
-                    script.onerror = function(error) {
-                        console.error('Failed to load debug tools:', error);
-                        // Continue even if this fails
-                        resolve();
-                    };
-                    document.body.appendChild(script);
-                } else {
-                    // Skip in production
-                    resolve();
-                }
-            } catch (error) {
-                console.error('Error applying debug tools:', error);
-                // Continue even if this fails
-                resolve();
-            }
-        });
-    }
+    // Debug tools function removed
 
     // Check if DOM is already loaded
     if (document.readyState === 'loading') {
