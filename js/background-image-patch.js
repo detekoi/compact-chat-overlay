@@ -201,6 +201,43 @@
     function patchGenerateThemeBtn() {
         const generateThemeBtn = document.getElementById('generate-theme-btn');
         if (!generateThemeBtn) return;
+
+        // Check if the button already has an event listener from retry-theme-generator.js
+        if (generateThemeBtn.onclick && generateThemeBtn.onclick.toString().includes('retry')) {
+            console.log('Theme button already patched by retry-theme-generator.js, integrating background image handling');
+            
+            // Instead of replacing the click handler, we'll listen for the response data
+            generateThemeBtn.addEventListener('themeDataReady', function(e) {
+                const data = e.detail;
+                try {
+                    if (data.themeData && data.backgroundImage) {
+                        console.log('Received theme data and background image from themeDataReady event');
+                        
+                        // Create background image URL
+                        const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
+                        
+                        // Apply the background image to all relevant elements
+                        document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);
+                        document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`);
+                        
+                        // Also apply to theme preview
+                        const themePreview = document.getElementById('theme-preview');
+                        if (themePreview) {
+                            themePreview.style.backgroundImage = `url("${bgImageUrl}")`;
+                            themePreview.style.backgroundRepeat = 'repeat';
+                            themePreview.style.backgroundSize = 'auto';
+                        }
+                        
+                        // Save the background image settings
+                        saveBackgroundImageSettings();
+                    }
+                } catch (error) {
+                    console.error('Error handling background image from event:', error);
+                }
+            });
+            
+            return;
+        }
         
         // Store the original click handler
         const originalClick = generateThemeBtn.onclick;

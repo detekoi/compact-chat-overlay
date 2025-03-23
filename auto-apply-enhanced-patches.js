@@ -14,8 +14,8 @@
         
         // Apply patches in the correct order
         applyStorageCleanupPatch()
-            .then(() => applyBackgroundImagePatch())
-            .then(() => applyThemeGeneratorPatch())
+            .then(() => applyBackgroundImagePatch()) // Apply background image patch first 
+            .then(() => applyThemeGeneratorPatch()) // Then theme generator patch
             .then(() => {
                 console.log('All enhanced patches applied successfully!');
                 

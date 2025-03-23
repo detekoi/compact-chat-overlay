@@ -105,10 +105,24 @@
                             throw new Error(`API Error: ${data.error || 'Unknown error'}`);
                         }
                         
-                        // Validate the theme data
+                        // Validate the theme data with improved logging
                         if (!data.themeData) {
-                            throw new Error('Could not find valid theme data in the response');
+                            console.error('Response data structure:', JSON.stringify(data, null, 2).slice(0, 500) + '...');
+                            
+                            // Extract more information from the response if available
+                            let errorDetails = 'Unknown error';
+                            if (data.error) {
+                                errorDetails = data.error;
+                                if (data.responseData) {
+                                    errorDetails += ` (Status: ${data.responseData.status}, Finish reason: ${data.responseData.finishReason})`;
+                                }
+                            }
+                            
+                            throw new Error(`Could not find valid theme data in the response: ${errorDetails}`);
                         }
+                        
+                        // Log the theme data we received for debugging
+                        console.log('Theme data received:', data.themeData.theme_name);
                         
                         // We've successfully received valid data
                         success = true;
@@ -293,8 +307,14 @@
             return;
         }
         
-        // Store the original click handler
-        const originalClickHandler = generateThemeBtn.onclick;
+        // Store the original onclick handler
+        const originalOnClick = generateThemeBtn.onclick;
+        console.log(`Generate theme button original onclick = ${!!originalOnClick}`);
+        
+        // Remove the onclick handler so we can add our own
+        if (originalOnClick) {
+            generateThemeBtn.onclick = null;
+        }
         
         // Replace with our enhanced version
         generateThemeBtn.onclick = async function(event) {
@@ -364,16 +384,30 @@
                         throw new Error(`API Error: ${data.error || 'Unknown error'}`);
                     }
                     
-                    // Validate the theme data
+                    // Validate the theme data with improved debugging
                     if (!data.themeData) {
-                        throw new Error('Could not find valid theme data in the response');
+                        console.error('Response data structure:', JSON.stringify(data, null, 2).slice(0, 500) + '...');
+                        
+                        // Extract more information from the response if available
+                        let errorDetails = 'Unknown error';
+                        if (data.error) {
+                            errorDetails = data.error;
+                            if (data.responseData) {
+                                errorDetails += ` (Status: ${data.responseData.status}, Finish reason: ${data.responseData.finishReason})`;
+                            }
+                        }
+                        
+                        throw new Error(`Could not find valid theme data in the response: ${errorDetails}`);
                     }
+                    
+                    // Log the theme data we received for debugging
+                    console.log('Theme data received:', data.themeData.theme_name);
                     
                     // We've successfully received valid data
                     success = true;
                     
-                    // Now call the original handler but with our validated data
-                    if (originalClickHandler) {
+                    // Now call any original handlers but with our validated data
+                    if (originalOnClick) {
                         // Store the fetch function temporarily to prevent recursion
                         const originalFetch = window.fetch;
                         
@@ -386,11 +420,16 @@
                         };
                         
                         // Call the original handler
-                        await originalClickHandler.call(generateThemeBtn, event);
+                        await originalOnClick.call(generateThemeBtn, event);
                         
                         // Restore the original fetch
                         window.fetch = originalFetch;
                     }
+                    
+                    // Dispatch a custom event to notify other patches that theme data is ready
+                    // This allows background-image-patch.js to properly handle the background image
+                    const themeReadyEvent = new CustomEvent('themeDataReady', { detail: data });
+                    generateThemeBtn.dispatchEvent(themeReadyEvent);
                     
                     // If successful, break out of the retry loop
                     break;
