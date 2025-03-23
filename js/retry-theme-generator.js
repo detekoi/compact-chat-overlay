@@ -8,6 +8,141 @@
 (function() {
     console.log('Applying theme generator retry patch...');
 
+    // Helper function to handle successful theme data - Define this first so it's available globally
+    window.handleThemeData = async function(data, prompt) {
+        // This is a simplified version of the original theme generation logic
+        // It handles the data after successfully receiving it from the API
+        
+        // Extract theme data
+        const themeData = data.themeData;
+        
+        // Extract background image if available
+        const backgroundImage = data.backgroundImage;
+        const backgroundImageDataUrl = backgroundImage ? 
+            `data:${backgroundImage.mimeType};base64,${backgroundImage.data}` : null;
+        
+        // Add the theme to availableThemes or call the original handler
+        if (typeof addThemeToAvailableThemes === 'function') {
+            await addThemeToAvailableThemes(themeData, backgroundImageDataUrl);
+        } else {
+            // Generate a unique ID for the new theme
+            const newThemeValue = `generated-${Date.now()}`;
+            
+            // Create a new theme object
+            const newTheme = {
+                name: themeData.theme_name,
+                value: newThemeValue,
+                bgColor: themeData.background_color,
+                borderColor: themeData.border_color,
+                textColor: themeData.text_color,
+                usernameColor: themeData.username_color,
+                borderRadius: themeData.border_radius || '8px',
+                boxShadow: themeData.box_shadow || 'soft',
+                description: themeData.description,
+                backgroundImage: backgroundImageDataUrl,
+                isGenerated: true
+            };
+            
+            // Add to available themes and update UI
+            if (window.availableThemes && Array.isArray(window.availableThemes)) {
+                window.availableThemes.unshift(newTheme);
+                
+                // Check for theme display functions
+                if (typeof window.updateThemeDisplay === 'function') {
+                    window.currentThemeIndex = 0;
+                    window.updateThemeDisplay();
+                } else if (typeof window.applyTheme === 'function') {
+                    window.applyTheme(newTheme.value);
+                }
+            }
+            
+            // Update UI elements
+            const generatedThemeResult = document.getElementById('generated-theme-result');
+            const generatedThemeName = document.getElementById('generated-theme-name');
+            
+            if (generatedThemeResult) {
+                generatedThemeResult.style.display = 'flex';
+            }
+            
+            if (generatedThemeName) {
+                generatedThemeName.textContent = themeData.theme_name;
+            }
+            
+            // Select matching font if available
+            if (themeData.font_family && window.availableFonts) {
+                selectMatchingFont(themeData.font_family);
+            }
+            
+            // Add success message to chat
+            if (typeof addSystemMessage === 'function') {
+                addSystemMessage(`Generated "${themeData.theme_name}" theme based on "${prompt}"`);
+            }
+        }
+    };
+
+    // Create a test button for manually testing theme generation
+    function addTestButton() {
+        // Only add in development mode
+        if (window.location.hostname !== 'localhost' && 
+            window.location.hostname !== '127.0.0.1') {
+            return;
+        }
+        
+        const generateThemeBtn = document.getElementById('generate-theme-btn');
+        if (!generateThemeBtn) return;
+        
+        // Create test button
+        const testButton = document.createElement('button');
+        testButton.id = 'test-theme-btn';
+        testButton.className = 'btn';
+        testButton.textContent = 'Test Theme';
+        testButton.style.marginLeft = '10px';
+        testButton.style.backgroundColor = '#5a3c88';
+        
+        // Add click handler
+        testButton.addEventListener('click', async function() {
+            try {
+                // Show loading indicator
+                const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
+                if (themeLoadingIndicator) {
+                    themeLoadingIndicator.style.display = 'block';
+                    themeLoadingIndicator.textContent = 'Testing...';
+                }
+                
+                // Call the test endpoint
+                const response = await fetch('http://localhost:8091/api/test-theme');
+                const data = await response.json();
+                
+                console.log('Test theme received:', data);
+                
+                // Handle the theme data
+                if (data.themeData) {
+                    // Process the test theme using the global handleThemeData function
+                    await window.handleThemeData(data, 'test theme');
+                    
+                    if (typeof addSystemMessage === 'function') {
+                        addSystemMessage(`Test theme "${data.themeData.theme_name}" applied successfully`);
+                    }
+                }
+            } catch (error) {
+                console.error('Error applying test theme:', error);
+                if (typeof addSystemMessage === 'function') {
+                    addSystemMessage(`Error testing theme: ${error.message}`);
+                }
+            } finally {
+                // Hide loading indicator
+                const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
+                if (themeLoadingIndicator) {
+                    themeLoadingIndicator.style.display = 'none';
+                }
+            }
+        });
+        
+        // Insert after generate button
+        generateThemeBtn.parentNode.insertBefore(testButton, generateThemeBtn.nextSibling);
+        console.log('Added test theme button');
+    }
+
     // Wait until the page and original functions are loaded
     function applyPatch() {
         try {
@@ -90,13 +225,27 @@
                             }
                         }
                         
+                        // Modify request on retry attempts to avoid RECITATION errors
+                        let requestBody = { prompt };
+                        
+                        // If this is a retry attempt, add a parameter to hint that we want to avoid RECITATION
+                        if (retryCount > 0) {
+                            // Add attempt number to promote different responses
+                            requestBody = { 
+                                prompt: prompt,
+                                attempt: retryCount,
+                                forceJson: true // Signal to server we want strict JSON 
+                            };
+                            console.log(`Adding retry parameters to attempt ${retryCount}`);
+                        }
+                        
                         // Call the API
                         const response = await fetch('http://localhost:8091/api/generate-theme', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({ prompt })
+                            body: JSON.stringify(requestBody)
                         });
                         
                         const data = await response.json();
@@ -111,10 +260,20 @@
                             
                             // Extract more information from the response if available
                             let errorDetails = 'Unknown error';
+                            let shouldRetry = true; // Default to retry
+                            
                             if (data.error) {
                                 errorDetails = data.error;
                                 if (data.responseData) {
-                                    errorDetails += ` (Status: ${data.responseData.status}, Finish reason: ${data.responseData.finishReason})`;
+                                    const responseInfo = data.responseData;
+                                    errorDetails += ` (Status: ${responseInfo.status}, Finish reason: ${responseInfo.finishReason})`;
+                                    
+                                    // If RECITATION is happening, use different temperature in retry
+                                    if (responseInfo.finishReason === 'RECITATION') {
+                                        console.log('Got RECITATION error, will try with different parameters');
+                                        // Modify the prompt on retry to help avoid RECITATION
+                                        // We'll handle this in the next retry
+                                    }
                                 }
                             }
                             
@@ -124,11 +283,35 @@
                         // Log the theme data we received for debugging
                         console.log('Theme data received:', data.themeData.theme_name);
                         
+                        // Apply background image immediately to ensure it's set
+                        if (data.backgroundImage) {
+                            console.log('Also received background image data');
+                            
+                            try {
+                                // Create background image URL
+                                const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
+                                
+                                // Apply the background image to all relevant elements
+                                document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);
+                                document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`);
+                                
+                                // Also apply to theme preview
+                                const themePreview = document.getElementById('theme-preview');
+                                if (themePreview) {
+                                    themePreview.style.backgroundImage = `url("${bgImageUrl}")`;
+                                    themePreview.style.backgroundRepeat = 'repeat';
+                                    themePreview.style.backgroundSize = 'auto';
+                                }
+                            } catch (error) {
+                                console.error('Error applying background image:', error);
+                            }
+                        }                       
+                        
                         // We've successfully received valid data
                         success = true;
                         
-                        // Handle the theme data by calling the rest of the original function logic
-                        await handleThemeData(data, prompt);
+                        // Handle the theme data by calling the global function
+                        await window.handleThemeData(data, prompt);
                         
                         // If successful, break out of the retry loop
                         break;
@@ -165,78 +348,6 @@
                     generateThemeBtn.disabled = false;
                 }
             };
-            
-            // Helper function to handle successful theme data
-            async function handleThemeData(data, prompt) {
-                // This is a simplified version of the original theme generation logic
-                // It handles the data after successfully receiving it from the API
-                
-                // Extract theme data
-                const themeData = data.themeData;
-                
-                // Extract background image if available
-                const backgroundImage = data.backgroundImage;
-                const backgroundImageDataUrl = backgroundImage ? 
-                    `data:${backgroundImage.mimeType};base64,${backgroundImage.data}` : null;
-                
-                // Add the theme to availableThemes or call the original handler
-                if (typeof addThemeToAvailableThemes === 'function') {
-                    await addThemeToAvailableThemes(themeData, backgroundImageDataUrl);
-                } else {
-                    // Generate a unique ID for the new theme
-                    const newThemeValue = `generated-${Date.now()}`;
-                    
-                    // Create a new theme object
-                    const newTheme = {
-                        name: themeData.theme_name,
-                        value: newThemeValue,
-                        bgColor: themeData.background_color,
-                        borderColor: themeData.border_color,
-                        textColor: themeData.text_color,
-                        usernameColor: themeData.username_color,
-                        borderRadius: themeData.border_radius || '8px',
-                        boxShadow: themeData.box_shadow || 'soft',
-                        description: themeData.description,
-                        backgroundImage: backgroundImageDataUrl,
-                        isGenerated: true
-                    };
-                    
-                    // Add to available themes and update UI
-                    if (window.availableThemes && Array.isArray(window.availableThemes)) {
-                        window.availableThemes.unshift(newTheme);
-                        
-                        // Check for theme display functions
-                        if (typeof window.updateThemeDisplay === 'function') {
-                            window.currentThemeIndex = 0;
-                            window.updateThemeDisplay();
-                        } else if (typeof window.applyTheme === 'function') {
-                            window.applyTheme(newTheme.value);
-                        }
-                    }
-                    
-                    // Update UI elements
-                    const generatedThemeResult = document.getElementById('generated-theme-result');
-                    const generatedThemeName = document.getElementById('generated-theme-name');
-                    
-                    if (generatedThemeResult) {
-                        generatedThemeResult.style.display = 'flex';
-                    }
-                    
-                    if (generatedThemeName) {
-                        generatedThemeName.textContent = themeData.theme_name;
-                    }
-                    
-                    // Select matching font if available
-                    if (themeData.font_family && window.availableFonts) {
-                        selectMatchingFont(themeData.font_family);
-                    }
-                    
-                    // Add success message to chat
-                    if (typeof addSystemMessage === 'function') {
-                        addSystemMessage(`Generated "${themeData.theme_name}" theme based on "${prompt}"`);
-                    }
-                }
-            }
             
             // Helper function to select a matching font
             function selectMatchingFont(fontName) {
@@ -288,10 +399,14 @@
                         
                         console.log(`Selected font: ${window.availableFonts[fontIndex].name} for theme font: ${fontName}`);
                     }
-                } catch (error) {
+                }
+                catch (error) {
                     console.error('Error selecting matching font:', error);
                 }
             }
+            
+            // Add test button to the UI when in development
+            addTestButton();
             
             console.log('Theme generator retry patch applied successfully');
         } catch (error) {
@@ -369,13 +484,27 @@
                         }
                     }
                     
+                    // Modify request on retry attempts to avoid RECITATION errors
+                    let requestBody = { prompt };
+                    
+                    // If this is a retry attempt, add a parameter to hint that we want to avoid RECITATION
+                    if (retryCount > 0) {
+                        // Add attempt number to promote different responses
+                        requestBody = { 
+                            prompt: prompt,
+                            attempt: retryCount,
+                            forceJson: true // Signal to server we want strict JSON 
+                        };
+                        console.log(`Adding retry parameters to attempt ${retryCount}`);
+                    }
+                    
                     // Call the API
                     const response = await fetch('http://localhost:8091/api/generate-theme', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ prompt })
+                        body: JSON.stringify(requestBody)
                     });
                     
                     const data = await response.json();
@@ -402,6 +531,30 @@
                     
                     // Log the theme data we received for debugging
                     console.log('Theme data received:', data.themeData.theme_name);
+                    
+                    // Apply background image immediately to ensure it's set
+                    if (data.backgroundImage) {
+                        console.log('Also received background image data');
+                        
+                        try {
+                            // Create background image URL
+                            const bgImageUrl = `data:${data.backgroundImage.mimeType};base64,${data.backgroundImage.data}`;
+                            
+                            // Apply the background image to all relevant elements
+                            document.documentElement.style.setProperty('--chat-bg-image', `url("${bgImageUrl}")`);
+                            document.documentElement.style.setProperty('--popup-bg-image', `url("${bgImageUrl}")`);
+                            
+                            // Also apply to theme preview
+                            const themePreview = document.getElementById('theme-preview');
+                            if (themePreview) {
+                                themePreview.style.backgroundImage = `url("${bgImageUrl}")`;
+                                themePreview.style.backgroundRepeat = 'repeat';
+                                themePreview.style.backgroundSize = 'auto';
+                            }
+                        } catch (error) {
+                            console.error('Error applying background image:', error);
+                        }
+                    }
                     
                     // We've successfully received valid data
                     success = true;
