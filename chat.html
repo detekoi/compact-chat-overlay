@@ -7,6 +7,7 @@
     <!-- Added support for multiple chat scenes via URL parameters -->
     <meta name="description" content="Twitch chat overlay with support for multiple chat scenes via URL parameters (e.g., ?scene=gaming)">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="js/theme-carousel.css">
 </head>
 <body class="chat-page">
     <div id="popup-container">
@@ -106,20 +107,38 @@
         
         <div class="config-row">
             <button id="generate-theme-btn">Generate Theme</button>
-            <div id="theme-loading-indicator" style="display: none;">Generating...</div>
+            <div id="theme-loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <div id="loading-status">Generating...</div>
+            </div>
         </div>
         
         <div class="config-row" id="generated-theme-result" style="display: none;">
             <div>Generated: <span id="generated-theme-name"></span></div>
         </div>
         
+        <div class="config-row generated-themes-carousel" id="generated-themes-carousel" style="display: none;">
+            <div class="carousel-title">Generated Themes Collection:</div>
+            <div class="carousel-container">
+                <button class="carousel-btn prev-btn" title="Previous theme">◀</button>
+                <div class="carousel-themes" id="carousel-themes"></div>
+                <button class="carousel-btn next-btn" title="Next theme">▶</button>
+            </div>
+            <div class="carousel-indicator">
+                <span id="current-carousel-index">1</span>/<span id="total-carousel-items">1</span>
+            </div>
+            <div style="font-size: 11px; margin-top: 5px; color: #888;">Click on a theme to apply it</div>
+        </div>
+        
         <div class="section-divider">Colors</div>
         
         <div class="config-row">
-            <label for="bg-color">Background:</label>
+            <label for="bg-color">Background Color:</label>
             <div class="color-picker">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
-                    <input type="range" id="bg-opacity" min="0" max="100" value="80" style="flex-grow: 1;">
+                    <span>Color Opacity:</span>
+                    <input type="range" id="bg-opacity" min="0" max="100" value="85" style="flex-grow: 1;">
+                    <span id="bg-opacity-value">85%</span>
                 </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#121212" data-target="bg">Dark</button>
@@ -130,6 +149,15 @@
                     <button type="button" class="color-btn" data-color="#0c0c28" data-target="bg">Cyber</button>
                 </div>
                 <input type="color" id="bg-color" value="#121212" style="visibility: hidden; width: 0; height: 0;">
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <label for="bg-image-opacity">Background Image:</label>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                <span>Image Opacity:</span>
+                <input type="range" id="bg-image-opacity" min="0" max="100" value="55" style="flex-grow: 1;">
+                <span id="bg-image-opacity-value">55%</span>
             </div>
         </div>
         <div class="config-row">
@@ -252,6 +280,8 @@
     </div>
 
     <script src="js/chat.js"></script>
-    <script src="auto-apply-enhanced-patches.js"></script>
+    <script src="js/retry-theme-generator.js"></script>
+    <script src="js/theme-carousel.js"></script>
+    <script src="js/bg-opacity-handler.js"></script>
 </body>
 </html>
