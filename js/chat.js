@@ -15,97 +15,37 @@
         let generatedThemes = [];
         let carouselIndex = 0;  // index of currently highlighted theme in carousel
 
-        // DOM elements for theme carousel have been moved to theme-carousel.js
-        // This code is kept for reference but is no longer active
-        let carouselContainer = null;
-        let prevCarouselBtn = null;
-        let nextCarouselBtn = null;
-        let carouselIndexDisplay = null;
-        let carouselTotalDisplay = null;
-        
-        // Theme carousel navigation is now handled by theme-carousel.js
+        // Theme carousel is handled by theme-carousel.js
         
         // Add a new theme to the carousel
         function addThemeToCarousel(themeData, backgroundImageObj) {
-          // This function is now delegated to theme-carousel.js
-          // Just forward the call to the new implementation if available
+          // Forward the call to the theme carousel implementation
           if (window.themeCarousel && typeof window.themeCarousel.addTheme === 'function') {
-            // First create the theme structure that the main theme carousel expects
+            // Create background image URL if available
             let backgroundImageDataUrl = null;
-            
             if (backgroundImageObj) {
               backgroundImageDataUrl = `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}`;
             }
             
-            // Create unique theme ID
-            const propsHash = `${themeData.background_color}-${themeData.border_color}-${themeData.text_color}-${themeData.username_color}`.replace(/[^a-z0-9]/gi, '').substring(0, 8);
-            const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
-            
-            // Map border radius and box shadow values
-            const borderRadiusMap = { "None": "0px", "Subtle": "8px", "Rounded": "16px", "Pill": "24px" };
-            const boxShadowMap = { 
-              "None": "none", 
-              "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-              "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-              "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-              "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
-            };
-            
-            const borderRadiusValue = themeData.border_radius_value || borderRadiusMap[themeData.border_radius] || '8px';
-            const boxShadowValue = themeData.box_shadow_value || boxShadowMap[themeData.box_shadow] || boxShadowMap["Soft"];
-            
-            // Create the theme object with all needed properties
+            // Create the theme object with required properties
             const newTheme = {
               name: themeData.theme_name,
-              value: newThemeValue,
+              value: `generated-${Date.now()}`,
               bgColor: themeData.background_color,
               borderColor: themeData.border_color,
               textColor: themeData.text_color,
               usernameColor: themeData.username_color,
               borderRadius: themeData.border_radius || 'Subtle',
-              borderRadiusValue: borderRadiusValue,
-              boxShadow: themeData.box_shadow || 'Soft',
-              boxShadowValue: boxShadowValue,
               description: themeData.description || '',
               backgroundImage: backgroundImageDataUrl,
               fontFamily: themeData.font_family,
-              isGenerated: true,
-              originalThemeName: themeData.theme_name
+              isGenerated: true
             };
             
-            // Forward call to the consolidated implementation
-            console.log(`Forwarding theme ${themeData.theme_name} to unified theme carousel`);
             return window.themeCarousel.addTheme(newTheme);
           }
           
-          // Fallback implementation in case window.addThemeToCarousel is not available
-          console.warn('Fallback theme carousel implementation being used');
-          
-          // Legacy code - only for compatibility
-          // Map or compute border radius and box shadow values
-          const borderRadiusMap = { "None": "0px", "Subtle": "8px", "Rounded": "16px", "Pill": "24px" };
-          const boxShadowMap = { 
-            "None": "none", 
-            "Soft": "soft", 
-            "Simple 3D": "simple3d", 
-            "Intense 3D": "intense3d", 
-            "Sharp": "sharp" 
-          };
-          
-          // Create bg image URL
-          let backgroundImageDataUrl = null;
-          if (backgroundImageObj) {
-            backgroundImageDataUrl = `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}`;
-          }
-          
-          // Process values
-          const borderRadiusValue = themeData.border_radius_value 
-            || borderRadiusMap[themeData.border_radius] 
-            || themeData.border_radius 
-            || '8px';
-          let boxShadowPreset = themeData.box_shadow || 'soft';
-          
-          // Create a new theme object
+          // Fallback implementation - add directly to availableThemes
           const newTheme = {
             name: themeData.theme_name,
             value: `generated-${Date.now()}`,
@@ -113,18 +53,13 @@
             borderColor: themeData.border_color,
             textColor: themeData.text_color,
             usernameColor: themeData.username_color,
-            font: themeData.font_family || null,
-            borderRadius: borderRadiusValue,
-            boxShadow: boxShadowPreset,
             description: themeData.description || '',
-            backgroundImage: backgroundImageDataUrl,
+            backgroundImage: backgroundImageObj ? `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}` : null,
             isGenerated: true
           };
           
-          // Add to the main theme selection immediately
           if (window.availableThemes && Array.isArray(window.availableThemes)) {
             window.availableThemes.unshift(newTheme);
-            
             if (typeof window.currentThemeIndex !== 'undefined') {
               window.currentThemeIndex = 0;
               if (typeof window.updateThemeDisplay === 'function') {
@@ -137,69 +72,7 @@
         }
         
         // Render the carousel with all generated themes
-        function updateCarousel() {
-          // This function is now handled by theme-carousel.js
-          // Skip implementation as we now integrate themes directly into the main carousel
-          console.log('Legacy carousel update skipped - using integrated theme display');
-          return; // Skip implementation
-          // Loop through generated themes and create a card for each
-          generatedThemes.forEach((theme, index) => {
-            const card = document.createElement('div');
-            card.className = 'theme-card';
-            // Highlight classes for current, prev, next (for styling carousel positions)
-            if (index === carouselIndex) {
-              card.classList.add('active');
-            } else if (index === (carouselIndex - 1 + generatedThemes.length) % generatedThemes.length) {
-              card.classList.add('prev');
-            } else if (index === (carouselIndex + 1) % generatedThemes.length) {
-              card.classList.add('next');
-            }
-            // Set card background to the theme's background color or image
-            if (theme.backgroundImage) {
-              card.style.backgroundImage = `url('${theme.backgroundImage}')`;
-              card.style.backgroundSize = 'cover';
-            } else {
-              card.style.backgroundColor = theme.bgColor;
-            }
-            // Create text label for theme name
-            const nameLabel = document.createElement('div');
-            nameLabel.className = 'theme-name';
-            nameLabel.textContent = theme.name;
-            card.appendChild(nameLabel);
-            // Optionally, add small color preview chips for bg/border/text/username:
-            const palette = document.createElement('div');
-            palette.className = 'theme-color-palette';
-            ['bgColor','borderColor','textColor','usernameColor'].forEach(key => {
-              const chip = document.createElement('span');
-              chip.className = 'color-chip';
-              chip.style.backgroundColor = theme[key];
-              palette.appendChild(chip);
-            });
-            card.appendChild(palette);
-            // When a card is clicked, apply that theme
-            card.addEventListener('click', () => {
-              // Find the theme in the available themes array
-              const themeIndex = availableThemes.findIndex(t => t.value === theme.value);
-              if (themeIndex >= 0) {
-                // Set as current theme and update display
-                currentThemeIndex = themeIndex;
-                updateThemeDisplay();
-              } else {
-                // Directly apply the theme
-                applyGeneratedTheme(theme);
-              }
-            });
-            carouselContainer.appendChild(card);
-          });
-          // Update index indicator text (e.g., "1/5")
-          carouselIndexDisplay.textContent = (carouselIndex + 1).toString();
-          carouselTotalDisplay.textContent = generatedThemes.length.toString();
-        }
-        
-        // Config and state variables
-        let config = {
-            // Display mode
-            chatMode: 'window', // 'window' or 'popup'
+        // function updateCarousel - removed as it's now handled by theme-carousel.js
             
             // Window mode settings
             bgColor: 'rgba(18, 18, 18, 0.8)',
