@@ -2080,8 +2080,16 @@
                         if (Array.isArray(parsedThemes) && parsedThemes.length > 0) {
                             generatedThemes = parsedThemes;
                             carouselIndex = 0;
-                            updateCarousel();
-                            document.getElementById('generated-themes-carousel').style.display = 'flex';
+                            // Instead of calling updateCarousel (which has been removed),
+                            // use the theme carousel API if available
+                            if (window.themeCarousel) {
+                                // Add themes to the main theme carousel
+                                parsedThemes.forEach(theme => {
+                                    if (window.themeCarousel.addTheme) {
+                                        window.themeCarousel.addTheme(theme);
+                                    }
+                                });
+                            }
                             console.log(`Loaded ${generatedThemes.length} saved themes from localStorage`);
                         }
                     } catch(e) {
