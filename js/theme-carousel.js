@@ -1,8 +1,8 @@
 /**
  * Theme Carousel implementation for Twitch Chat Overlay
  * 
- * This module implements a carousel to display and manage AI-generated themes.
- * It works with the theme generation system to display and apply generated themes.
+ * This module implements a carousel to store, manage, and apply AI-generated themes.
+ * It works with the theme generation system to integrate generated themes into the main theme carousel.
  */
 
 (function() {
@@ -10,14 +10,6 @@
     
     // State for the theme carousel
     let generatedThemes = [];
-    let carouselIndex = 0;
-    
-    // DOM Elements
-    const carouselContainer = document.getElementById('carousel-themes');
-    const prevCarouselBtn = document.querySelector('.generated-themes-carousel .prev-btn');
-    const nextCarouselBtn = document.querySelector('.generated-themes-carousel .next-btn');
-    const carouselIndexDisplay = document.getElementById('current-carousel-index');
-    const carouselTotalDisplay = document.getElementById('total-carousel-items');
     
     // Carousel API - publicly accessible functions
     const carouselAPI = {
@@ -37,27 +29,10 @@
      * Initialize the carousel
      */
     function init() {
-        // Set up event listeners for carousel navigation
-        if (prevCarouselBtn) {
-            prevCarouselBtn.addEventListener('click', () => {
-                if (generatedThemes.length < 1) return;
-                carouselIndex = (carouselIndex - 1 + generatedThemes.length) % generatedThemes.length;
-                updateCarousel();
-            });
-        }
-        
-        if (nextCarouselBtn) {
-            nextCarouselBtn.addEventListener('click', () => {
-                if (generatedThemes.length < 1) return;
-                carouselIndex = (carouselIndex + 1) % generatedThemes.length;
-                updateCarousel();
-            });
-        }
-        
         // Load saved themes from localStorage
         loadSavedThemes();
         
-        // Patch the theme generator to use our carousel
+        // Patch the theme generator to integrate with main theme carousel
         patchThemeGenerator();
         
         // Make carousel API available globally
@@ -70,36 +45,50 @@
     }
     
     /**
-     * Add a theme to the carousel
+     * Add a theme to the carousel and to the main theme selector
      * @param {Object} theme - The theme object to add
      * @returns {Object} The added theme object
      */
     function addThemeToCarousel(theme) {
-        console.log(`Adding theme to carousel: ${theme.name}`);
+        console.log(`Adding theme to main carousel: ${theme.name}`);
         
         // If we already have this theme based on value, skip
         const existingThemeIndex = generatedThemes.findIndex(t => t.value === theme.value);
         if (existingThemeIndex >= 0) {
             console.log(`Theme ${theme.name} already exists in carousel`);
-            carouselIndex = existingThemeIndex;
-            updateCarousel();
             return generatedThemes[existingThemeIndex];
         }
         
         // Add to the front of the generated themes list
         generatedThemes.unshift(theme);
-        carouselIndex = 0; // Always select the newest theme
         
         // Save to localStorage for persistence
         saveThemesToLocalStorage();
         
-        // Update carousel display
-        updateCarousel();
-        
-        // Make sure the carousel UI is visible
-        const carouselElement = document.getElementById('generated-themes-carousel');
-        if (carouselElement) {
-            carouselElement.style.display = (generatedThemes.length > 0 ? 'flex' : 'none');
+        // Add to main availableThemes if it exists
+        if (window.availableThemes && Array.isArray(window.availableThemes)) {
+            // Check if theme with same name/value exists in availableThemes
+            const existingInMainIndex = window.availableThemes.findIndex(t => 
+                t.name === theme.name || t.value === theme.value);
+                
+            if (existingInMainIndex === -1) {
+                console.log(`Adding theme to main themes carousel: ${theme.name}`);
+                // Add to the front so it appears at the beginning of the carousel
+                window.availableThemes.unshift(theme);
+                
+                // Set as current theme if we have currentThemeIndex
+                if (typeof window.currentThemeIndex !== 'undefined') {
+                    window.currentThemeIndex = 0;
+                    if (typeof window.updateThemeDisplay === 'function') {
+                        window.updateThemeDisplay();
+                    }
+                }
+                
+                // Update the theme display if function exists
+                if (typeof window.updateThemePreview === 'function') {
+                    window.updateThemePreview(theme);
+                }
+            }
         }
         
         // Fire event that a new theme has been added
@@ -109,77 +98,6 @@
         document.dispatchEvent(themeAddedEvent);
         
         return theme;
-    }
-    
-    /**
-     * Update the carousel display
-     */
-    function updateCarousel() {
-        if (!carouselContainer) return;
-        
-        carouselContainer.innerHTML = '';
-        
-        if (generatedThemes.length === 0) {
-            // No themes to show
-            if (carouselIndexDisplay) carouselIndexDisplay.textContent = '0';
-            if (carouselTotalDisplay) carouselTotalDisplay.textContent = '0';
-            return;
-        }
-        
-        // Loop through generated themes and create a card for each
-        generatedThemes.forEach((theme, index) => {
-            const card = document.createElement('div');
-            card.className = 'theme-card';
-            
-            // Add positioning classes
-            if (index === carouselIndex) {
-                card.classList.add('active');
-            } else if (index === (carouselIndex - 1 + generatedThemes.length) % generatedThemes.length) {
-                card.classList.add('prev');
-            } else if (index === (carouselIndex + 1) % generatedThemes.length) {
-                card.classList.add('next');
-            }
-            
-            // Set card background based on theme
-            if (theme.backgroundImage) {
-                card.style.backgroundImage = `url('${theme.backgroundImage}')`;
-                card.style.backgroundSize = 'cover';
-            } else {
-                card.style.backgroundColor = theme.bgColor;
-            }
-            
-            // Add theme name
-            const nameLabel = document.createElement('div');
-            nameLabel.className = 'theme-name';
-            nameLabel.textContent = theme.name;
-            card.appendChild(nameLabel);
-            
-            // Add color palette
-            const palette = document.createElement('div');
-            palette.className = 'theme-color-palette';
-            ['bgColor', 'borderColor', 'textColor', 'usernameColor'].forEach(key => {
-                const chip = document.createElement('span');
-                chip.className = 'color-chip';
-                chip.style.backgroundColor = theme[key];
-                palette.appendChild(chip);
-            });
-            card.appendChild(palette);
-            
-            // Add click handler
-            card.addEventListener('click', () => {
-                applyThemeFromCarousel(theme);
-            });
-            
-            carouselContainer.appendChild(card);
-        });
-        
-        // Update index indicator
-        if (carouselIndexDisplay) {
-            carouselIndexDisplay.textContent = (carouselIndex + 1).toString();
-        }
-        if (carouselTotalDisplay) {
-            carouselTotalDisplay.textContent = generatedThemes.length.toString();
-        }
     }
     
     /**
@@ -202,6 +120,14 @@
                         window.updateThemeDisplay();
                         return;
                     }
+                }
+            } else {
+                // If theme doesn't exist in availableThemes yet, add it
+                window.availableThemes.unshift(theme);
+                window.currentThemeIndex = 0;
+                if (typeof window.updateThemeDisplay === 'function') {
+                    window.updateThemeDisplay();
+                    return;
                 }
             }
         }
@@ -280,13 +206,31 @@
             const savedThemes = localStorage.getItem('generatedThemes');
             if (savedThemes) {
                 generatedThemes = JSON.parse(savedThemes);
-                console.log(`Loaded ${generatedThemes.length} themes from localStorage`);
-                updateCarousel();
+                console.log(`Loaded ${generatedThemes.length} saved generated themes from localStorage`);
                 
-                // Show carousel if we have themes
-                const carouselElement = document.getElementById('generated-themes-carousel');
-                if (carouselElement) {
-                    carouselElement.style.display = (generatedThemes.length > 0 ? 'flex' : 'none');
+                // Add any saved themes to availableThemes if they don't already exist
+                if (window.availableThemes && Array.isArray(window.availableThemes)) {
+                    let themesAdded = 0;
+                    
+                    generatedThemes.forEach(theme => {
+                        // Check if theme with same name/value exists in availableThemes
+                        const existingThemeIndex = window.availableThemes.findIndex(t => 
+                            t.value === theme.value || t.name === theme.name);
+                            
+                        if (existingThemeIndex === -1) {
+                            window.availableThemes.unshift(theme);
+                            themesAdded++;
+                        }
+                    });
+                    
+                    if (themesAdded > 0) {
+                        console.log(`Added ${themesAdded} saved generated themes to main theme carousel`);
+                        
+                        // Update the theme display if currentThemeIndex is 0 (to show the first generated theme)
+                        if (window.currentThemeIndex === 0 && typeof window.updateThemeDisplay === 'function') {
+                            window.updateThemeDisplay();
+                        }
+                    }
                 }
             }
         } catch (error) {
@@ -370,19 +314,7 @@
                         variant: variantNum + 1
                     };
                     
-                    // Add the theme to both carousel and available themes
-                    if (window.availableThemes && Array.isArray(window.availableThemes)) {
-                        // Check if theme with same name exists
-                        const existingThemeIndex = window.availableThemes.findIndex(t => 
-                            t.name === theme.name || t.value === theme.value);
-                            
-                        if (existingThemeIndex === -1) {
-                            console.log(`Adding new theme to available themes: ${theme.name}`);
-                            window.availableThemes.push(theme);
-                        }
-                    }
-                    
-                    // Add to carousel
+                    // Add the theme using our integration function
                     addThemeToCarousel(theme);
                 }
             });

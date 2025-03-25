@@ -11,6 +11,191 @@
     function initApp() {
         console.log('DOM is fully loaded, initializing application...');
         
+        // Carousel state (for AI-generated themes)
+        let generatedThemes = [];
+        let carouselIndex = 0;  // index of currently highlighted theme in carousel
+
+        // DOM elements for theme carousel have been moved to theme-carousel.js
+        // This code is kept for reference but is no longer active
+        let carouselContainer = null;
+        let prevCarouselBtn = null;
+        let nextCarouselBtn = null;
+        let carouselIndexDisplay = null;
+        let carouselTotalDisplay = null;
+        
+        // Theme carousel navigation is now handled by theme-carousel.js
+        
+        // Add a new theme to the carousel
+        function addThemeToCarousel(themeData, backgroundImageObj) {
+          // This function is now delegated to theme-carousel.js
+          // Just forward the call to the new implementation if available
+          if (window.themeCarousel && typeof window.themeCarousel.addTheme === 'function') {
+            // First create the theme structure that the main theme carousel expects
+            let backgroundImageDataUrl = null;
+            
+            if (backgroundImageObj) {
+              backgroundImageDataUrl = `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}`;
+            }
+            
+            // Create unique theme ID
+            const propsHash = `${themeData.background_color}-${themeData.border_color}-${themeData.text_color}-${themeData.username_color}`.replace(/[^a-z0-9]/gi, '').substring(0, 8);
+            const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
+            
+            // Map border radius and box shadow values
+            const borderRadiusMap = { "None": "0px", "Subtle": "8px", "Rounded": "16px", "Pill": "24px" };
+            const boxShadowMap = { 
+              "None": "none", 
+              "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+              "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
+              "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
+              "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
+            };
+            
+            const borderRadiusValue = themeData.border_radius_value || borderRadiusMap[themeData.border_radius] || '8px';
+            const boxShadowValue = themeData.box_shadow_value || boxShadowMap[themeData.box_shadow] || boxShadowMap["Soft"];
+            
+            // Create the theme object with all needed properties
+            const newTheme = {
+              name: themeData.theme_name,
+              value: newThemeValue,
+              bgColor: themeData.background_color,
+              borderColor: themeData.border_color,
+              textColor: themeData.text_color,
+              usernameColor: themeData.username_color,
+              borderRadius: themeData.border_radius || 'Subtle',
+              borderRadiusValue: borderRadiusValue,
+              boxShadow: themeData.box_shadow || 'Soft',
+              boxShadowValue: boxShadowValue,
+              description: themeData.description || '',
+              backgroundImage: backgroundImageDataUrl,
+              fontFamily: themeData.font_family,
+              isGenerated: true,
+              originalThemeName: themeData.theme_name
+            };
+            
+            // Forward call to the consolidated implementation
+            console.log(`Forwarding theme ${themeData.theme_name} to unified theme carousel`);
+            return window.themeCarousel.addTheme(newTheme);
+          }
+          
+          // Fallback implementation in case window.addThemeToCarousel is not available
+          console.warn('Fallback theme carousel implementation being used');
+          
+          // Legacy code - only for compatibility
+          // Map or compute border radius and box shadow values
+          const borderRadiusMap = { "None": "0px", "Subtle": "8px", "Rounded": "16px", "Pill": "24px" };
+          const boxShadowMap = { 
+            "None": "none", 
+            "Soft": "soft", 
+            "Simple 3D": "simple3d", 
+            "Intense 3D": "intense3d", 
+            "Sharp": "sharp" 
+          };
+          
+          // Create bg image URL
+          let backgroundImageDataUrl = null;
+          if (backgroundImageObj) {
+            backgroundImageDataUrl = `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}`;
+          }
+          
+          // Process values
+          const borderRadiusValue = themeData.border_radius_value 
+            || borderRadiusMap[themeData.border_radius] 
+            || themeData.border_radius 
+            || '8px';
+          let boxShadowPreset = themeData.box_shadow || 'soft';
+          
+          // Create a new theme object
+          const newTheme = {
+            name: themeData.theme_name,
+            value: `generated-${Date.now()}`,
+            bgColor: themeData.background_color,
+            borderColor: themeData.border_color,
+            textColor: themeData.text_color,
+            usernameColor: themeData.username_color,
+            font: themeData.font_family || null,
+            borderRadius: borderRadiusValue,
+            boxShadow: boxShadowPreset,
+            description: themeData.description || '',
+            backgroundImage: backgroundImageDataUrl,
+            isGenerated: true
+          };
+          
+          // Add to the main theme selection immediately
+          if (window.availableThemes && Array.isArray(window.availableThemes)) {
+            window.availableThemes.unshift(newTheme);
+            
+            if (typeof window.currentThemeIndex !== 'undefined') {
+              window.currentThemeIndex = 0;
+              if (typeof window.updateThemeDisplay === 'function') {
+                window.updateThemeDisplay();
+              }
+            }
+          }
+          
+          return newTheme;
+        }
+        
+        // Render the carousel with all generated themes
+        function updateCarousel() {
+          // This function is now handled by theme-carousel.js
+          // Skip implementation as we now integrate themes directly into the main carousel
+          console.log('Legacy carousel update skipped - using integrated theme display');
+          return; // Skip implementation
+          // Loop through generated themes and create a card for each
+          generatedThemes.forEach((theme, index) => {
+            const card = document.createElement('div');
+            card.className = 'theme-card';
+            // Highlight classes for current, prev, next (for styling carousel positions)
+            if (index === carouselIndex) {
+              card.classList.add('active');
+            } else if (index === (carouselIndex - 1 + generatedThemes.length) % generatedThemes.length) {
+              card.classList.add('prev');
+            } else if (index === (carouselIndex + 1) % generatedThemes.length) {
+              card.classList.add('next');
+            }
+            // Set card background to the theme's background color or image
+            if (theme.backgroundImage) {
+              card.style.backgroundImage = `url('${theme.backgroundImage}')`;
+              card.style.backgroundSize = 'cover';
+            } else {
+              card.style.backgroundColor = theme.bgColor;
+            }
+            // Create text label for theme name
+            const nameLabel = document.createElement('div');
+            nameLabel.className = 'theme-name';
+            nameLabel.textContent = theme.name;
+            card.appendChild(nameLabel);
+            // Optionally, add small color preview chips for bg/border/text/username:
+            const palette = document.createElement('div');
+            palette.className = 'theme-color-palette';
+            ['bgColor','borderColor','textColor','usernameColor'].forEach(key => {
+              const chip = document.createElement('span');
+              chip.className = 'color-chip';
+              chip.style.backgroundColor = theme[key];
+              palette.appendChild(chip);
+            });
+            card.appendChild(palette);
+            // When a card is clicked, apply that theme
+            card.addEventListener('click', () => {
+              // Find the theme in the available themes array
+              const themeIndex = availableThemes.findIndex(t => t.value === theme.value);
+              if (themeIndex >= 0) {
+                // Set as current theme and update display
+                currentThemeIndex = themeIndex;
+                updateThemeDisplay();
+              } else {
+                // Directly apply the theme
+                applyGeneratedTheme(theme);
+              }
+            });
+            carouselContainer.appendChild(card);
+          });
+          // Update index indicator text (e.g., "1/5")
+          carouselIndexDisplay.textContent = (carouselIndex + 1).toString();
+          carouselTotalDisplay.textContent = generatedThemes.length.toString();
+        }
+        
         // Config and state variables
         let config = {
             // Display mode
@@ -636,16 +821,23 @@
         
         // Background color + opacity handling
         function updateBgColor() {
+            // Get the hex color without transparency
             const hexColor = bgColorInput.value;
             const opacity = parseInt(bgOpacityInput.value) / 100;
             
-            const r = parseInt(hexColor.slice(1, 3), 16);
-            const g = parseInt(hexColor.slice(3, 5), 16);
-            const b = parseInt(hexColor.slice(5, 7), 16);
+            // Set the color and opacity separately
+            document.documentElement.style.setProperty('--chat-bg-color', hexColor);
+            document.documentElement.style.setProperty('--chat-bg-opacity', opacity);
             
-            const rgbaColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-            document.documentElement.style.setProperty('--chat-bg-color', rgbaColor);
-            document.documentElement.style.setProperty('--popup-bg-color', rgbaColor);
+            // Also update popup settings for consistency
+            document.documentElement.style.setProperty('--popup-bg-color', hexColor);
+            document.documentElement.style.setProperty('--popup-bg-opacity', opacity);
+            
+            // Update the display value
+            const bgOpacityValue = document.getElementById('bg-opacity-value');
+            if (bgOpacityValue) {
+                bgOpacityValue.textContent = `${Math.round(opacity * 100)}%`;
+            }
         }
         
         bgColorInput.addEventListener('input', updateBgColor);
@@ -655,6 +847,29 @@
             updateBgColor();
             updatePreviewFromCurrentSettings();
         });
+        
+        // Background image opacity handling
+        const bgImageOpacityInput = document.getElementById('bg-image-opacity');
+        const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
+        
+        function updateBgImageOpacity() {
+            const opacity = parseInt(bgImageOpacityInput.value) / 100;
+            
+            // Set the image opacity
+            document.documentElement.style.setProperty('--chat-bg-image-opacity', opacity);
+            document.documentElement.style.setProperty('--popup-bg-image-opacity', opacity);
+            
+            // Update the display value
+            if (bgImageOpacityValue) {
+                bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
+            }
+            
+            updatePreviewFromCurrentSettings();
+        }
+        
+        if (bgImageOpacityInput) {
+            bgImageOpacityInput.addEventListener('input', updateBgImageOpacity);
+        }
         
         // Color button click handlers and styling
         document.querySelectorAll('.color-btn').forEach(button => {
@@ -1255,145 +1470,254 @@
             updateFontDisplay();
         });
         
-        // AI Theme Generator function
+        // AI Theme Generator function with retry logic
         async function generateThemeFromPrompt() {
-            const prompt = themePromptInput.value.trim();
-            
-            if (!prompt) {
-                addSystemMessage('Please enter a game or vibe for your theme');
-                return;
+          const prompt = themePromptInput.value.trim();
+          if (!prompt) {
+            addSystemMessage('Please enter a theme prompt before generating.');
+            return;
+          }
+          // Show loading spinner and disable Generate button
+          themeLoadingIndicator.style.display = 'block';    // show "Generating..." spinner
+          generateThemeBtn.disabled = true;
+          generatedThemeResult.style.display = 'none';       // hide previous result text
+          
+          const loadingStatus = document.getElementById('loading-status');
+          let attempt = 0;
+          let retrying = false;
+          let lastSuccessfulTheme = null;
+
+          try {
+            let finalData;
+            // Loop to handle retries for image generation
+            do {
+              if (retrying) {
+                // If retrying, update the loading status text to inform the user
+                loadingStatus.textContent = `Retrying (attempt ${attempt})... awaiting image`;
+              } else {
+                loadingStatus.textContent = 'Generating...';  // initial attempt
+              }
+
+              // Call the theme generation API
+              const response = await fetch('http://localhost:8091/api/generate-theme', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, attempt, themeType: 'image' })
+              });
+              
+              finalData = await response.json();
+
+              // If the response is a retry signal (HTTP 202), handle accordingly
+              if (response.status === 202 && finalData.retry) {
+                retrying = true;
+                attempt = finalData.attempt || attempt + 1;
+                console.log(`Retrying theme generation, attempt ${attempt}`);
+                
+                // If we got intermediate theme colors, add to carousel (no image yet)
+                if (finalData.themeData) {
+                  console.log('Adding intermediate theme to carousel while waiting for image');
+                  
+                  // Create a new theme object with the intermediate data
+                  const intermediateTheme = {
+                    name: finalData.themeData.theme_name,
+                    value: `generated-${Date.now()}-intermediate`,
+                    bgColor: finalData.themeData.background_color,
+                    borderColor: finalData.themeData.border_color,
+                    textColor: finalData.themeData.text_color,
+                    usernameColor: finalData.themeData.username_color,
+                    borderRadius: finalData.themeData.border_radius || '8px',
+                    boxShadow: finalData.themeData.box_shadow || 'soft',
+                    description: finalData.themeData.description,
+                    fontFamily: finalData.themeData.font_family,
+                    isGenerated: true,
+                    isIntermediate: true
+                  };
+                  
+                  // Add to available themes
+                  availableThemes.unshift(intermediateTheme);
+                  
+                  // Notify carousel if available
+                  if (window.themeCarousel && typeof window.themeCarousel.addTheme === 'function') {
+                    window.themeCarousel.addTheme(intermediateTheme);
+                  }
+                  
+                  // Display status message
+                  addSystemMessage(`Created interim theme "${intermediateTheme.name}" while generating background image...`);
+                }
+                
+                // Wait briefly before retrying (allow server to generate image)
+                await new Promise(res => setTimeout(res, 1000));
+                continue;  // loop again for next attempt
+              }
+
+              // If no more retries or final data received, break out
+              retrying = false;
+              if (!response.ok) {
+                // API returned an error status – throw to enter catch block
+                throw new Error(finalData.error?.message || 'Unknown API error');
+              }
+              break;
+            } while (retrying && attempt < 3);
+
+            if (!finalData || !finalData.themeData) {
+              throw new Error('No theme data returned from AI generator');
             }
+
+            // If a background image was successfully generated, store it for potential reuse
+            const themeData = finalData.themeData;
+            const bgImage = finalData.backgroundImage;
+            let backgroundImageDataUrl = null;
             
-            // Show loading indicator
-            themeLoadingIndicator.style.display = 'block';
-            generateThemeBtn.disabled = true;
+            if (bgImage) {
+              lastSuccessfulTheme = { themeData, backgroundImage: bgImage };
+              backgroundImageDataUrl = `data:${bgImage.mimeType};base64,${bgImage.data}`;
+            } else if (finalData.noImageAvailable && lastSuccessfulTheme) {
+              // Use the last successful image if the final attempt yielded none
+              themeData.background_color = lastSuccessfulTheme.themeData.background_color;
+              if (lastSuccessfulTheme.backgroundImage) {
+                backgroundImageDataUrl = `data:${lastSuccessfulTheme.backgroundImage.mimeType};base64,${lastSuccessfulTheme.backgroundImage.data}`;
+              }
+            }
+
+            // Create a new theme object
+            const newThemeValue = `generated-${Date.now()}`;
+            const newTheme = {
+              name: themeData.theme_name,
+              value: newThemeValue,
+              bgColor: themeData.background_color,
+              borderColor: themeData.border_color,
+              textColor: themeData.text_color,
+              usernameColor: themeData.username_color,
+              borderRadius: themeData.border_radius || '8px',
+              boxShadow: themeData.box_shadow || 'soft',
+              description: themeData.description,
+              backgroundImage: backgroundImageDataUrl,
+              fontFamily: themeData.font_family,
+              isGenerated: true
+            };
             
-            try {
-                // Call your Cloud Run service
-                const response = await fetch('http://localhost:8091/api/generate-theme', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ prompt })
-                });
+            // Add the new theme to available themes at the beginning
+            availableThemes.unshift(newTheme);
+            
+            // Update currentThemeIndex to point to our new theme
+            currentThemeIndex = 0;
+            
+            // Find the font index if specified
+            if (themeData.font_family) {
+              const fontName = themeData.font_family;
+              // Try exact match first
+              let fontIndex = availableFonts.findIndex(font => 
+                font.name === fontName || 
+                font.name.toLowerCase() === fontName.toLowerCase()
+              );
+              
+              // If no exact match, try partial or fuzzy matching
+              if (fontIndex < 0) {
+                // Try to find a font that contains the specified name
+                fontIndex = availableFonts.findIndex(font => 
+                  font.name.toLowerCase().includes(fontName.toLowerCase()) ||
+                  fontName.toLowerCase().includes(font.name.toLowerCase())
+                );
                 
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(`API Error: ${data.error || 'Unknown error'}`); 
-                }
-                
-                // Extract the theme data
-                const themeData = data.themeData;
-                
-                if (!themeData) {
-                    throw new Error('Could not find valid theme data in the response');
-                }
-                
-                // Extract background image if available
-                const backgroundImage = data.backgroundImage;
-                const backgroundImageDataUrl = backgroundImage ? `data:${backgroundImage.mimeType};base64,${backgroundImage.data}` : null;
-                
-                // Add the new theme to available themes
-                const newThemeValue = `generated-${Date.now()}`;
-                const newTheme = {
-                    name: themeData.theme_name,
-                    value: newThemeValue,
-                    bgColor: themeData.background_color,
-                    borderColor: themeData.border_color,
-                    textColor: themeData.text_color,
-                    usernameColor: themeData.username_color,
-                    borderRadius: themeData.border_radius || '8px',
-                    boxShadow: themeData.box_shadow || 'soft',
-                    description: themeData.description,
-                    backgroundImage: backgroundImageDataUrl, // Store the background image
-                    isGenerated: true
-                };
-                
-                // Add the new theme to the start of the array
-                availableThemes.unshift(newTheme);
-                
-                // Update currentThemeIndex to point to our new theme
-                currentThemeIndex = 0;
-                
-                // Find the font index if specified
-                const fontName = themeData.font_family;
-                if (fontName) {
-                    // Try exact match first
-                    let fontIndex = availableFonts.findIndex(font => 
-                        font.name === fontName || 
-                        font.name.toLowerCase() === fontName.toLowerCase()
+                // If still no match, try matching by font type
+                if (fontIndex < 0) {
+                  const fontType = fontName.toLowerCase();
+                  if (fontType.includes('serif') && !fontType.includes('sans')) {
+                    // Find a serif font
+                    fontIndex = availableFonts.findIndex(font => 
+                      font.value.toLowerCase().includes('serif') && 
+                      !font.value.toLowerCase().includes('sans-serif')
                     );
-                    
-                    // If no exact match, try partial or fuzzy matching
-                    if (fontIndex < 0) {
-                        // Try to find a font that contains the specified name
-                        fontIndex = availableFonts.findIndex(font => 
-                            font.name.toLowerCase().includes(fontName.toLowerCase()) ||
-                            fontName.toLowerCase().includes(font.name.toLowerCase())
-                        );
-                        
-                        // If still no match, try matching by font type (serif, sans-serif, etc.)
-                        if (fontIndex < 0) {
-                            const fontType = fontName.toLowerCase();
-                            if (fontType.includes('serif') && !fontType.includes('sans')) {
-                                // Find a serif font
-                                fontIndex = availableFonts.findIndex(font => 
-                                    font.value.toLowerCase().includes('serif') && 
-                                    !font.value.toLowerCase().includes('sans-serif')
-                                );
-                            } else if (fontType.includes('sans')) {
-                                // Find a sans-serif font
-                                fontIndex = availableFonts.findIndex(font => 
-                                    font.value.toLowerCase().includes('sans-serif')
-                                );
-                            } else if (fontType.includes('mono') || fontType.includes('console') || fontType.includes('code')) {
-                                // Find a monospace font
-                                fontIndex = availableFonts.findIndex(font => 
-                                    font.value.toLowerCase().includes('monospace')
-                                );
-                            } else if (fontType.includes('cursive') || fontType.includes('script') || fontType.includes('comic')) {
-                                // Find a cursive/script-like font
-                                fontIndex = availableFonts.findIndex(font => 
-                                    font.value.toLowerCase().includes('cursive')
-                                );
-                            } else if (fontType.includes('display') || fontType.includes('decorative') || fontType.includes('fancy')) {
-                                // Find a display/decorative font
-                                fontIndex = availableFonts.findIndex(font => 
-                                    font.name === 'Impact' || font.name === 'Arial Black'
-                                );
-                            }
-                        }
-                    }
-                    
-                    if (fontIndex >= 0) {
-                        currentFontIndex = fontIndex;
-                        updateFontDisplay();
-                        console.log(`Selected font: ${availableFonts[fontIndex].name} for theme font: ${fontName}`);
-                    } else {
-                        console.log(`Could not find matching font for: ${fontName}, using default`);
-                    }
+                  } else if (fontType.includes('sans')) {
+                    // Find a sans-serif font
+                    fontIndex = availableFonts.findIndex(font => 
+                      font.value.toLowerCase().includes('sans-serif')
+                    );
+                  } else if (fontType.includes('mono') || fontType.includes('console') || fontType.includes('code')) {
+                    // Find a monospace font
+                    fontIndex = availableFonts.findIndex(font => 
+                      font.value.toLowerCase().includes('monospace')
+                    );
+                  }
                 }
-                
-                // Apply the new theme
-                updateThemeDisplay();
-                
-                // Show the result and theme name
-                generatedThemeResult.style.display = 'flex';
-                generatedThemeName.textContent = themeData.theme_name;
-                
-                // Display success message
-                addSystemMessage(`Generated "${themeData.theme_name}" theme based on "${prompt}"`);
-                
-            } catch (error) {
-                console.error('Error generating theme:', error);
-                addSystemMessage(`Error generating theme: ${error.message}`);
-            } finally {
-                // Hide loading indicator
-                themeLoadingIndicator.style.display = 'none';
-                generateThemeBtn.disabled = false;
+              }
+              
+              if (fontIndex >= 0) {
+                currentFontIndex = fontIndex;
+                updateFontDisplay();
+                console.log(`Selected font: ${availableFonts[fontIndex].name} for theme font: ${fontName}`);
+              }
             }
+            
+            // Apply the theme
+            updateThemeDisplay();
+            
+            // Show the result
+            generatedThemeResult.style.display = 'flex';
+            generatedThemeName.textContent = themeData.theme_name;
+            
+            // Add to carousel if available
+            if (window.themeCarousel && typeof window.themeCarousel.addTheme === 'function') {
+              window.themeCarousel.addTheme(newTheme);
+            }
+            
+            // Display success message
+            addSystemMessage(`✅ Generated theme "${themeData.theme_name}" from "${prompt}"`);
+            
+          } catch (error) {
+            console.error('Error generating theme:', error);
+            addSystemMessage(`❌ Error generating theme: ${error.message}`);
+          } finally {
+            // Hide spinner and re-enable button
+            themeLoadingIndicator.style.display = 'none';
+            generateThemeBtn.disabled = false;
+            loadingStatus.textContent = 'Generating...';  // reset status text
+          }
+        }
+        
+        // Function to apply generated theme
+        function applyGeneratedTheme(theme) {
+          console.log(`Applying generated theme: ${theme.name}`);
+          // Apply to document root CSS variables (these drive chat and popup styles)
+          document.documentElement.style.setProperty('--chat-bg-color', theme.bgColor);
+          document.documentElement.style.setProperty('--chat-border-color', theme.borderColor);
+          document.documentElement.style.setProperty('--chat-text-color', theme.textColor);
+          document.documentElement.style.setProperty('--username-color', theme.usernameColor);
+          document.documentElement.style.setProperty('--popup-bg-color', theme.bgColor);
+          document.documentElement.style.setProperty('--popup-border-color', theme.borderColor);
+          document.documentElement.style.setProperty('--popup-text-color', theme.textColor);
+          document.documentElement.style.setProperty('--popup-username-color', theme.usernameColor);
+          // Border radius and box shadow
+          if (theme.borderRadius) {
+            document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadius);
+            config.borderRadius = theme.borderRadius;
+          }
+          if (theme.boxShadow) {
+            const shadowValue = (typeof getBoxShadowValue === 'function') 
+                                  ? getBoxShadowValue(theme.boxShadow) 
+                                  : theme.boxShadow;
+            document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
+            config.boxShadow = theme.boxShadow;
+          }
+          // Background image
+          if (theme.backgroundImage) {
+            document.documentElement.style.setProperty('--chat-bg-image', `url("${theme.backgroundImage}")`);
+            document.documentElement.style.setProperty('--popup-bg-image', `url("${theme.backgroundImage}")`);
+            // If you have a CSS variable for background image opacity, you can set it or adjust here
+          } else {
+            document.documentElement.style.setProperty('--chat-bg-image', 'none');
+            document.documentElement.style.setProperty('--popup-bg-image', 'none');
+          }
+          // Update the preview box in the config panel to reflect this theme
+          updateThemePreview(theme, /*useCustom=*/true);
+          // Update config and current theme display name
+          config.theme = theme.value || 'custom';
+          config.bgColor = theme.bgColor;
+          config.borderColor = theme.borderColor;
+          config.textColor = theme.textColor;
+          config.usernameColor = theme.usernameColor;
+          config.backgroundImage = theme.backgroundImage || null;
+          currentThemeDisplay.textContent = theme.name;
         }
         
         // Initialize theme display
@@ -1410,11 +1734,16 @@
             config.textColor = theme.textColor;
             config.usernameColor = theme.usernameColor;
             
-            // Apply the current theme
-            applyTheme(theme.value);
-            
-            // Update theme preview
-            updateThemePreview(theme);
+            // If it's a generated theme, apply it using our specialized function
+            if (theme.isGenerated) {
+                applyGeneratedTheme(theme);
+            } else {
+                // Apply the current theme using existing method
+                applyTheme(theme.value);
+                
+                // Update theme preview
+                updateThemePreview(theme);
+            }
         }
         
         // Update theme preview with current theme
@@ -1868,6 +2197,24 @@
         function loadSavedConfig() {
             console.log('Loading saved config');
             try {
+                // Load saved generated themes
+                const savedThemes = localStorage.getItem('generatedThemes');
+                if (savedThemes) {
+                    try {
+                        const parsedThemes = JSON.parse(savedThemes);
+                        if (Array.isArray(parsedThemes) && parsedThemes.length > 0) {
+                            generatedThemes = parsedThemes;
+                            carouselIndex = 0;
+                            updateCarousel();
+                            document.getElementById('generated-themes-carousel').style.display = 'flex';
+                            console.log(`Loaded ${generatedThemes.length} saved themes from localStorage`);
+                        }
+                    } catch(e) {
+                        console.error('Failed to parse saved themes', e);
+                        generatedThemes = [];
+                    }
+                }
+                
                 // Get scene ID from URL parameter, default to 'default' if not specified
                 const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
                 
@@ -1970,18 +2317,43 @@
                             applyBoxShadow(config.boxShadow);
                         }
                         
-                        // Apply theme class if needed
-                        if (config.theme !== 'default') {
-                            // First remove all theme classes
-                            document.documentElement.classList.remove(
-                                'light-theme', 
-                                'natural-theme', 
-                                'transparent-theme', 
-                                'pink-theme', 
-                                'cyberpunk-theme'
-                            );
-                            // Add the selected theme class
-                            document.documentElement.classList.add(config.theme);
+                        // Check if the theme is a generated theme
+                        if (config.theme && config.theme.startsWith('generated-')) {
+                            // Try to find the generated theme in the loaded generatedThemes array
+                            const generatedTheme = generatedThemes.find(t => t.value === config.theme);
+                            if (generatedTheme) {
+                                // Apply the generated theme directly
+                                console.log(`Found and applying saved generated theme: ${generatedTheme.name}`);
+                                applyGeneratedTheme(generatedTheme);
+                            } else {
+                                // Apply theme class if needed (for standard themes)
+                                if (config.theme !== 'default') {
+                                    // First remove all theme classes
+                                    document.documentElement.classList.remove(
+                                        'light-theme', 
+                                        'natural-theme', 
+                                        'transparent-theme', 
+                                        'pink-theme', 
+                                        'cyberpunk-theme'
+                                    );
+                                    // Add the selected theme class
+                                    document.documentElement.classList.add(config.theme);
+                                }
+                            }
+                        } else {
+                            // Apply theme class if needed (for standard themes)
+                            if (config.theme !== 'default') {
+                                // First remove all theme classes
+                                document.documentElement.classList.remove(
+                                    'light-theme', 
+                                    'natural-theme', 
+                                    'transparent-theme', 
+                                    'pink-theme', 
+                                    'cyberpunk-theme'
+                                );
+                                // Add the selected theme class
+                                document.documentElement.classList.add(config.theme);
+                            }
                         }
                         
                         // Update form fields and visual settings
