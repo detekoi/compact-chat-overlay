@@ -71,8 +71,10 @@
           return newTheme;
         }
         
-        // Render the carousel with all generated themes
-        // function updateCarousel - removed as it's now handled by theme-carousel.js
+        // Default configuration
+        let config = {
+            // Display mode
+            chatMode: 'window',
             
             // Window mode settings
             bgColor: 'rgba(18, 18, 18, 0.8)',
@@ -91,7 +93,7 @@
             
             // Popup mode settings
             popup: {
-                direction: 'from-bottom', // 'from-bottom', 'from-top', 'from-right', 'from-left'
+                direction: 'from-bottom',
                 duration: 5, // seconds
                 maxMessages: 3
             },
