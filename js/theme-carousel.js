@@ -359,23 +359,36 @@
                     const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
                     
                     // Get border radius and box shadow values
+                    // Map preset names to actual CSS values - this is crucial for things to work correctly
                     const borderRadiusValues = {
                         "None": "0px",
+                        "none": "0px",
                         "Subtle": "8px",
+                        "subtle": "8px",
                         "Rounded": "16px",
-                        "Pill": "24px"
+                        "rounded": "16px",
+                        "Pill": "24px",
+                        "pill": "24px"
                     };
                     
                     const boxShadowValues = {
                         "None": "none",
+                        "none": "none",
                         "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+                        "soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
                         "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
+                        "simple 3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
+                        "simple3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
                         "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                        "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
+                        "intense 3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
+                        "intense3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
+                        "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)",
+                        "sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
                     };
                     
+                    // Get actual CSS values from preset names, or use default CSS values
                     const borderRadiusValue = borderRadiusValues[themeData.border_radius] || "8px";
-                    const boxShadowValue = boxShadowValues[themeData.box_shadow] || boxShadowValues["Soft"];
+                    const boxShadowValue = boxShadowValues[themeData.box_shadow] || "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px";
                     
                     // Check for existing themes with same name to add variant number
                     const existingThemesWithSameName = generatedThemes.filter(t => 

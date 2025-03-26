@@ -2376,42 +2376,16 @@
         
         /**
          * Apply border radius to chat container
-         * @param {string} value - Border radius preset name or direct CSS value
+         * @param {string} value - Border radius CSS value (should already be a proper CSS value)
          */
         function applyBorderRadius(value) {
             if (!value) return;
             
-            // Define mapping from preset names to CSS values
-            const borderRadiusMap = {
-                'none': '0px',
-                'subtle': '8px',
-                'rounded': '16px',
-                'pill': '24px'
-            };
+            // Apply the CSS value directly - no conversion needed since the buttons
+            // already have data-value attributes with proper CSS values (0px, 8px, 16px, 24px)
+            document.documentElement.style.setProperty('--chat-border-radius', value);
             
-            // Normalize for case-insensitive matching
-            const valueLower = value.toLowerCase();
-            
-            // Determine the CSS value to use
-            let cssValue;
-            
-            // First check if it's a known preset
-            if (borderRadiusMap[valueLower]) {
-                cssValue = borderRadiusMap[valueLower];
-            }
-            // If it already looks like a pixel value, use as-is
-            else if (value.includes('px') || value === '0') {
-                cssValue = value;
-            }
-            // Default fallback
-            else {
-                cssValue = '8px';
-            }
-            
-            // Apply the CSS value (this is the key step - always apply a real CSS value to the variable)
-            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
-            
-            // Store the preset name in config for UI consistency
+            // Store the CSS value directly in config
             config.borderRadius = value;
             
             // Highlight active button
@@ -2429,18 +2403,18 @@
         
         /**
          * Apply box shadow to chat container
-         * @param {string} preset - Box shadow preset name or direct CSS value
+         * @param {string} preset - Box shadow preset name from button data-value
          */
         function applyBoxShadow(preset) {
             if (!preset) return;
             
-            // Get the CSS value from the preset
+            // Get the CSS value for the preset
             const shadowValue = getBoxShadowValue(preset);
             
-            // Apply it to the CSS variable
+            // Apply it to the CSS variable - this is the actual CSS value
             document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
             
-            // Store the preset name in config for UI consistency
+            // Store the preset name in config
             config.boxShadow = preset;
             
             // Highlight active button
