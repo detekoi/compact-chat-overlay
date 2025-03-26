@@ -241,86 +241,30 @@
             document.documentElement.style.setProperty('--popup-bg-image', 'none');
         }
 
-        // Simple approach that directly applies CSS values instead of preset names
+        // Apply border radius if specified
         if (theme.borderRadius || theme.borderRadiusValue) {
-            // Convert preset name to actual value if needed
-            const borderRadiusValues = {
-                "None": "0px",
-                "Subtle": "8px", 
-                "Rounded": "16px", 
-                "Pill": "24px",
-                "none": "0px",
-                "subtle": "8px", 
-                "rounded": "16px", 
-                "pill": "24px"
-            };
-            
-            // Determine the actual CSS value to use
-            let cssValue;
-            
-            // First try using the borderRadiusValue if present
-            if (theme.borderRadiusValue) {
-                cssValue = theme.borderRadiusValue;
+            // If we have applyBorderRadius function available, use it to apply the radius
+            if (typeof window.applyBorderRadius === 'function') {
+                // Use the borderRadius property which is the preset name or CSS value
+                window.applyBorderRadius(theme.borderRadius || theme.borderRadiusValue);
             } 
-            // Then check if the borderRadius name maps to a value
-            else if (borderRadiusValues[theme.borderRadius]) {
-                cssValue = borderRadiusValues[theme.borderRadius];
+            // Fallback: directly apply the borderRadiusValue if available
+            else if (theme.borderRadiusValue) {
+                document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadiusValue);
             }
-            // Otherwise use the borderRadius directly if it looks like CSS
-            else if (theme.borderRadius && (theme.borderRadius.includes('px') || theme.borderRadius === '0')) {
-                cssValue = theme.borderRadius;
-            }
-            // Last resort fallback
-            else {
-                cssValue = "8px"; // Default
-            }
-            
-            console.log(`Setting border radius CSS to: ${cssValue}`);
-            
-            // Directly apply the CSS value to the document
-            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
         }
 
-        // Simple approach for box shadow that directly applies CSS values
+        // Apply box shadow if specified
         if (theme.boxShadow || theme.boxShadowValue) {
-            // Convert preset name to actual CSS value if needed
-            const boxShadowValues = {
-                "None": "none",
-                "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-                "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-                "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)",
-                "none": "none",
-                "soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-                "simple 3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-                "intense 3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                "sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
-            };
-            
-            // Determine the actual CSS value to use
-            let cssValue;
-            
-            // First try using the boxShadowValue if present
-            if (theme.boxShadowValue) {
-                cssValue = theme.boxShadowValue;
-            } 
-            // Then check if the boxShadow name maps to a value
-            else if (boxShadowValues[theme.boxShadow]) {
-                cssValue = boxShadowValues[theme.boxShadow];
+            // If we have applyBoxShadow function available, use it to apply the shadow
+            if (typeof window.applyBoxShadow === 'function') {
+                // Use the boxShadow property which is the preset name or CSS value
+                window.applyBoxShadow(theme.boxShadow || theme.boxShadowValue);
             }
-            // Otherwise use the boxShadow directly if it looks like CSS
-            else if (theme.boxShadow && (theme.boxShadow.includes('rgba') || theme.boxShadow.includes('px') || theme.boxShadow === 'none')) {
-                cssValue = theme.boxShadow;
+            // Fallback: directly apply the boxShadowValue if available
+            else if (theme.boxShadowValue) {
+                document.documentElement.style.setProperty('--chat-box-shadow', theme.boxShadowValue);
             }
-            // Last resort fallback
-            else {
-                cssValue = "none"; // Default
-            }
-            
-            console.log(`Setting box shadow CSS to: ${cssValue}`);
-            
-            // Directly apply the CSS value to the document
-            document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
         }
         }
 
