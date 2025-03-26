@@ -1337,7 +1337,7 @@
                 if (textColorInput) textColorInput.value = theme.textColor;
                 if (usernameColorInput) usernameColorInput.value = theme.usernameColor;
                 
-                // Update color previews
+                // Update color previews (which also highlights buttons)
                 updateColorPreviews();
                 
             } catch (error) {
@@ -2003,7 +2003,8 @@
                     
                     // Window mode settings
                     bgColor: getRgbaColor(),
-                    borderColor: getBorderColor(),
+                    // Use the input value directly, as it's updated by applyTheme/applyGeneratedTheme
+                    borderColor: getValue(borderColorInput, '#9147ff'), 
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
                     fontSize: getValue(fontSizeSlider, 14),
