@@ -14,6 +14,24 @@
         // Carousel state (for AI-generated themes)
         let generatedThemes = [];
         let carouselIndex = 0;  // index of currently highlighted theme in carousel
+        
+        // Add a MutationObserver to fix any incorrect CSS variable values immediately
+        const cssVarObserver = new MutationObserver(mutations => {
+            mutations.forEach(mutation => {
+                if (mutation.attributeName === 'style') {
+                    fixCssVariables();
+                }
+            });
+        });
+        
+        // Start observing document.documentElement style changes
+        cssVarObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style']
+        });
+        
+        // Run a fix immediately on startup
+        fixCssVariables();
 
         // Theme carousel is handled by theme-carousel.js
         
@@ -2093,6 +2111,66 @@
         }
         
         // Load saved config on page load
+        /**
+         * Fix any CSS variables that contain preset names instead of actual CSS values
+         * This ensures that even if a theme sets --chat-border-radius: "Rounded", 
+         * it will be immediately converted to --chat-border-radius: "16px"
+         */
+        function fixCssVariables() {
+            // Get current CSS variable values
+            const borderRadius = document.documentElement.style.getPropertyValue('--chat-border-radius').trim();
+            const boxShadow = document.documentElement.style.getPropertyValue('--chat-box-shadow').trim();
+            
+            // Only proceed if variables have values
+            if (borderRadius || boxShadow) {
+                // Check border radius
+                if (borderRadius) {
+                    const borderRadiusMap = {
+                        'None': '0px',
+                        'none': '0px',
+                        'Subtle': '8px',
+                        'subtle': '8px',
+                        'Rounded': '16px',
+                        'rounded': '16px',
+                        'Pill': '24px',
+                        'pill': '24px'
+                    };
+                    
+                    // If it's a preset name, convert to CSS value
+                    if (borderRadiusMap[borderRadius]) {
+                        const cssValue = borderRadiusMap[borderRadius];
+                        console.log(`Converting border radius "${borderRadius}" to "${cssValue}"`);
+                        document.documentElement.style.setProperty('--chat-border-radius', cssValue);
+                    }
+                }
+                
+                // Check box shadow
+                if (boxShadow) {
+                    const boxShadowMap = {
+                        'None': 'none',
+                        'none': 'none',
+                        'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                        'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                        'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                        'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                        'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                        'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                        'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                        'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                        'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)',
+                        'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
+                    };
+                    
+                    // If it's a preset name, convert to CSS value
+                    if (boxShadowMap[boxShadow]) {
+                        const cssValue = boxShadowMap[boxShadow];
+                        console.log(`Converting box shadow "${boxShadow}" to "${cssValue}"`);
+                        document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
+                    }
+                }
+            }
+        }
+        
         function loadSavedConfig() {
             console.log('Loading saved config');
             try {
