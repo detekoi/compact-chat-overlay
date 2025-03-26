@@ -36,6 +36,7 @@
               textColor: themeData.text_color,
               usernameColor: themeData.username_color,
               borderRadius: themeData.border_radius || 'Subtle',
+              boxShadow: themeData.box_shadow || 'Soft',
               description: themeData.description || '',
               backgroundImage: backgroundImageDataUrl,
               fontFamily: themeData.font_family,
@@ -53,6 +54,8 @@
             borderColor: themeData.border_color,
             textColor: themeData.text_color,
             usernameColor: themeData.username_color,
+            borderRadius: themeData.border_radius || 'Subtle',
+            boxShadow: themeData.box_shadow || 'Soft',
             description: themeData.description || '',
             backgroundImage: backgroundImageObj ? `data:${backgroundImageObj.mimeType};base64,${backgroundImageObj.data}` : null,
             isGenerated: true
@@ -215,12 +218,12 @@
         // Theme selection
         let currentThemeIndex = 0;
         const availableThemes = [
-            { name: 'Default', value: 'default', bgColor: 'rgba(18, 18, 18, 0.8)', borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff' },
-            { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff' },
-            { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff' },
-            { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64' },
-            { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec' },
-            { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(255, 222, 236, 0.85)', borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670' }
+            { name: 'Default', value: 'default', bgColor: 'rgba(18, 18, 18, 0.8)', borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+            { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: 'none', boxShadow: 'none' },
+            { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+            { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d' },
+            { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp' },
+            { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(255, 222, 236, 0.85)', borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d' }
         ];
         
         // Show status indicators and messages
@@ -1221,7 +1224,6 @@
                     document.documentElement.style.setProperty('--chat-bg-image', `url("${theme.backgroundImage}")`); 
                     document.documentElement.style.setProperty('--popup-bg-image', `url("${theme.backgroundImage}")`); 
                 } else {
-                    // Clear previous background image if any
                     document.documentElement.style.setProperty('--chat-bg-image', 'none');
                     document.documentElement.style.setProperty('--popup-bg-image', 'none');
                 }
@@ -1238,7 +1240,19 @@
                     // Apply border radius and box shadow if specified in the theme
                     if (theme.borderRadius) {
                         config.borderRadius = theme.borderRadius;
-                        document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadius);
+                        
+                        // Check if the value is a preset name or an actual CSS value
+                        const borderRadiusValues = {
+                            "none": "0px",
+                            "subtle": "8px",
+                            "rounded": "16px",
+                            "pill": "24px"
+                        };
+                        
+                        // Convert named values to CSS values if needed
+                        const borderRadiusValue = borderRadiusValues[theme.borderRadius.toLowerCase()] || theme.borderRadius;
+                        document.documentElement.style.setProperty('--chat-border-radius', borderRadiusValue);
+                        
                         // Highlight the matching button in the UI
                         applyBorderRadius(theme.borderRadius);
                     }
@@ -1309,7 +1323,7 @@
                 updateColorPreviews();
                 
             } catch (error) {
-                console.error('Error applying theme:', error);
+                console.error("Error applying theme:", error);
             }
         }
         
@@ -1678,7 +1692,17 @@
                 
                 // Apply border radius if specified in the theme
                 if (theme.borderRadius) {
-                    themePreview.style.borderRadius = theme.borderRadius;
+                    // Check if the value is a preset name or an actual CSS value
+                    const borderRadiusValues = {
+                        "none": "0px",
+                        "subtle": "8px",
+                        "rounded": "16px",
+                        "pill": "24px"
+                    };
+                    
+                    // Convert named values to CSS values if needed
+                    const borderRadiusValue = borderRadiusValues[theme.borderRadius.toLowerCase()] || theme.borderRadius;
+                    themePreview.style.borderRadius = borderRadiusValue;
                 }
                 
                 // Apply box shadow if specified in the theme
