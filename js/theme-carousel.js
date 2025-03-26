@@ -159,16 +159,7 @@
         document.documentElement.style.setProperty('--popup-border-color', theme.borderColor);
         document.documentElement.style.setProperty('--popup-text-color', theme.textColor);
         document.documentElement.style.setProperty('--popup-username-color', theme.usernameColor);
-        
-        // Apply border radius and box shadow if available
-        if (theme.borderRadiusValue) {
-            document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadiusValue);
-        }
-        
-        if (theme.boxShadowValue) {
-            document.documentElement.style.setProperty('--chat-box-shadow', theme.boxShadowValue);
-        }
-        
+
         // Apply font family if specified
         if (theme.fontFamily) {
             document.documentElement.style.setProperty('--font-family', theme.fontFamily);
@@ -182,8 +173,60 @@
             document.documentElement.style.setProperty('--chat-bg-image', 'none');
             document.documentElement.style.setProperty('--popup-bg-image', 'none');
         }
+
+        // Apply border radius if specified and function exists
+        if (theme.borderRadius && typeof window.applyBorderRadius === 'function') {
+            // Note: applyBorderRadius expects the *preset name* (e.g., 'Subtle', 'Rounded')
+            // It internally maps this to the CSS value (e.g., '8px', '16px')
+            window.applyBorderRadius(theme.borderRadius);
+        } else if (theme.borderRadiusValue && typeof window.applyBorderRadius === 'function') {
+            // Fallback: If only borderRadiusValue is present, try to find matching preset name
+            // This might be less common but provides robustness
+            const borderRadiusPresets = {
+                "0px": "None", "8px": "Subtle", "16px": "Rounded", "24px": "Pill"
+            };
+            const presetName = borderRadiusPresets[theme.borderRadiusValue];
+            if (presetName) {
+                window.applyBorderRadius(presetName);
+            } else {
+                 console.warn(`Could not find border radius preset for value: ${theme.borderRadiusValue}`);
+                 // Optionally apply the value directly if the preset function isn't critical
+                 // document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadiusValue);
+                 // if (window.config) window.config.borderRadius = theme.borderRadiusValue; // Update config if applying directly
+            }
+        }
+
+        // Apply box shadow if specified and function exists
+        if (theme.boxShadow && typeof window.applyBoxShadow === 'function') {
+            // Note: applyBoxShadow expects the *preset name* (e.g., 'Soft', 'Simple 3D')
+            window.applyBoxShadow(theme.boxShadow);
+        } else if (theme.boxShadowValue && typeof window.applyBoxShadow === 'function') {
+             // Fallback: If only boxShadowValue is present, try to find matching preset name
+             const boxShadowPresets = {
+                "none": "None",
+                "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px": "Soft",
+                "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px": "Simple 3D",
+                "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px": "Intense 3D",
+                "8px 8px 0px 0px rgba(0, 0, 0, 0.9)": "Sharp"
+             };
+             // Find the key (preset name) corresponding to the value
+             const presetName = Object.keys(boxShadowPresets).find(key => boxShadowPresets[key] === theme.boxShadowValue);
+             if (presetName) {
+                 window.applyBoxShadow(presetName);
+             } else {
+                 console.warn(`Could not find box shadow preset for value: ${theme.boxShadowValue}`);
+                 // Optionally apply the value directly
+                 // document.documentElement.style.setProperty('--chat-box-shadow', theme.boxShadowValue);
+                 // if (window.config) window.config.boxShadow = theme.boxShadowValue; // Update config if applying directly
+             }
+        }
+
+        // Update the theme preview to reflect all applied settings
+        if (typeof window.updatePreviewFromCurrentSettings === 'function') {
+            window.updatePreviewFromCurrentSettings();
+        }
     }
-    
+
     /**
      * Save the generated themes to localStorage
      */
