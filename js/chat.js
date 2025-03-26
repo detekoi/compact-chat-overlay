@@ -2339,32 +2339,94 @@
         // Update config panel from current config
         // Helper function to get box shadow value based on preset
         function getBoxShadowValue(preset) {
-            switch(preset) {
-                case 'none':
-                    return 'none';
-                case 'soft':
-                    return 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px';
-                case 'simple3d':
-                    return 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px';
-                case 'intense3d':
-                    return 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px';
-                case 'sharp':
-                    return '8px 8px 0px 0px rgba(0, 0, 0, 0.9)';
-                default:
-                    return 'none';
+            // Handle case-insensitive preset names
+            const presetLower = preset?.toLowerCase();
+            
+            // Define all the mappings centrally for clarity
+            const boxShadowValues = {
+                'none': 'none',
+                'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)',
+                // Capitalized versions
+                'None': 'none',
+                'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                'Simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'Intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
+            };
+            
+            // Check direct mapping first
+            if (preset && boxShadowValues[preset]) {
+                return boxShadowValues[preset];
             }
+            
+            // Check by lowercase mapping
+            if (presetLower && boxShadowValues[presetLower]) {
+                return boxShadowValues[presetLower];
+            }
+            
+            // If the preset is already a CSS value, return it directly
+            if (preset && (preset.includes('rgba') || preset.includes('px') || preset === 'none')) {
+                return preset;
+            }
+            
+            // Default fallback
+            console.warn(`Unknown box shadow preset: ${preset}, using default none`);
+            return 'none';
         }
         
         // Apply border radius to chat container
         function applyBorderRadius(value) {
-            document.documentElement.style.setProperty('--chat-border-radius', value);
-            config.borderRadius = value;
+            // Define the mapping from preset names to CSS values
+            const borderRadiusValues = {
+                "none": "0px",
+                "subtle": "8px",
+                "rounded": "16px",
+                "pill": "24px",
+                // For backward compatibility, support 0px format too
+                "0px": "0px",
+                "8px": "8px",
+                "16px": "16px",
+                "24px": "24px"
+            };
+            
+            // Convert to lowercase to handle case variations like "Rounded" -> "rounded"
+            const valueLower = value?.toLowerCase?.() || '';
+            
+            // Get the actual CSS value (either from the preset map or use the provided value)
+            let actualValue;
+            
+            if (borderRadiusValues[valueLower]) {
+                actualValue = borderRadiusValues[valueLower];
+            } else if (value && value.toString().includes('px')) {
+                // If it includes 'px', it's probably already a CSS value
+                actualValue = value;
+            } else {
+                // Default fallback
+                actualValue = "8px";
+                console.warn(`Unknown border radius: ${value}, using default 8px`);
+            }
+            
+            console.log(`applyBorderRadius: setting CSS --chat-border-radius to "${actualValue}"`);
+            
+            // Apply the CSS value to the root element
+            document.documentElement.style.setProperty('--chat-border-radius', actualValue);
+            
+            // Update config (store the CSS value directly to avoid issues)
+            config.borderRadius = actualValue;
             
             // Highlight active button
             if (borderRadiusPresets) {
                 const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    if (btn.dataset.value === value) {
+                    // Match buttons by CSS value, which is what's stored in dataset.value
+                    if (btn.dataset.value === actualValue) {
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');
@@ -2375,14 +2437,22 @@
         
         // Apply box shadow to chat container
         function applyBoxShadow(preset) {
+            // Get the CSS value for the box shadow
             const shadowValue = getBoxShadowValue(preset);
-            document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
-            config.boxShadow = preset;
             
-            // Highlight active button
+            console.log(`applyBoxShadow: setting CSS --chat-box-shadow to "${shadowValue}"`);
+            
+            // Apply the CSS value directly
+            document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
+            
+            // Store the CSS value in config
+            config.boxShadow = shadowValue;
+            
+            // Highlight active button (using the preset name which is what's in the button's dataset)
             if (boxShadowPresets) {
                 const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
+                    // Simple matching for button selection (can be improved if needed)
                     if (btn.dataset.value === preset) {
                         btn.classList.add('active');
                     } else {

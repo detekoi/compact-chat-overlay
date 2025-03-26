@@ -32,6 +32,9 @@
         // Load saved themes from localStorage
         loadSavedThemes();
         
+        // Add CSS handler for border-radius preset names
+        addPresetCSSHandler();
+        
         // Patch the theme generator to integrate with main theme carousel
         patchThemeGenerator();
         
@@ -42,6 +45,70 @@
         window.addThemeToCarousel = addThemeToCarousel;
         
         console.log('Theme carousel initialized');
+    }
+    
+    /**
+     * Adds a style element to handle preset border-radius and box-shadow names in CSS
+     */
+    function addPresetCSSHandler() {
+        // Create style element
+        const styleElement = document.createElement('style');
+        styleElement.id = 'preset-css-handler';
+        
+        // Create CSS content for preset handling
+        styleElement.textContent = `
+            /* Border radius preset value handling */
+            :root[style*="--chat-border-radius: None"] {
+                --chat-border-radius: 0px !important;
+            }
+            :root[style*="--chat-border-radius: none"] {
+                --chat-border-radius: 0px !important;
+            }
+            :root[style*="--chat-border-radius: Subtle"] {
+                --chat-border-radius: 8px !important;
+            }
+            :root[style*="--chat-border-radius: subtle"] {
+                --chat-border-radius: 8px !important;
+            }
+            :root[style*="--chat-border-radius: Rounded"] {
+                --chat-border-radius: 16px !important;
+            }
+            :root[style*="--chat-border-radius: rounded"] {
+                --chat-border-radius: 16px !important;
+            }
+            :root[style*="--chat-border-radius: Pill"] {
+                --chat-border-radius: 24px !important;
+            }
+            :root[style*="--chat-border-radius: pill"] {
+                --chat-border-radius: 24px !important;
+            }
+            
+            /* Box shadow preset value handling */
+            :root[style*="--chat-box-shadow: None"], 
+            :root[style*="--chat-box-shadow: none"] {
+                --chat-box-shadow: none !important;
+            }
+            :root[style*="--chat-box-shadow: Soft"], 
+            :root[style*="--chat-box-shadow: soft"] {
+                --chat-box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px !important;
+            }
+            :root[style*="--chat-box-shadow: Simple 3D"],
+            :root[style*="--chat-box-shadow: simple 3d"] {
+                --chat-box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px !important;
+            }
+            :root[style*="--chat-box-shadow: Intense 3D"],
+            :root[style*="--chat-box-shadow: intense 3d"] {
+                --chat-box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px !important;
+            }
+            :root[style*="--chat-box-shadow: Sharp"],
+            :root[style*="--chat-box-shadow: sharp"] {
+                --chat-box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.9) !important;
+            }
+        `;
+        
+        // Add the style element to the head
+        document.head.appendChild(styleElement);
+        console.log('Added preset CSS handler for border-radius and box-shadow names');
     }
     
     /**
@@ -174,51 +241,87 @@
             document.documentElement.style.setProperty('--popup-bg-image', 'none');
         }
 
-        // Apply border radius if specified and function exists
-        if (theme.borderRadius && typeof window.applyBorderRadius === 'function') {
-            // Note: applyBorderRadius expects the *preset name* (e.g., 'Subtle', 'Rounded')
-            // It internally maps this to the CSS value (e.g., '8px', '16px')
-            window.applyBorderRadius(theme.borderRadius);
-        } else if (theme.borderRadiusValue && typeof window.applyBorderRadius === 'function') {
-            // Fallback: If only borderRadiusValue is present, try to find matching preset name
-            // This might be less common but provides robustness
-            const borderRadiusPresets = {
-                "0px": "None", "8px": "Subtle", "16px": "Rounded", "24px": "Pill"
+        // Simple approach that directly applies CSS values instead of preset names
+        if (theme.borderRadius || theme.borderRadiusValue) {
+            // Convert preset name to actual value if needed
+            const borderRadiusValues = {
+                "None": "0px",
+                "Subtle": "8px", 
+                "Rounded": "16px", 
+                "Pill": "24px",
+                "none": "0px",
+                "subtle": "8px", 
+                "rounded": "16px", 
+                "pill": "24px"
             };
-            const presetName = borderRadiusPresets[theme.borderRadiusValue];
-            if (presetName) {
-                window.applyBorderRadius(presetName);
-            } else {
-                 console.warn(`Could not find border radius preset for value: ${theme.borderRadiusValue}`);
-                 // Optionally apply the value directly if the preset function isn't critical
-                 // document.documentElement.style.setProperty('--chat-border-radius', theme.borderRadiusValue);
-                 // if (window.config) window.config.borderRadius = theme.borderRadiusValue; // Update config if applying directly
+            
+            // Determine the actual CSS value to use
+            let cssValue;
+            
+            // First try using the borderRadiusValue if present
+            if (theme.borderRadiusValue) {
+                cssValue = theme.borderRadiusValue;
+            } 
+            // Then check if the borderRadius name maps to a value
+            else if (borderRadiusValues[theme.borderRadius]) {
+                cssValue = borderRadiusValues[theme.borderRadius];
             }
+            // Otherwise use the borderRadius directly if it looks like CSS
+            else if (theme.borderRadius && (theme.borderRadius.includes('px') || theme.borderRadius === '0')) {
+                cssValue = theme.borderRadius;
+            }
+            // Last resort fallback
+            else {
+                cssValue = "8px"; // Default
+            }
+            
+            console.log(`Setting border radius CSS to: ${cssValue}`);
+            
+            // Directly apply the CSS value to the document
+            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
         }
 
-        // Apply box shadow if specified and function exists
-        if (theme.boxShadow && typeof window.applyBoxShadow === 'function') {
-            // Note: applyBoxShadow expects the *preset name* (e.g., 'Soft', 'Simple 3D')
-            window.applyBoxShadow(theme.boxShadow);
-        } else if (theme.boxShadowValue && typeof window.applyBoxShadow === 'function') {
-             // Fallback: If only boxShadowValue is present, try to find matching preset name
-             const boxShadowPresets = {
-                "none": "None",
-                "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px": "Soft",
-                "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px": "Simple 3D",
-                "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px": "Intense 3D",
-                "8px 8px 0px 0px rgba(0, 0, 0, 0.9)": "Sharp"
-             };
-             // Find the key (preset name) corresponding to the value
-             const presetName = Object.keys(boxShadowPresets).find(key => boxShadowPresets[key] === theme.boxShadowValue);
-             if (presetName) {
-                 window.applyBoxShadow(presetName);
-             } else {
-                 console.warn(`Could not find box shadow preset for value: ${theme.boxShadowValue}`);
-                 // Optionally apply the value directly
-                 // document.documentElement.style.setProperty('--chat-box-shadow', theme.boxShadowValue);
-                 // if (window.config) window.config.boxShadow = theme.boxShadowValue; // Update config if applying directly
-             }
+        // Simple approach for box shadow that directly applies CSS values
+        if (theme.boxShadow || theme.boxShadowValue) {
+            // Convert preset name to actual CSS value if needed
+            const boxShadowValues = {
+                "None": "none",
+                "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+                "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
+                "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
+                "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)",
+                "none": "none",
+                "soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+                "simple 3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
+                "intense 3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
+                "sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
+            };
+            
+            // Determine the actual CSS value to use
+            let cssValue;
+            
+            // First try using the boxShadowValue if present
+            if (theme.boxShadowValue) {
+                cssValue = theme.boxShadowValue;
+            } 
+            // Then check if the boxShadow name maps to a value
+            else if (boxShadowValues[theme.boxShadow]) {
+                cssValue = boxShadowValues[theme.boxShadow];
+            }
+            // Otherwise use the boxShadow directly if it looks like CSS
+            else if (theme.boxShadow && (theme.boxShadow.includes('rgba') || theme.boxShadow.includes('px') || theme.boxShadow === 'none')) {
+                cssValue = theme.boxShadow;
+            }
+            // Last resort fallback
+            else {
+                cssValue = "none"; // Default
+            }
+            
+            console.log(`Setting box shadow CSS to: ${cssValue}`);
+            
+            // Directly apply the CSS value to the document
+            document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
+        }
         }
 
         // Update the theme preview to reflect all applied settings
@@ -349,6 +452,7 @@
                         borderRadiusValue: borderRadiusValue,
                         boxShadow: themeData.box_shadow || 'Soft',
                         boxShadowValue: boxShadowValue,
+                        // Store both the name and the CSS values for clarity
                         description: themeData.description,
                         backgroundImage: backgroundImageDataUrl,
                         fontFamily: themeData.font_family,
