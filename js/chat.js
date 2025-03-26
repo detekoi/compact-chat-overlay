@@ -14,6 +14,13 @@
         // Carousel state (for AI-generated themes)
         let generatedThemes = [];
         let carouselIndex = 0;  // index of currently highlighted theme in carousel
+        
+        // Run border radius and box shadow fixer
+        setTimeout(() => {
+            if (typeof fixBorderRadiusAndBoxShadow === 'function') {
+                fixBorderRadiusAndBoxShadow();
+            }
+        }, 100);
 
         // Theme carousel is handled by theme-carousel.js
         
@@ -1183,6 +1190,9 @@
                 const theme = availableThemes[themeIndex];
                 console.log("Applying theme:", theme.name);
                 
+                // Schedule border radius and box shadow fixer to run after applying theme
+                setTimeout(fixBorderRadiusAndBoxShadow, 100);
+                
                 // First remove all theme classes
                 document.documentElement.classList.remove(
                     'light-theme', 
@@ -2338,127 +2348,158 @@
         
         // Update config panel from current config
         // Helper function to get box shadow value based on preset
+        // Helper function to map preset names to CSS values for box shadow
         function getBoxShadowValue(preset) {
-            // Handle case-insensitive preset names
-            const presetLower = preset?.toLowerCase();
-            
-            // Define all the mappings centrally for clarity
-            const boxShadowValues = {
-                'none': 'none',
-                'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
-                'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
-                'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
-                'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
-                'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
-                'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)',
-                // Capitalized versions
+            // Define mappings
+            const boxShadowMap = {
                 'None': 'none',
+                'none': 'none',
                 'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
-                'Simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
                 'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
-                'Intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
                 'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
-                'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
+                'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)',
+                'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
             };
             
-            // Check direct mapping first
-            if (preset && boxShadowValues[preset]) {
-                return boxShadowValues[preset];
+            // Check if preset is a known value
+            if (preset && boxShadowMap[preset]) {
+                return boxShadowMap[preset];
             }
             
-            // Check by lowercase mapping
-            if (presetLower && boxShadowValues[presetLower]) {
-                return boxShadowValues[presetLower];
-            }
-            
-            // If the preset is already a CSS value, return it directly
+            // Check if the value already looks like valid CSS
             if (preset && (preset.includes('rgba') || preset.includes('px') || preset === 'none')) {
                 return preset;
             }
             
             // Default fallback
-            console.warn(`Unknown box shadow preset: ${preset}, using default none`);
             return 'none';
         }
         
         // Apply border radius to chat container
         function applyBorderRadius(value) {
-            // Define the mapping from preset names to CSS values
-            const borderRadiusValues = {
-                "none": "0px",
-                "subtle": "8px",
-                "rounded": "16px",
-                "pill": "24px",
-                // For backward compatibility, support 0px format too
-                "0px": "0px",
-                "8px": "8px",
-                "16px": "16px",
-                "24px": "24px"
+            // Define mappings
+            const borderRadiusMap = {
+                'None': '0px',
+                'none': '0px',
+                'Subtle': '8px',
+                'subtle': '8px',
+                'Rounded': '16px',
+                'rounded': '16px',
+                'Pill': '24px',
+                'pill': '24px',
+                // Support for direct pixel values
+                '0px': '0px',
+                '8px': '8px',
+                '16px': '16px',
+                '24px': '24px'
             };
             
-            // Convert to lowercase to handle case variations like "Rounded" -> "rounded"
-            const valueLower = value?.toLowerCase?.() || '';
+            // Determine the CSS value to use
+            let cssValue = value;
             
-            // Get the actual CSS value (either from the preset map or use the provided value)
-            let actualValue;
-            
-            if (borderRadiusValues[valueLower]) {
-                actualValue = borderRadiusValues[valueLower];
-            } else if (value && value.toString().includes('px')) {
-                // If it includes 'px', it's probably already a CSS value
-                actualValue = value;
-            } else {
-                // Default fallback
-                actualValue = "8px";
-                console.warn(`Unknown border radius: ${value}, using default 8px`);
+            // Check if value is a known preset
+            if (value && borderRadiusMap[value]) {
+                cssValue = borderRadiusMap[value];
             }
+            // No need for additional checks - if it's not a preset, use as-is
             
-            console.log(`applyBorderRadius: setting CSS --chat-border-radius to "${actualValue}"`);
+            // Apply the CSS value directly
+            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
             
-            // Apply the CSS value to the root element
-            document.documentElement.style.setProperty('--chat-border-radius', actualValue);
-            
-            // Update config (store the CSS value directly to avoid issues)
-            config.borderRadius = actualValue;
+            // Update config
+            config.borderRadius = value;
             
             // Highlight active button
             if (borderRadiusPresets) {
                 const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    // Match buttons by CSS value, which is what's stored in dataset.value
-                    if (btn.dataset.value === actualValue) {
+                    if (btn.dataset.value === value) {
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');
                     }
                 });
             }
+            
+            // Fix border radius after a short delay
+            setTimeout(fixBorderRadiusAndBoxShadow, 10);
         }
         
         // Apply box shadow to chat container
         function applyBoxShadow(preset) {
-            // Get the CSS value for the box shadow
+            // Convert preset to CSS value
             const shadowValue = getBoxShadowValue(preset);
             
-            console.log(`applyBoxShadow: setting CSS --chat-box-shadow to "${shadowValue}"`);
-            
-            // Apply the CSS value directly
+            // Apply the CSS value
             document.documentElement.style.setProperty('--chat-box-shadow', shadowValue);
             
-            // Store the CSS value in config
-            config.boxShadow = shadowValue;
+            // Update config
+            config.boxShadow = preset;
             
-            // Highlight active button (using the preset name which is what's in the button's dataset)
+            // Highlight active button
             if (boxShadowPresets) {
                 const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    // Simple matching for button selection (can be improved if needed)
                     if (btn.dataset.value === preset) {
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');
                     }
                 });
+            }
+            
+            // Fix box shadow after a short delay
+            setTimeout(fixBorderRadiusAndBoxShadow, 10);
+        }
+        
+        // Band-aid fix function that checks and fixes any preset names in CSS variables
+        function fixBorderRadiusAndBoxShadow() {
+            // Get current style values
+            const borderRadius = document.documentElement.style.getPropertyValue('--chat-border-radius').trim();
+            const boxShadow = document.documentElement.style.getPropertyValue('--chat-box-shadow').trim();
+            
+            // Define preset mappings
+            const borderRadiusMap = {
+                'None': '0px',
+                'none': '0px',
+                'Subtle': '8px',
+                'subtle': '8px',
+                'Rounded': '16px',
+                'rounded': '16px',
+                'Pill': '24px',
+                'pill': '24px'
+            };
+            
+            const boxShadowMap = {
+                'None': 'none',
+                'none': 'none',
+                'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)',
+                'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
+            };
+            
+            // Check and fix border radius
+            if (borderRadius && borderRadiusMap[borderRadius]) {
+                const newValue = borderRadiusMap[borderRadius];
+                console.log(`Border radius fixer: replacing "${borderRadius}" with "${newValue}"`);
+                document.documentElement.style.setProperty('--chat-border-radius', newValue);
+            }
+            
+            // Check and fix box shadow
+            if (boxShadow && boxShadowMap[boxShadow]) {
+                const newValue = boxShadowMap[boxShadow];
+                console.log(`Box shadow fixer: replacing "${boxShadow}" with "${newValue}"`);
+                document.documentElement.style.setProperty('--chat-box-shadow', newValue);
             }
         }
         
