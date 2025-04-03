@@ -266,8 +266,6 @@
                 document.documentElement.style.setProperty('--chat-box-shadow', theme.boxShadowValue);
             }
         }
-        }
-
         // Update the theme preview to reflect all applied settings
         if (typeof window.updatePreviewFromCurrentSettings === 'function') {
             window.updatePreviewFromCurrentSettings();
