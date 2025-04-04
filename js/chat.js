@@ -1293,13 +1293,40 @@
                 }
                 
                 // Apply CSS variables directly
-                document.documentElement.style.setProperty('--chat-bg-color', theme.bgColor);
+                let themeHexColor = theme.bgColor;
+                let themeOpacity = bgOpacityInput ? parseInt(bgOpacityInput.value, 10) / 100 : 0.85; // Default to current slider value
+                
+                // Check if theme.bgColor is RGBA
+                const rgbaMatch = theme.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
+                if (rgbaMatch) {
+                    const [, r, g, b, a] = rgbaMatch;
+                    // Convert the RGB part to hex
+                    themeHexColor = '#' + parseInt(r).toString(16).padStart(2, '0') +
+                                     parseInt(g).toString(16).padStart(2, '0') +
+                                     parseInt(b).toString(16).padStart(2, '0');
+                    // Use the alpha value from the RGBA string
+                    themeOpacity = parseFloat(a);
+                    
+                    // Update the opacity slider and its display value to match the theme's alpha
+                    if (bgOpacityInput) {
+                        const themeOpacityPercent = Math.round(themeOpacity * 100);
+                        bgOpacityInput.value = themeOpacityPercent;
+                        if (bgOpacityValue) {
+                            bgOpacityValue.textContent = `${themeOpacityPercent}%`;
+                        }
+                    }
+                }
+                
+                // Now set the CSS variables using the determined hex color and opacity
+                document.documentElement.style.setProperty('--chat-bg-color', themeHexColor);
+                document.documentElement.style.setProperty('--chat-bg-opacity', themeOpacity);
                 document.documentElement.style.setProperty('--chat-border-color', theme.borderColor);
                 document.documentElement.style.setProperty('--chat-text-color', theme.textColor);
                 document.documentElement.style.setProperty('--username-color', theme.usernameColor);
                 
                 // Also set popup mode variables for consistent theming
-                document.documentElement.style.setProperty('--popup-bg-color', theme.bgColor);
+                document.documentElement.style.setProperty('--popup-bg-color', themeHexColor);
+                document.documentElement.style.setProperty('--popup-bg-opacity', themeOpacity);
                 document.documentElement.style.setProperty('--popup-border-color', theme.borderColor);
                 document.documentElement.style.setProperty('--popup-text-color', theme.textColor);
                 document.documentElement.style.setProperty('--popup-username-color', theme.usernameColor);
@@ -1369,26 +1396,8 @@
                 
                 // Update any hidden color inputs to match the theme
                 if (bgColorInput) {
-                    // Extract RGB from rgba color
-                    const rgbaMatch = theme.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
-                    if (rgbaMatch) {
-                        const [, r, g, b, a] = rgbaMatch;
-                        const hexColor = '#' + parseInt(r).toString(16).padStart(2, '0') + 
-                                        parseInt(g).toString(16).padStart(2, '0') + 
-                                        parseInt(b).toString(16).padStart(2, '0');
-                        bgColorInput.value = hexColor;
-                        
-                        // // Update opacity slider if it exists
-                        // if (bgOpacityInput) {
-                        //     bgOpacityInput.value = parseFloat(a) * 100;
-                            
-                        //     // Update display value if it exists
-                        //     const bgOpacityValue = document.getElementById('bg-opacity-value');
-                        //     if (bgOpacityValue) {
-                        //         bgOpacityValue.textContent = `${parseInt(parseFloat(a) * 100)}%`;
-                        //     }
-                        // }
-                    }
+                    // Set the input to the hex color we determined (whether from hex or RGBA)
+                    bgColorInput.value = themeHexColor;
                 }
                 
                 // Special handling for transparent border
@@ -2281,13 +2290,6 @@
                 updateFontDisplay();
             }
 
-            // Update theme display
-            const themeIndex = window.availableThemes.findIndex(theme => theme.value === config.theme);
-            if (themeIndex !== -1) {
-                currentThemeIndex = themeIndex;
-                updateThemeDisplay(); // This applies the theme AND updates the preview
-            }
-
             // Highlight active color buttons
             highlightActiveColorButtons();
 
@@ -2298,6 +2300,13 @@
             // Update color preview (might be redundant after updateThemeDisplay, but safe)
             updateColorPreviews();
             updatePreviewFromCurrentSettings();
+            
+            // DO NOT re-apply the theme here, just update the display text
+            // updateThemeDisplay(); // This applies the theme AND updates the preview <-- REMOVED
+            const themeIndex = window.availableThemes.findIndex(theme => theme.value === config.theme);
+            if (themeIndex !== -1 && currentThemeDisplay) {
+                 currentThemeDisplay.textContent = window.availableThemes[themeIndex].name;
+            }
         }
 
         // ... (rest of event listeners: disconnect, reset, save, enter key) ...
