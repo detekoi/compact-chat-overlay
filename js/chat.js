@@ -72,11 +72,12 @@
         const fontSizeValue = document.getElementById('font-size-value');
         const bgColorInput = document.getElementById('bg-color');
         const bgOpacityInput = document.getElementById('bg-opacity');
-        // bg-opacity-value doesn't exist in the HTML, so let's create it
-        let bgOpacityValue = document.createElement('span');
-        bgOpacityValue.id = 'bg-opacity-value';
-        bgOpacityValue.textContent = `${bgOpacityInput.value}%`;
-        bgOpacityInput.parentNode.appendChild(bgOpacityValue);
+        // bg-opacity-value doesn't exist in the HTML, so let's create it - ** Correction: It DOES exist! **
+        // let bgOpacityValue = document.createElement('span'); 
+        // bgOpacityValue.id = 'bg-opacity-value';
+        // bgOpacityValue.textContent = `${bgOpacityInput.value}%`;
+        // bgOpacityInput.parentNode.appendChild(bgOpacityValue);
+        const bgOpacityValue = document.getElementById('bg-opacity-value'); // Get existing element
         const borderColorInput = document.getElementById('border-color');
         const textColorInput = document.getElementById('text-color');
         const usernameColorInput = document.getElementById('username-color');
@@ -817,12 +818,6 @@
         
         bgColorInput.addEventListener('input', updateBgColor);
         
-        bgOpacityInput.addEventListener('input', () => {
-            bgOpacityValue.textContent = `${bgOpacityInput.value}%`;
-            updateBgColor();
-            updatePreviewFromCurrentSettings();
-        });
-        
         // Background image opacity handling
         const bgImageOpacityInput = document.getElementById('bg-image-opacity');
         const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
@@ -1383,16 +1378,16 @@
                                         parseInt(b).toString(16).padStart(2, '0');
                         bgColorInput.value = hexColor;
                         
-                        // Update opacity slider if it exists
-                        if (bgOpacityInput) {
-                            bgOpacityInput.value = parseFloat(a) * 100;
+                        // // Update opacity slider if it exists
+                        // if (bgOpacityInput) {
+                        //     bgOpacityInput.value = parseFloat(a) * 100;
                             
-                            // Update display value if it exists
-                            const bgOpacityValue = document.getElementById('bg-opacity-value');
-                            if (bgOpacityValue) {
-                                bgOpacityValue.textContent = `${parseInt(parseFloat(a) * 100)}%`;
-                            }
-                        }
+                        //     // Update display value if it exists
+                        //     const bgOpacityValue = document.getElementById('bg-opacity-value');
+                        //     if (bgOpacityValue) {
+                        //         bgOpacityValue.textContent = `${parseInt(parseFloat(a) * 100)}%`;
+                        //     }
+                        // }
                     }
                 }
                 
@@ -1950,6 +1945,7 @@
                     try {
                         const parsedConfig = JSON.parse(savedConfig);
                         console.log('Loaded config:', parsedConfig);
+                        console.log('[loadSavedConfig] Parsed config from localStorage:', JSON.stringify(parsedConfig)); // LOG 0 - Added
                         
                         // Find the full theme object for the saved theme value
                         // window.availableThemes includes defaults + saved generated themes
@@ -2075,9 +2071,11 @@
                         }
                         
                         // Update form fields and visual settings
+                        console.log(`[loadSavedConfig] Config before updating panel:`, JSON.stringify(config)); // LOG 1
                         updateConfigPanelFromConfig(); // This will use the loaded config object
 
-                        // Update opacity sliders and their display values
+                        // Update opacity sliders and their display values - ** This is now done IN updateConfigPanelFromConfig **
+                        /*
                         if (bgOpacityInput) {
                             bgOpacityInput.value = Math.round(config.bgColorOpacity * 100);
                         }
@@ -2090,6 +2088,7 @@
                         if (bgImageOpacityValue) {
                             bgImageOpacityValue.textContent = `${Math.round(config.bgImageOpacity * 100)}%`;
                         }
+                        */
                         
                         // Make sure the radio button for this mode is selected
                         const modeInput = document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`);
@@ -2221,17 +2220,22 @@
 
             // Set opacity sliders and values
              if (bgOpacityInput) {
-                bgOpacityInput.value = Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100);
-            }
-             if (bgOpacityValue) {
-                bgOpacityValue.textContent = `${Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100)}%`;
-            }
-             if (bgImageOpacityInput) {
-                bgImageOpacityInput.value = Math.round((config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55) * 100);
-            }
-             if (bgImageOpacityValue) {
-                bgImageOpacityValue.textContent = `${Math.round((config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55) * 100)}%`;
-            }
+                // Set BOTH slider position and text display
+                const bgColorOpacityPercent = Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100);
+                console.log(`[updateConfigPanel] Setting bgOpacityInput.value to: ${bgColorOpacityPercent}, based on config.bgColorOpacity: ${config.bgColorOpacity}`); // LOG 2
+                bgOpacityInput.value = bgColorOpacityPercent;
+                if (bgOpacityValue) { 
+                    bgOpacityValue.textContent = `${bgColorOpacityPercent}%`;
+                }
+             }
+              if (bgImageOpacityInput) {
+                // Set BOTH slider position and text display
+                const bgImageOpacityPercent = Math.round((config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55) * 100);
+                bgImageOpacityInput.value = bgImageOpacityPercent;
+                if (bgImageOpacityValue) {
+                    bgImageOpacityValue.textContent = `${bgImageOpacityPercent}%`;
+                }
+             }
 
             // Set chat mode radio buttons
             const modeInput = document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`);
@@ -2332,4 +2336,4 @@
         // if (themePromptInput) { ... } // Removed original listener
 
     } // End of initApp
-})();
+})(); // Ensure closing IIFE is correct
