@@ -72,7 +72,7 @@
 /* Font Face Declarations */
 @font-face {
     font-family: 'Press Start 2P';
-    src: url('assets/fonts/PressStart2P-Regular.txt.ttf') format('truetype');
+    src: url('../assets/fonts/PressStart2P-Regular.txt.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -80,7 +80,7 @@
 
 @font-face {
     font-family: 'Atkinson Hyperlegible';
-    src: url('assets/fonts/AtkinsonHyperlegible-Regular.ttf') format('truetype');
+    src: url('../assets/fonts/AtkinsonHyperlegible-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -88,7 +88,7 @@
 
 @font-face {
     font-family: 'Atkinson Hyperlegible';
-    src: url('assets/fonts/AtkinsonHyperlegible-Bold.ttf') format('truetype');
+    src: url('../assets/fonts/AtkinsonHyperlegible-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -96,7 +96,7 @@
 
 @font-face {
     font-family: 'Atkinson Hyperlegible';
-    src: url('assets/fonts/AtkinsonHyperlegible-Italic.ttf') format('truetype');
+    src: url('../assets/fonts/AtkinsonHyperlegible-Italic.ttf') format('truetype');
     font-weight: normal;
     font-style: italic;
     font-display: swap;
@@ -104,7 +104,7 @@
 
 @font-face {
     font-family: 'Atkinson Hyperlegible';
-    src: url('assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf') format('truetype');
+    src: url('../assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf') format('truetype');
     font-weight: bold;
     font-style: italic;
     font-display: swap;
@@ -112,7 +112,7 @@
 
 @font-face {
     font-family: 'Jacquard';
-    src: url('assets/fonts/Jacquard12-Regular.ttf') format('truetype');
+    src: url('../assets/fonts/Jacquard12-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -120,7 +120,7 @@
 
 @font-face {
     font-family: 'EB Garamond';
-    src: url('assets/fonts/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
+    src: url('../assets/fonts/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
     font-weight: 400 800;
     font-style: normal;
     font-display: swap;
@@ -128,7 +128,7 @@
 
 @font-face {
     font-family: 'EB Garamond';
-    src: url('assets/fonts/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
+    src: url('../assets/fonts/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
     font-weight: 400 800;
     font-style: italic;
     font-display: swap;
@@ -136,7 +136,7 @@
 
 @font-face {
     font-family: 'MedievalSharp';
-    src: url('assets/fonts/MedievalSharp-Regular.ttf') format('truetype');
+    src: url('../assets/fonts/MedievalSharp-Regular.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -144,7 +144,7 @@
 
 @font-face {
     font-family: 'Tektur';
-    src: url('assets/fonts/Tektur-VariableFont_wdth,wght.ttf') format('truetype');
+    src: url('../assets/fonts/Tektur-VariableFont_wdth,wght.ttf') format('truetype');
     font-weight: 100 900;
     font-stretch: 75% 100%;
     font-style: normal;
