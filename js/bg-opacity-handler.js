@@ -95,44 +95,5 @@
         }
     }, 500);
     
-    // Add config saving hooks
-    document.addEventListener('beforeSaveConfig', function(e) {
-        if (e.detail && e.detail.config) {
-            // Store the opacity values separately in the config
-            e.detail.config.bgColorOpacity = bgOpacityInput ? parseInt(bgOpacityInput.value) / 100 : 0.85;
-            e.detail.config.bgImageOpacity = bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) / 100 : 0.55;
-            
-            console.log('Added opacity values to config before save', e.detail.config);
-        }
-    });
-    
-    // Apply saved opacity values when config is loaded
-    document.addEventListener('configLoaded', function(e) {
-        if (e.detail && e.detail.config) {
-            const config = e.detail.config;
-            
-            // Apply saved opacity values if available
-            if (config.bgColorOpacity !== undefined && bgOpacityInput) {
-                bgOpacityInput.value = Math.round(config.bgColorOpacity * 100);
-                if (bgOpacityInput) {
-                    const value = parseInt(bgOpacityInput.value, 10) / 100;
-                    document.documentElement.style.setProperty('--chat-bg-opacity', value);
-                    document.documentElement.style.setProperty('--popup-bg-opacity', value);
-                }
-            }
-            
-            if (config.bgImageOpacity !== undefined && bgImageOpacityInput) {
-                bgImageOpacityInput.value = Math.round(config.bgImageOpacity * 100);
-                if (bgImageOpacityInput) {
-                    const value = parseInt(bgImageOpacityInput.value, 10) / 100;
-                    document.documentElement.style.setProperty('--chat-bg-image-opacity', value);
-                    document.documentElement.style.setProperty('--popup-bg-image-opacity', value);
-                }
-            }
-            
-            console.log('Applied saved opacity values from config', config);
-        }
-    });
-    
     console.log('Background opacity handler initialized');
 })();

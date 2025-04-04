@@ -1815,10 +1815,17 @@
                 const currentThemeValue = activeThemeObject?.value || 'default';
                 const currentBgImage = activeThemeObject?.backgroundImage || null; // Get the image from the active object
 
+                // Get opacity values directly
+                const bgColorOpacityValue = bgOpacityInput ? parseInt(bgOpacityInput.value, 10) / 100 : 0.85;
+                const bgImageOpacityValue = bgImageOpacityInput ? parseInt(bgImageOpacityInput.value, 10) / 100 : 0.55;
+
                 // Create updated config object with all settings (NO background image)
                 const newConfig = {
                     chatMode: chatModeRadio.value,
-                    bgColor: getValue(bgColorInput, '#121212'), // Save hex color directly
+                    // bgColor: getRgbaColor(), // Removed - bg color is stored without opacity now
+                    bgColor: getValue(bgColorInput, '#121212'), // Store hex color
+                    bgColorOpacity: bgColorOpacityValue, // Store opacity separately
+                    bgImageOpacity: bgImageOpacityValue, // Store image opacity separately
                     borderColor: getValue(borderColorInput, '#9147ff'), 
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
@@ -1846,7 +1853,7 @@
                 // Get scene ID and save to localStorage (without image)
                 const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
                 localStorage.setItem(`twitch-chat-overlay-config-${sceneId}`, JSON.stringify(config));
-                console.log('Saved config to localStorage (without background image):', config);
+                console.log('Saved config to localStorage:', config);
                 
                 // --- Re-apply styles using the config AND the active theme's image ---
                 
@@ -1865,8 +1872,16 @@
                 }
                 
                 // Apply CSS variables from the saved config
-                // Apply hex color directly - opacity will be handled by bg-opacity-handler.js
-                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor); 
+                // Apply color and opacity separately
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
+                document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
+                
+                // Apply image opacity
+                document.documentElement.style.setProperty('--chat-bg-image-opacity', config.bgImageOpacity);
+                document.documentElement.style.setProperty('--popup-bg-image-opacity', config.bgImageOpacity);
+
                 document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                 document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                 document.documentElement.style.setProperty('--username-color', config.usernameColor);
@@ -1948,7 +1963,10 @@
                             chatMode: parsedConfig.chatMode || 'window',
                             
                             // Window mode settings
-                            bgColor: parsedConfig.bgColor || '#1e1e1e', // Expecting hex now
+                            // bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.8)', // Removed - handle separately
+                            bgColor: parsedConfig.bgColor || '#121212', // Load hex color
+                            bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, // Load opacity
+                            bgImageOpacity: parsedConfig.bgImageOpacity !== undefined ? parsedConfig.bgImageOpacity : 0.55, // Load image opacity
                             borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
                             textColor: parsedConfig.textColor || '#efeff1',
                             usernameColor: parsedConfig.usernameColor || '#9147ff',
@@ -1986,17 +2004,23 @@
                             document.documentElement.classList.remove('override-username-colors');
                         }
                         
-                        // Set color CSS variables directly - ONLY color, not opacity
+                        // Set color CSS variables directly
+                        // Apply color and opacity separately
                         document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                        document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
+                        document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                        document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
+
+                        // Apply image opacity
+                        document.documentElement.style.setProperty('--chat-bg-image-opacity', config.bgImageOpacity);
+                        document.documentElement.style.setProperty('--popup-bg-image-opacity', config.bgImageOpacity);
+
                         document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                         document.documentElement.style.setProperty('--username-color', config.usernameColor);
-                        document.documentElement.style.setProperty('--popup-bg-color', config.bgColor); // Apply hex color to popup too
                         document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                         document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
-                        
-                        // The opacity will be applied by bg-opacity-handler.js via the 'configLoaded' event
                         
                         // Apply background image retrieved from the full theme object
                         if (themeBgImage) {
@@ -2052,6 +2076,20 @@
                         
                         // Update form fields and visual settings
                         updateConfigPanelFromConfig(); // This will use the loaded config object
+
+                        // Update opacity sliders and their display values
+                        if (bgOpacityInput) {
+                            bgOpacityInput.value = Math.round(config.bgColorOpacity * 100);
+                        }
+                        if (bgOpacityValue) {
+                            bgOpacityValue.textContent = `${Math.round(config.bgColorOpacity * 100)}%`;
+                        }
+                        if (bgImageOpacityInput) {
+                            bgImageOpacityInput.value = Math.round(config.bgImageOpacity * 100);
+                        }
+                        if (bgImageOpacityValue) {
+                            bgImageOpacityValue.textContent = `${Math.round(config.bgImageOpacity * 100)}%`;
+                        }
                         
                         // Make sure the radio button for this mode is selected
                         const modeInput = document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`);
@@ -2086,6 +2124,9 @@
                             }, 1000);
                         }
                         
+                        // DISPATCH configLoaded EVENT - REMOVE THIS LINE LATER
+                        // document.dispatchEvent(new CustomEvent('configLoaded', { detail: { config: config } }));
+
                     } catch (e) {
                         console.error('Error parsing saved config:', e);
                         // In case of error, fall back to default settings
@@ -2162,7 +2203,97 @@
          }
         
         function updateConfigPanelFromConfig() {
-            // ... (implementation uses helpers) ...
+            // Set basic input values
+            bgColorInput.value = config.bgColor || '#121212';
+            borderColorInput.value = config.borderColor || '#9147ff';
+            textColorInput.value = config.textColor || '#efeff1';
+            usernameColorInput.value = config.usernameColor || '#9147ff';
+            fontSizeSlider.value = config.fontSize || 14;
+            fontSizeValue.textContent = `${config.fontSize || 14}px`;
+            chatWidthInput.value = config.chatWidth || 100;
+            chatWidthValue.textContent = `${config.chatWidth || 100}%`;
+            chatHeightInput.value = config.chatHeight || 600;
+            chatHeightValue.textContent = `${config.chatHeight || 600}px`;
+            maxMessagesInput.value = config.maxMessages || 50;
+            showTimestampsInput.checked = config.showTimestamps !== undefined ? config.showTimestamps : true;
+            overrideUsernameColorsInput.checked = config.overrideUsernameColors || false;
+            channelInput.value = config.lastChannel || '';
+
+            // Set opacity sliders and values
+             if (bgOpacityInput) {
+                bgOpacityInput.value = Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100);
+            }
+             if (bgOpacityValue) {
+                bgOpacityValue.textContent = `${Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100)}%`;
+            }
+             if (bgImageOpacityInput) {
+                bgImageOpacityInput.value = Math.round((config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55) * 100);
+            }
+             if (bgImageOpacityValue) {
+                bgImageOpacityValue.textContent = `${Math.round((config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55) * 100)}%`;
+            }
+
+            // Set chat mode radio buttons
+            const modeInput = document.querySelector(`input[name="chat-mode"][value="${config.chatMode}"]`);
+            if (modeInput) {
+                modeInput.checked = true;
+            }
+
+            // Set popup settings
+            if (config.chatMode === 'popup' && config.popup) {
+                const directionInput = document.querySelector(`input[name="popup-direction"][value="${config.popup.direction}"]`);
+                if (directionInput) {
+                    directionInput.checked = true;
+                }
+                const durationInput = document.getElementById('popup-duration');
+                if (durationInput) {
+                    durationInput.value = config.popup.duration;
+                }
+                const durationValue = document.getElementById('popup-duration-value');
+                if (durationValue) {
+                    durationValue.textContent = `${config.popup.duration}s`;
+                }
+                const maxMessagesInputPopup = document.getElementById('popup-max-messages');
+                if (maxMessagesInputPopup) {
+                    maxMessagesInputPopup.value = config.popup.maxMessages;
+                }
+            }
+
+            // Show/hide popup settings
+            const popupSettings = document.querySelectorAll('.popup-setting');
+            const windowOnlySettings = document.querySelectorAll('.window-only-setting');
+            if (config.chatMode === 'popup') {
+                popupSettings.forEach(el => el.style.display = 'flex');
+                windowOnlySettings.forEach(el => el.style.display = 'none');
+            } else {
+                popupSettings.forEach(el => el.style.display = 'none');
+                windowOnlySettings.forEach(el => el.style.display = 'flex');
+            }
+
+            // Update font display
+            const fontIndex = availableFonts.findIndex(font => font.value === config.fontFamily);
+            if (fontIndex !== -1) {
+                currentFontIndex = fontIndex;
+                updateFontDisplay();
+            }
+
+            // Update theme display
+            const themeIndex = window.availableThemes.findIndex(theme => theme.value === config.theme);
+            if (themeIndex !== -1) {
+                currentThemeIndex = themeIndex;
+                updateThemeDisplay(); // This applies the theme AND updates the preview
+            }
+
+            // Highlight active color buttons
+            highlightActiveColorButtons();
+
+             // Highlight active border radius/box shadow buttons
+             highlightBorderRadiusButton(window.getBorderRadiusValue(config.borderRadius)); // Use CSS value
+             highlightBoxShadowButton(config.boxShadow); // Use preset name
+
+            // Update color preview (might be redundant after updateThemeDisplay, but safe)
+            updateColorPreviews();
+            updatePreviewFromCurrentSettings();
         }
 
         // ... (rest of event listeners: disconnect, reset, save, enter key) ...
