@@ -1810,23 +1810,6 @@
                     return borderColorInput.value || '#9147ff';
                 };
                 
-                // Build color value with opacity
-                const getRgbaColor = () => {
-                    try {
-                        const hexColor = bgColorInput.value || '#121212';
-                        const opacity = parseInt(bgOpacityInput.value || 80) / 100;
-                        
-                        const r = parseInt(hexColor.slice(1, 3), 16);
-                        const g = parseInt(hexColor.slice(3, 5), 16);
-                        const b = parseInt(hexColor.slice(5, 7), 16);
-                        
-                        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                    } catch (e) {
-                        console.error('Error parsing color:', e);
-                        return 'rgba(18, 18, 18, 0.8)'; // Default fallback
-                    }
-                };
-                
                 // Get the current theme object DIRECTLY using the index
                 const activeThemeObject = window.availableThemes[currentThemeIndex];
                 const currentThemeValue = activeThemeObject?.value || 'default';
@@ -1835,7 +1818,7 @@
                 // Create updated config object with all settings (NO background image)
                 const newConfig = {
                     chatMode: chatModeRadio.value,
-                    bgColor: getRgbaColor(),
+                    bgColor: getValue(bgColorInput, '#121212'), // Save hex color directly
                     borderColor: getValue(borderColorInput, '#9147ff'), 
                     textColor: getValue(textColorInput, '#efeff1'),
                     usernameColor: getValue(usernameColorInput, '#9147ff'),
@@ -1882,7 +1865,8 @@
                 }
                 
                 // Apply CSS variables from the saved config
-                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                // Apply hex color directly - opacity will be handled by bg-opacity-handler.js
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor); 
                 document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                 document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                 document.documentElement.style.setProperty('--username-color', config.usernameColor);
@@ -1964,7 +1948,7 @@
                             chatMode: parsedConfig.chatMode || 'window',
                             
                             // Window mode settings
-                            bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.8)',
+                            bgColor: parsedConfig.bgColor || '#1e1e1e', // Expecting hex now
                             borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
                             textColor: parsedConfig.textColor || '#efeff1',
                             usernameColor: parsedConfig.usernameColor || '#9147ff',
@@ -2002,15 +1986,17 @@
                             document.documentElement.classList.remove('override-username-colors');
                         }
                         
-                        // Set color CSS variables directly
+                        // Set color CSS variables directly - ONLY color, not opacity
                         document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
                         document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--chat-text-color', config.textColor);
                         document.documentElement.style.setProperty('--username-color', config.usernameColor);
-                        document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                        document.documentElement.style.setProperty('--popup-bg-color', config.bgColor); // Apply hex color to popup too
                         document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
                         document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                         document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                        
+                        // The opacity will be applied by bg-opacity-handler.js via the 'configLoaded' event
                         
                         // Apply background image retrieved from the full theme object
                         if (themeBgImage) {
