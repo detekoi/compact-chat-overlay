@@ -1,7 +1,7 @@
 /**
  * Theme Carousel implementation for Twitch Chat Overlay
  * 
- * This module implements a carousel to store, manage, and apply AI-generated themes.
+ * This module implements a carousel to store, manage, and apply themes, including AI-generated ones.
  * It works with the theme generation system to integrate generated themes into the main theme carousel.
  */
 
@@ -29,14 +29,24 @@
      * Initialize the carousel
      */
     function init() {
-        // Load saved themes from localStorage
+        // Define the default themes here, creating window.availableThemes
+         window.availableThemes = [
+             { name: 'Default', value: 'default', bgColor: 'rgba(18, 18, 18, 0.8)', borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+             { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none' },
+             { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+             { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d' },
+             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp' },
+             { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(255, 222, 236, 0.85)', borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d' }
+        ];
+        console.log('Default themes initialized in theme-carousel.js');
+
+        // Load saved themes from localStorage (will prepend to window.availableThemes)
         loadSavedThemes();
         
         // Add CSS handler for border-radius preset names
         addPresetCSSHandler();
         
-        // Patch the theme generator to integrate with main theme carousel
-        patchThemeGenerator();
+        // AI Theme generator logic is now in theme-generator.js
         
         // Make carousel API available globally
         window.themeCarousel = carouselAPI;
@@ -45,6 +55,10 @@
         window.addThemeToCarousel = addThemeToCarousel;
         
         console.log('Theme carousel initialized');
+
+        // Dispatch event to signal readiness
+        document.dispatchEvent(new CustomEvent('theme-carousel-ready'));
+        console.log('Dispatched theme-carousel-ready event');
     }
     
     /**
@@ -273,40 +287,57 @@
     }
 
     /**
-     * Save the generated themes to localStorage
+     * Save the generated themes to localStorage (with compressed image)
      */
     function saveThemesToLocalStorage() {
         try {
-            // Limit to 10 themes to avoid storage issues
-            const themesToSave = generatedThemes.slice(0, 10);
+            // Limit to 1 most recent theme (now potentially with a compressed image)
+            const themesToSave = generatedThemes.slice(0, 1); 
+            
+            // No need to strip backgroundImage anymore, it should be the compressed version
             localStorage.setItem('generatedThemes', JSON.stringify(themesToSave));
-            console.log(`Saved ${themesToSave.length} themes to localStorage`);
+            console.log(`Saved ${themesToSave.length} most recent generated theme(s) (with compressed image) to localStorage`);
         } catch (error) {
             console.error('Error saving themes to localStorage:', error);
+             // If saving fails due to quota, log the error and notify the user.
+             if (error.name === 'QuotaExceededError') {
+                 console.error('Quota exceeded trying to save generated themes, even with compression.');
+                 // Notify the user
+                 if (typeof addSystemMessage === 'function') {
+                      addSystemMessage('❌ Error: Local storage quota exceeded. Cannot save new theme image.');
+                 }
+             }
         }
     }
     
     /**
-     * Load saved themes from localStorage
+     * Load saved themes (potentially with compressed image) from localStorage
      */
     function loadSavedThemes() {
         try {
             const savedThemes = localStorage.getItem('generatedThemes');
             if (savedThemes) {
-                generatedThemes = JSON.parse(savedThemes);
+                // Parse the saved theme data (which might include backgroundImage)
+                const loadedThemes = JSON.parse(savedThemes);
+                
+                // Directly use the loaded themes
+                generatedThemes = loadedThemes.map(theme => ({
+                    ...theme,
+                    isGenerated: true // Ensure flag is set
+                }));
+
                 console.log(`Loaded ${generatedThemes.length} saved generated themes from localStorage`);
                 
-                // Add any saved themes to availableThemes if they don't already exist
+                // Add saved themes to availableThemes if they don't already exist
                 if (window.availableThemes && Array.isArray(window.availableThemes)) {
                     let themesAdded = 0;
                     
                     generatedThemes.forEach(theme => {
-                        // Check if theme with same name/value exists in availableThemes
                         const existingThemeIndex = window.availableThemes.findIndex(t => 
                             t.value === theme.value || t.name === theme.name);
                             
                         if (existingThemeIndex === -1) {
-                            window.availableThemes.unshift(theme);
+                            window.availableThemes.unshift(theme); 
                             themesAdded++;
                         }
                     });
@@ -314,7 +345,6 @@
                     if (themesAdded > 0) {
                         console.log(`Added ${themesAdded} saved generated themes to main theme carousel`);
                         
-                        // Update the theme display if currentThemeIndex is 0 (to show the first generated theme)
                         if (window.currentThemeIndex === 0 && typeof window.updateThemeDisplay === 'function') {
                             window.updateThemeDisplay();
                         }
@@ -323,103 +353,7 @@
             }
         } catch (error) {
             console.error('Error loading themes from localStorage:', error);
-            // Reset to empty to avoid issues
             generatedThemes = [];
-        }
-    }
-    
-    /**
-     * Patch the theme generator to work with our carousel
-     */
-    function patchThemeGenerator() {
-        // Listen for theme generation events from retry-theme-generator.js
-        document.addEventListener('theme-generated', function(event) {
-            if (event.detail && event.detail.theme) {
-                addThemeToCarousel(event.detail.theme);
-            }
-        });
-        
-        // Also hook into the generateThemeBtn's theme-data-received event
-        const generateThemeBtn = document.getElementById('generate-theme-btn');
-        if (generateThemeBtn) {
-            generateThemeBtn.addEventListener('theme-data-received', function(event) {
-                console.log('Received theme-data-received event');
-                if (event.detail && event.detail.themeData) {
-                    const themeData = event.detail.themeData;
-                    const backgroundImage = event.detail.backgroundImage;
-                    const backgroundImageDataUrl = backgroundImage ? 
-                        `data:${backgroundImage.mimeType};base64,${backgroundImage.data}` : null;
-                    
-                    console.log(`Processing theme '${themeData.theme_name}' with${backgroundImage ? '' : 'out'} background image`);
-                    
-                    // Create unique theme ID
-                    const propsHash = `${themeData.background_color}-${themeData.border_color}-${themeData.text_color}-${themeData.username_color}`.replace(/[^a-z0-9]/gi, '').substring(0, 8);
-                    const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
-                    
-                    // Get border radius and box shadow values
-                    // Map preset names to actual CSS values - this is crucial for things to work correctly
-                    const borderRadiusValues = {
-                        "None": "0px",
-                        "none": "0px",
-                        "Subtle": "8px",
-                        "subtle": "8px",
-                        "Rounded": "16px",
-                        "rounded": "16px",
-                        "Pill": "24px",
-                        "pill": "24px"
-                    };
-                    
-                    const boxShadowValues = {
-                        "None": "none",
-                        "none": "none",
-                        "Soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-                        "soft": "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
-                        "Simple 3D": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-                        "simple 3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-                        "simple3d": "rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px",
-                        "Intense 3D": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                        "intense 3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                        "intense3d": "rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px",
-                        "Sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)",
-                        "sharp": "8px 8px 0px 0px rgba(0, 0, 0, 0.9)"
-                    };
-                    
-                    // Get actual CSS values from preset names, or use default CSS values
-                    const borderRadiusValue = borderRadiusValues[themeData.border_radius] || "8px";
-                    const boxShadowValue = boxShadowValues[themeData.box_shadow] || "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px";
-                    
-                    // Check for existing themes with same name to add variant number
-                    const existingThemesWithSameName = generatedThemes.filter(t => 
-                        t.originalThemeName === themeData.theme_name);
-                    
-                    const variantNum = existingThemesWithSameName.length;
-                    const nameSuffix = variantNum > 0 ? ` (Variant ${variantNum + 1})` : '';
-                    
-                    // Create the theme object
-                    const theme = {
-                        name: themeData.theme_name + nameSuffix,
-                        value: newThemeValue,
-                        bgColor: themeData.background_color,
-                        borderColor: themeData.border_color,
-                        textColor: themeData.text_color,
-                        usernameColor: themeData.username_color,
-                        borderRadius: themeData.border_radius || 'Subtle',
-                        borderRadiusValue: borderRadiusValue,
-                        boxShadow: themeData.box_shadow || 'Soft',
-                        boxShadowValue: boxShadowValue,
-                        // Store both the name and the CSS values for clarity
-                        description: themeData.description,
-                        backgroundImage: backgroundImageDataUrl,
-                        fontFamily: themeData.font_family,
-                        isGenerated: true,
-                        originalThemeName: themeData.theme_name,
-                        variant: variantNum + 1
-                    };
-                    
-                    // Add the theme using our integration function
-                    addThemeToCarousel(theme);
-                }
-            });
         }
     }
     
