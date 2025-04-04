@@ -821,8 +821,6 @@ button:hover {
     margin-top: 10px;
     width: 100%;
     overflow: hidden;
-    border-radius: var(--chat-border-radius);
-    border: 1px solid var(--config-border-color);
 }
 
 /* Theme Carousel Styles */
