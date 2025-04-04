@@ -291,14 +291,17 @@ button:hover {
 
 /* Background image layer for chat container */
 #chat-container::after {
-    content: '';
+    content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    /* Combine color and opacity directly */
-    background-color: color-mix(in srgb, var(--chat-bg-color) calc(var(--chat-bg-opacity) * 100%), transparent);
-    z-index: -1; /* Behind content, above image */
-    border-radius: inherit; /* Inherit border radius */
-    pointer-events: none; /* Ensure clicks go through */
+    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+    background-image: var(--chat-bg-image, none);
+    background-repeat: repeat; /* Or adjust as needed */
+    background-size: auto; /* Or adjust as needed */
+    opacity: var(--chat-bg-image-opacity, 0.55);
+    /* background-color: color-mix(...) <-- REMOVED */
+    z-index: -1; /* Above the background color, below content */
+    border-radius: inherit; /* Match container radius */
+    pointer-events: none;
 }
 
 #chat-container::-webkit-scrollbar {
@@ -481,13 +484,16 @@ button:hover {
 
 /* Background image layer for popup messages */
 .popup-message::after {
-    content: '';
+    content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    /* Combine color and opacity directly */
-    background-color: color-mix(in srgb, var(--popup-bg-color) calc(var(--popup-bg-opacity) * 100%), transparent);
-    z-index: -1;
-    border-radius: inherit;
+    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+    background-image: var(--popup-bg-image, none);
+    background-repeat: repeat; /* Or adjust as needed */
+    background-size: auto; /* Or adjust as needed */
+    opacity: var(--popup-bg-image-opacity, 0.55);
+    /* background-color: color-mix(...) <-- REMOVED */
+    z-index: -1; /* Above the background color, below content */
+    border-radius: inherit; /* Match container radius */
     pointer-events: none;
 }
 
