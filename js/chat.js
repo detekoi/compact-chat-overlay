@@ -2013,7 +2013,7 @@
                 textColor: '#efeff1',
                 usernameColor: '#9147ff',
                 fontSize: 14,
-                fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+                fontFamily: "'Atkinson Hyperlegible', sans-serif", // <<< CHANGE DEFAULT
                 chatWidth: 100,
                 chatHeight: 600,
                 maxMessages: 50,
@@ -2156,15 +2156,31 @@
             overrideUsernameColorsInput.checked = config.overrideUsernameColors;
             
             // Find the current font index based on config.fontFamily
-            const fontIndex = window.availableFonts.findIndex(f => f.value === config.fontFamily);
+            // console.log(`[updateConfigPanel] Checking font: config.fontFamily = "${config.fontFamily}" (Type: ${typeof config.fontFamily})`); // REMOVE LOG
+            const fontIndex = window.availableFonts.findIndex(f => {
+                // console.log(`[updateConfigPanel] Comparing with availableFont: f.value = "${f.value}" (Type: ${typeof f.value})`); // REMOVE LOG
+                // Ensure both values are strings before trimming
+                const fValue = typeof f.value === 'string' ? f.value.trim() : f.value;
+                const cfgFontFamily = typeof config.fontFamily === 'string' ? config.fontFamily.trim() : config.fontFamily;
+                return fValue === cfgFontFamily; // KEEP TRIMMED COMPARISON
+            });
+            
             if (fontIndex !== -1) {
+                // console.log(`[updateConfigPanel] Font index found: ${fontIndex}`); // REMOVE LOG
                 currentFontIndex = fontIndex;
             } else {
-                 // If font not found, default to Atkinson Hyperlegible or index 0
-                 const defaultFontIndex = window.availableFonts.findIndex(f => f.value.includes('Atkinson'));
+                 // console.warn(`[updateConfigPanel] Font index NOT found for "${config.fontFamily}". Attempting fallback.`); // REMOVE LOG
+                 const defaultFontIndex = window.availableFonts.findIndex(f => typeof f.value === 'string' && f.value.includes('Atkinson')); // Add type check
                  currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
-                 config.fontFamily = window.availableFonts[currentFontIndex].value; // Ensure config is updated
-                 console.warn(`Font from config ("${config.fontFamily}") not found, defaulting.`);
+                 // Check if availableFonts[currentFontIndex] exists before accessing value
+                 if (window.availableFonts && window.availableFonts[currentFontIndex]) {
+                    config.fontFamily = window.availableFonts[currentFontIndex].value; // Ensure config is updated
+                 } else {
+                    console.error("[updateConfigPanel] Fallback font index invalid or availableFonts is empty.");
+                    // Handle error appropriately, maybe set a very basic default
+                    config.fontFamily = "sans-serif"; 
+                 }
+                 console.warn(`Font from config ("${config.fontFamily}") not found, defaulting.`); // Keep this useful warning
             }
             updateFontDisplay();
             
