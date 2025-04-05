@@ -1873,25 +1873,27 @@
 
                 // Find the full theme object matching the current theme value
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
-                // REMOVED: We don't need these theme fallbacks if reading from buttons
-                // const themeBorderRadius = currentFullTheme.borderRadius || config.borderRadius; 
-                // const themeBoxShadow = currentFullTheme.boxShadow || config.boxShadow; 
+                // Ensure we have the correct theme object if the value is transparent
+                if (currentThemeValue === 'transparent-theme' && !currentFullTheme.value) {
+                    const transparentThemeObj = window.availableThemes?.find(t => t.value === 'transparent-theme');
+                    if (transparentThemeObj) Object.assign(currentFullTheme, transparentThemeObj);
+                }
 
                 // --- Create new config object from UI values ---
                 const newConfig = {
-                    theme: currentThemeValue, 
-                    // CORRECTED: Use the fontFamily from the selected theme object
-                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, 
-                    fontSize: getValue(fontSizeSlider, 14, true),
-                    bgColor: bgColorValue,
-                    bgColorOpacity: bgColorOpacityValue,
-                    // CORRECTED: Directly use the theme's border color value, don't rely on getColor helper for border
-                    borderColor: currentFullTheme.borderColor || config.borderColor, 
-                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
-                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
+                    theme: currentThemeValue, // Reads from lastAppliedThemeValue
+                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, // Reads from theme object
+                    fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
+                    bgColor: bgColorValue, // Reads from getColor helper
+                    // SAFEGUARD: Force opacity to 0 if transparent theme is active
+                    bgColorOpacity: currentThemeValue === 'transparent-theme' ? 0 : bgColorOpacityValue,
+                    // SAFEGUARD: Force border to transparent if transparent theme is active
+                    borderColor: currentThemeValue === 'transparent-theme' ? 'transparent' : (currentFullTheme.borderColor || config.borderColor),
+                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'), // Uses helper
+                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'), // Uses helper
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
-                     // Get bgImage from current config - themes handle this, not direct UI input
-                     bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
+                    // Get bgImage from current config - themes handle this, not direct UI input
+                    bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
                     bgImageOpacity: bgImageOpacityValue,
                     // REVERTED: Use values read from active buttons
                     borderRadius: borderRadiusValue, 
@@ -2312,6 +2314,12 @@
         function applyConfiguration(cfg) {
             console.log("Applying configuration:", JSON.parse(JSON.stringify(cfg)));
             
+            // --- Update lastAppliedThemeValue --- NEW
+            if (cfg.theme) {
+                lastAppliedThemeValue = cfg.theme;
+                console.log(`[applyConfiguration] Updated lastAppliedThemeValue to: ${lastAppliedThemeValue}`);
+            }
+
             // --- Apply Core CSS Variables ---
             document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || '#1e1e1e');
             document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
