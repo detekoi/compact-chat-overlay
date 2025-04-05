@@ -71,11 +71,6 @@
         const fontSizeValue = document.getElementById('font-size-value');
         const bgColorInput = document.getElementById('bg-color');
         const bgOpacityInput = document.getElementById('bg-opacity');
-        // bg-opacity-value doesn't exist in the HTML, so let's create it - ** Correction: It DOES exist! **
-        // let bgOpacityValue = document.createElement('span'); 
-        // bgOpacityValue.id = 'bg-opacity-value';
-        // bgOpacityValue.textContent = `${bgOpacityInput.value}%`;
-        // bgOpacityInput.parentNode.appendChild(bgOpacityValue);
         const bgOpacityValue = document.getElementById('bg-opacity-value'); // Get existing element
         const borderColorInput = document.getElementById('border-color');
         const textColorInput = document.getElementById('text-color');
@@ -102,23 +97,13 @@
         const nextThemeBtn = document.getElementById('next-theme');
         const currentThemeDisplay = document.getElementById('current-theme');
         const themePreview = document.getElementById('theme-preview');
-        
-        // AI Theme Generator elements
-        // Remove these definitions as they will be in theme-generator.js
-        // const themePromptInput = document.getElementById('theme-prompt');
-        // const generateThemeBtn = document.getElementById('generate-theme-btn');
-        // const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
-        // const generatedThemeResult = document.getElementById('generated-theme-result');
-        // const generatedThemeName = document.getElementById('generated-theme-name');
-        
+                
         // Connection and chat state
         let socket = null;
         let channel = '';
         
         // Store config state when panel opens
         let initialConfigBeforeEdit = null; // Use ONLY this for revert state
-        // CLEAN UP: Removing stale variable
-        // let originalConfig = null; // REMOVE THIS
 
         // Font selection
         let currentFontIndex = 0;
@@ -1352,6 +1337,26 @@
                 }
                 // --- END NEW --- 
 
+                // --- NEW: Apply font family from theme --- 
+                if (theme.fontFamily) {
+                    // CORRECTED: Compare theme.fontFamily against font.name
+                    const fontIndex = availableFonts.findIndex(font => font.name === theme.fontFamily);
+                    if (fontIndex !== -1) {
+                        currentFontIndex = fontIndex; // Update the global font index
+                        updateFontDisplay(); // Apply the font and update the carousel display
+                    } else {
+                        // Fallback check against value just in case some themes store the full value
+                        const fontIndexByValue = availableFonts.findIndex(font => font.value === theme.fontFamily);
+                        if (fontIndexByValue !== -1) {
+                            currentFontIndex = fontIndexByValue;
+                            updateFontDisplay();
+                        } else {
+                            console.warn(`Theme specified font '${theme.fontFamily}' not found in availableFonts (checked name and value). Using current font.`);
+                        }
+                    }
+                }
+                // --- END NEW ---
+
                 // Update the theme index and display
                 if (currentThemeDisplay) {
                     currentThemeDisplay.textContent = theme.name;
@@ -1776,25 +1781,26 @@
                 const currentFontValue = availableFonts[currentFontIndex]?.value || config.fontFamily;
                 // const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.value || config.theme; // Use VALUE, not ID - REMOVED
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
-                // REMOVED: Reading from active buttons is incorrect when saving a theme's state
-                // const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
-                // const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
-                // const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
-                // const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
+                // REVERTED: Read from active preset buttons to allow manual override
+                const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
+                const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
+                const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
+                const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
                 const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212');
                 const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85);
 
                 // Find the full theme object matching the current theme value
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
-                // CORRECT: Get borderRadius and boxShadow directly from the selected theme object
-                const themeBorderRadius = currentFullTheme.borderRadius || config.borderRadius; // Fallback to existing config if theme lacks it
-                const themeBoxShadow = currentFullTheme.boxShadow || config.boxShadow; // Fallback to existing config if theme lacks it
+                // REMOVED: We don't need these theme fallbacks if reading from buttons
+                // const themeBorderRadius = currentFullTheme.borderRadius || config.borderRadius; 
+                // const themeBoxShadow = currentFullTheme.boxShadow || config.boxShadow; 
 
                 // --- Create new config object from UI values ---
                 const newConfig = {
                     theme: currentThemeValue,
-                    fontFamily: currentFontValue,
+                    // CORRECTED: Use the fontFamily from the selected theme object
+                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, 
                     fontSize: getValue(fontSizeSlider, 14, true),
                     bgColor: bgColorValue,
                     bgColorOpacity: bgColorOpacityValue,
@@ -1806,8 +1812,9 @@
                      // Get bgImage from current config - themes handle this, not direct UI input
                      bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
                     bgImageOpacity: bgImageOpacityValue,
-                    borderRadius: themeBorderRadius, // Use theme's value
-                    boxShadow: themeBoxShadow, // Use theme's value
+                    // REVERTED: Use values read from active buttons
+                    borderRadius: borderRadiusValue, 
+                    boxShadow: boxShadowValue, 
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
                     chatHeight: getValue(chatHeightInput, 600, true),
@@ -1906,61 +1913,6 @@
                         applyConfiguration(config); // <<< CHANGE: Call applyConfiguration here
                         console.log("[loadSavedConfig] Visual application complete.");
 
-                        // REMOVED redundant direct style settings:
-                        /*
-                        // Apply config settings to the UI
-                        // Check if color override is active
-                        if (overrideUsernameColorsInput) {
-                            overrideUsernameColorsInput.checked = config.overrideUsernameColors;
-                        }
-
-                        if (config.overrideUsernameColors) {
-                            document.documentElement.classList.add('override-username-colors');
-                        } else {
-                            document.documentElement.classList.remove('override-username-colors');
-                        }
-
-                        // Set color CSS variables directly
-                        document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
-                        document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
-                        document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
-                        document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
-
-                        document.documentElement.style.setProperty('--chat-bg-image-opacity', config.bgImageOpacity);
-                        document.documentElement.style.setProperty('--popup-bg-image-opacity', config.bgImageOpacity);
-
-                        document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
-                        document.documentElement.style.setProperty('--chat-text-color', config.textColor);
-                        document.documentElement.style.setProperty('--username-color', config.usernameColor);
-                        document.documentElement.style.setProperty('--font-size', `${config.fontSize}px`);
-                        document.documentElement.style.setProperty('--font-family', config.fontFamily);
-                        document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
-                        document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
-
-                        const borderRadiusValue = window.getBorderRadiusValue(config.borderRadius);
-                        document.documentElement.style.setProperty('--chat-border-radius', borderRadiusValue);
-
-                        if (config.boxShadow) {
-                            const boxShadowValue = window.getBoxShadowValue(config.boxShadow);
-                            document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
-                        }
-
-                        // Apply the background image using the correctly defined variable
-                         if (themeBgImage) { // Use themeBgImage here
-                            document.documentElement.style.setProperty('--chat-bg-image', `url("${themeBgImage}")`);
-                            document.documentElement.style.setProperty('--popup-bg-image', `url("${themeBgImage}")`);
-                         } else {
-                            document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                            document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                        }
-
-                        // Apply username color override setting
-                        if (config.overrideUsernameColors) {
-                            document.documentElement.classList.add('override-username-colors');
-                        } else {
-                            document.documentElement.classList.remove('override-username-colors');
-                        }
-                        */
 
                         // Hide config panel (should already be hidden, but safe)
                         closeConfigPanel();
@@ -2328,8 +2280,6 @@
                 }
             }
 
-            // Add the specific class for the current theme if it's not default
-            // const isPredefinedTheme = ['default', 'light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'].includes(cfg.theme); // REMOVED Check
             // Apply the theme class regardless of whether it's predefined or generated
             if (cfg.theme && cfg.theme !== 'default') {
                 document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
