@@ -20,10 +20,6 @@
     
     <div id="chat-container">
         <button id="settings-btn">⚙️</button>
-        <div id="channel-form">
-            <input type="text" id="channel-input" placeholder="Enter Twitch channel name">
-            <button id="connect-btn">Connect</button>
-        </div>
         <div id="chat-messages"></div>
     </div>
 
@@ -258,13 +254,20 @@
         </div>
         
         
-        <div class="config-row" id="channel-actions" style="margin-top: 15px; border-top: 1px solid rgba(128,128,128,0.3); padding-top: 15px;">
-            <div id="channel-actions-label">Channel Actions:</div>
-            <div aria-labelledby="channel-actions-label">
-                <button id="disconnect-btn" style="background-color: #aa5555; margin-top: 0;">Disconnect</button>
+        <!-- Moved Connection Controls Here -->
+        <div class="section-divider">Connection</div>
+        <div class="config-row" id="connection-management" style="margin-top: 10px; padding-top: 10px;">
+            <!-- Channel Form (Initially Visible) -->
+            <div id="channel-form" style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                <label for="channel-input" style="flex-shrink: 0;">Channel:</label>
+                <input type="text" id="channel-input" placeholder="Enter Twitch channel" style="flex-grow: 1;">
+                <button id="connect-btn" style="flex-shrink: 0;">Connect</button>
             </div>
+            <!-- Disconnect Button (Initially Hidden) -->
+            <button id="disconnect-btn" style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
         </div>
-        <div style="display: flex; justify-content: space-between; gap: 5px;">
+
+        <div style="display: flex; justify-content: space-between; gap: 5px; margin-top: 20px;">
             <button id="save-config">Save Settings</button>
             <button id="cancel-config" style="background-color: #555;">Cancel</button>
             <button id="reset-config" style="background-color: #aa5555;">Reset to Default</button>

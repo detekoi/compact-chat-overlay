@@ -31,12 +31,12 @@
     function init() {
         // Define the default themes here, creating window.availableThemes
          window.availableThemes = [
-             { name: 'Default', value: 'default', bgColor: 'rgba(18, 18, 18, 0.8)', borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
-             { name: 'Transparent', value: 'transparent-theme', bgColor: 'rgba(0, 0, 0, 0)', borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none' },
-             { name: 'Light', value: 'light-theme', bgColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
-             { name: 'Natural', value: 'natural-theme', bgColor: 'rgba(61, 43, 31, 0.85)', borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d' },
-             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: 'rgba(13, 12, 25, 0.85)', borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp' },
-             { name: 'Pink', value: 'pink-theme', bgColor: 'rgba(255, 222, 236, 0.85)', borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d' }
+             { name: 'Default', value: 'default', bgColor: '#121212', bgColorOpacity: 0.85, borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none' },
+             { name: 'Light', value: 'light-theme', bgColor: '#ffffff', bgColorOpacity: 0.9, borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
+             { name: 'Natural', value: 'natural-theme', bgColor: '#3d2b1f', bgColorOpacity: 0.85, borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d' },
+             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: '#0d0c19', bgColorOpacity: 0.85, borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp' },
+             { name: 'Pink', value: 'pink-theme', bgColor: '#ffdeec', bgColorOpacity: 0.85, borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d' }
         ];
         console.log('Default themes initialized in theme-carousel.js');
 

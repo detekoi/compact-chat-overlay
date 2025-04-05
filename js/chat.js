@@ -97,14 +97,18 @@
         const nextThemeBtn = document.getElementById('next-theme');
         const currentThemeDisplay = document.getElementById('current-theme');
         const themePreview = document.getElementById('theme-preview');
-                
+        
+        // Connection Management Elements (inside config panel)
+        const channelForm = document.getElementById('channel-form'); // Now refers to the one in the panel
+        // channelInput and connectBtn are already defined and target the elements now in the panel
+        
         // Connection and chat state
         let socket = null;
         let channel = '';
         
         // Store config state when panel opens
         let initialConfigBeforeEdit = null; // Use ONLY this for revert state
-
+        
         // Font selection
         let currentFontIndex = 0;
         const availableFonts = [
@@ -533,15 +537,13 @@
             channel = channelInput.value.trim().toLowerCase();
             
             if (!channel) {
-                addSystemMessage('Please enter a valid channel name');
+                addSystemMessage('Please enter a valid channel name in the settings panel'); // Updated message
                 return;
             }
             
             // Hide the channel form and show connecting message
-            const channelForm = document.getElementById('channel-form');
-            if (channelForm) {
-                channelForm.style.display = 'none';
-            }
+            // No longer need to hide the form in the main area, it's in the panel now.
+            // We will hide it in the panel on successful connection (in onopen).
             
             addSystemMessage(`Connecting to ${channel}'s chat...`);
             
@@ -563,15 +565,11 @@
                     // Save the channel name in config
                     config.lastChannel = channel;
                     
-                    // Show channel actions
-                    const channelActions = document.getElementById('channel-actions');
-                    if (channelActions) {
-                        channelActions.style.display = 'flex';
-                    }
-                    
-                    const disconnectButton = document.getElementById('disconnect-btn');
-                    if (disconnectButton) {
-                        disconnectButton.textContent = `Disconnect from ${channel}`;
+                    // Hide channel form, show disconnect button in panel
+                    if (channelForm) channelForm.style.display = 'none';
+                    if (disconnectBtn) {
+                        disconnectBtn.textContent = `Disconnect from ${channel}`;
+                        disconnectBtn.style.display = 'block';
                     }
                     
                     // Add connected message
@@ -583,6 +581,22 @@
                 console.log('WebSocket connection closed');
                 updateStatus(false);
                 addSystemMessage('Disconnected from chat');
+                
+                // Hide channel actions and show channel form
+                // Hide disconnect button, show channel form in panel
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'none';
+                    disconnectBtn.textContent = 'Disconnect'; // Reset text
+                }
+                if (channelForm) {
+                    channelForm.style.display = 'block';
+                }
+                
+                // Reset disconnect button text
+                const disconnectButton = document.getElementById('disconnect-btn');
+                if (disconnectButton) {
+                    disconnectButton.textContent = 'Disconnect';
+                }
             };
             
             socket.onerror = function(error) {
@@ -590,7 +604,11 @@
                 updateStatus(false);
                 addSystemMessage('Error connecting to chat');
                 
-                const channelForm = document.getElementById('channel-form');
+                // Hide channel actions on error too
+                if (disconnectBtn) {
+                    disconnectBtn.style.display = 'none';
+                    disconnectBtn.textContent = 'Disconnect'; // Reset text
+                }
                 if (channelForm) {
                     channelForm.style.display = 'block';
                 }
@@ -969,6 +987,12 @@
                  initialConfigBeforeEdit = null; // Ensure it's null on error
             }
 
+            // Panel opened: Ensure correct connection control is visible inside the panel
+            const isConnected = socket && socket.readyState === WebSocket.OPEN;
+            if (channelForm) channelForm.style.display = isConnected ? 'none' : 'flex';
+            if (disconnectBtn) disconnectBtn.style.display = isConnected ? 'block' : 'none';
+            if (isConnected && disconnectBtn) disconnectBtn.textContent = `Disconnect from ${channel}`; // Ensure text is correct
+            
             updateConfigPanelFromConfig(); // Populate panel controls with current config
             configPanel.classList.add('visible');
             configPanel.style.display = 'block';
@@ -1026,7 +1050,7 @@
              });
              resetConfigBtn.dataset.listenerAttached = 'true';
         }
-        
+
         // Close settings panel function
         function closeConfigPanel(shouldRevert = false) {
             if (shouldRevert && initialConfigBeforeEdit) {
@@ -1053,7 +1077,7 @@
                      console.error("Error during revert:", error);
                      addSystemMessage("Error: Could not revert settings.");
                 }
-            } else {
+                } else {
                  console.log("Closing panel without reverting.");
             }
             initialConfigBeforeEdit = null;
@@ -1153,11 +1177,8 @@
                     // Move channel form to popup container if not connected
                     const channelForm = document.getElementById('channel-form');
                     if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
-                        const popupSettingsArea = document.querySelector('.popup-settings-area');
-                        if (popupSettingsArea && !popupSettingsArea.contains(channelForm)) {
-                            popupSettingsArea.appendChild(channelForm);
-                        }
-                        channelForm.style.display = 'block';
+                        // Form stays in the config panel now, just ensure it's visible if disconnected
+                        channelForm.style.display = 'flex'; // Use flex for the form layout
                     }
                     
                     document.body.classList.add('popup-mode');
@@ -1179,10 +1200,8 @@
                     // Move channel form back to main container if not connected
                     const channelForm = document.getElementById('channel-form');
                     if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
-                        if (!chatContainer.contains(channelForm)) {
-                            chatContainer.insertBefore(channelForm, chatMessages);
-                        }
-                        channelForm.style.display = 'block';
+                        // Form stays in the config panel now, just ensure it's visible if disconnected
+                        channelForm.style.display = 'flex'; // Use flex for the form layout
                     }
                     
                     document.body.classList.add('window-mode');
@@ -1274,12 +1293,21 @@
                 }
                 
                 // Apply CSS variables directly
-                let themeHexColor = theme.bgColor;
-                let themeOpacity = bgOpacityInput ? parseInt(bgOpacityInput.value, 10) / 100 : 0.85; // Default to current slider value
-                
-                // Check if theme.bgColor is RGBA
+                let themeHexColor = theme.bgColor; // Assume hex initially
+                let themeOpacity = 0.85; // Default opacity
+
+                // *** Revised Opacity Handling ***
+                if (theme.bgColorOpacity !== undefined) {
+                    // Priority 1: Use explicit opacity property if defined
+                    themeOpacity = theme.bgColorOpacity;
+                    console.log(`Using theme's defined opacity: ${themeOpacity}`);
+                    // Ensure themeHexColor is set correctly (it should be hex already)
+                    themeHexColor = theme.bgColor;
+                } else {
+                    // Priority 2: Check if theme.bgColor is RGBA (legacy fallback)
                 const rgbaMatch = theme.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
                 if (rgbaMatch) {
+                        console.warn(`Theme ${theme.name} uses legacy RGBA bgColor. Converting.`);
                     const [, r, g, b, a] = rgbaMatch;
                     // Convert the RGB part to hex
                     themeHexColor = '#' + parseInt(r).toString(16).padStart(2, '0') +
@@ -1287,15 +1315,25 @@
                                      parseInt(b).toString(16).padStart(2, '0');
                     // Use the alpha value from the RGBA string
                     themeOpacity = parseFloat(a);
-                    
-                    // Update the opacity slider and its display value to match the theme's alpha
+                    } else {
+                        // Priority 3: If not explicit and not RGBA, use default opacity with theme's color
+                        themeHexColor = theme.bgColor; // Should be hex
+                        // Use default 0.85 or read from slider? Reading slider here could cause issues.
+                        // Let's stick to a sensible default for themes without explicit opacity.
+                        themeOpacity = 0.85; 
+                        console.log(`Theme ${theme.name} has no explicit opacity or RGBA. Using default opacity ${themeOpacity}.`);
+                    }
+                }
+                // *** END Revised Opacity Handling ***
+
+                // *** Update the opacity slider and its display value AFTER determining themeOpacity ***
                     if (bgOpacityInput) {
                         const themeOpacityPercent = Math.round(themeOpacity * 100);
                         bgOpacityInput.value = themeOpacityPercent;
                         if (bgOpacityValue) {
                             bgOpacityValue.textContent = `${themeOpacityPercent}%`;
                         }
-                    }
+                    console.log(`Set opacity slider to ${themeOpacityPercent}% based on theme.`);
                 }
                 
                 // Now set the CSS variables using the determined hex color and opacity
@@ -1329,10 +1367,10 @@
                 }
                 
                 // --- NEW: Apply border radius and box shadow from theme --- 
-                if (theme.borderRadius) {
+                    if (theme.borderRadius) {
                     applyBorderRadius(theme.borderRadius); // Use existing function to apply + highlight
                 }
-                if (theme.boxShadow) {
+                    if (theme.boxShadow) {
                     applyBoxShadow(theme.boxShadow); // Use existing function to apply + highlight
                 }
                 // --- END NEW --- 
@@ -1356,7 +1394,7 @@
                     }
                 }
                 // --- END NEW ---
-
+                
                 // Update the theme index and display
                 if (currentThemeDisplay) {
                     currentThemeDisplay.textContent = theme.name;
@@ -1422,18 +1460,18 @@
         
         // Font selection carousel
         if (prevFontBtn && !prevFontBtn.dataset.listenerAttached) { 
-            prevFontBtn.addEventListener('click', () => {
-                currentFontIndex = (currentFontIndex - 1 + availableFonts.length) % availableFonts.length;
-                updateFontDisplay();
-            });
+        prevFontBtn.addEventListener('click', () => {
+            currentFontIndex = (currentFontIndex - 1 + availableFonts.length) % availableFonts.length;
+            updateFontDisplay();
+        });
             prevFontBtn.dataset.listenerAttached = 'true';
         }
         
         if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) { 
-            nextFontBtn.addEventListener('click', () => {
-                currentFontIndex = (currentFontIndex + 1) % availableFonts.length;
-                updateFontDisplay();
-            });
+        nextFontBtn.addEventListener('click', () => {
+            currentFontIndex = (currentFontIndex + 1) % availableFonts.length;
+            updateFontDisplay();
+        });
             nextFontBtn.dataset.listenerAttached = 'true';
         }
         
@@ -1460,11 +1498,11 @@
             currentThemeDisplay.textContent = theme.name;
             lastAppliedThemeValue = theme.value; // UPDATE the tracked value
 
-            // Apply the current theme using existing method
-            applyTheme(theme.value); // applyTheme now handles all cases
-
-            // Update theme preview
-            updateThemePreview(theme);
+                // Apply the current theme using existing method
+                applyTheme(theme.value); // applyTheme now handles all cases
+                
+                // Update theme preview
+                updateThemePreview(theme);
         }
         window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
         
@@ -1798,7 +1836,7 @@
 
                 // --- Create new config object from UI values ---
                 const newConfig = {
-                    theme: currentThemeValue,
+                    theme: currentThemeValue, 
                     // CORRECTED: Use the fontFamily from the selected theme object
                     fontFamily: currentFullTheme.fontFamily || config.fontFamily, 
                     fontSize: getValue(fontSizeSlider, 14, true),
@@ -1840,11 +1878,11 @@
                 
                 closeConfigPanel(false); // Close without reverting
                 addSystemMessage("Settings saved successfully."); // Optional feedback
-
+                
             } catch (error) {
                 console.error("Error saving configuration:", error);
                  addSystemMessage("Error saving settings. Check console for details.");
-            }
+        }
         }
         
         // Load saved config on page load
@@ -1922,7 +1960,7 @@
 
                         // Apply initial chat mode (switchChatMode is called within applyConfiguration now)
                         // switchChatMode(config.chatMode); // <<< CHANGE: Removed, called by applyConfiguration
-
+                        
                         // If the channel was previously saved, auto-connect
                         if (config.lastChannel && channelInput) {
                             channelInput.value = config.lastChannel;
@@ -1932,9 +1970,10 @@
                                 connectToChat();
                             }, 1000);
                         } else {
-                             // If no channel saved, ensure connect form is visible
-                             const channelForm = document.getElementById('channel-form');
-                             if (channelForm) channelForm.style.display = 'block';
+                             // If no channel saved, ensure connect form is visible IN THE PANEL
+                             // and disconnect button is hidden
+                              if (channelForm) channelForm.style.display = 'flex';
+                              if (disconnectBtn) disconnectBtn.style.display = 'none';
                         }
 
                     } catch (e) {
@@ -1948,13 +1987,13 @@
                     applyDefaultSettings(); // Apply default styles
                     updateConfigPanelFromConfig(); // Update panel to show defaults
                 }
-
+                
                 // Add initial system messages only after config is loaded/defaults applied
                 addSystemMessage('Welcome to Twitch Chat Overlay');
                 if (!config.lastChannel) {
                     addSystemMessage('Enter a channel name to connect');
                 }
-
+                
             } catch (error) {
                 console.error('Error in loadSavedConfig outer try:', error);
                 addSystemMessage('Error loading saved settings. Default settings applied.');
@@ -2059,13 +2098,13 @@
                 if (usernameColorInput) usernameColorInput.value = config.usernameColor || '#9147ff';
                 
                 // Set opacity sliders
-                if (bgOpacityInput) {
+             if (bgOpacityInput) {
                     const opacity = Math.round((config.bgColorOpacity || 0.85) * 100);
                     bgOpacityInput.value = opacity;
                     if (bgOpacityValue) bgOpacityValue.textContent = `${opacity}%`;
                 }
                 
-                if (bgImageOpacityInput) {
+              if (bgImageOpacityInput) {
                     const opacity = Math.round((config.bgImageOpacity || 0.55) * 100);
                     bgImageOpacityInput.value = opacity;
                     const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
@@ -2109,8 +2148,8 @@
                 document.querySelectorAll('.window-only-setting').forEach(el => {
                     el.style.display = chatMode === 'window' ? 'flex' : 'none';
                 });
-                
-                // Set popup settings
+
+            // Set popup settings
                 if (config.popup) {
                     // Set direction radio buttons
                     const direction = config.popup.direction || 'from-bottom';
@@ -2135,9 +2174,9 @@
                 
                 // Update font and theme indices based on current config
                 if (config.fontFamily) {
-                    const fontIndex = availableFonts.findIndex(font => font.value === config.fontFamily);
-                    if (fontIndex !== -1) {
-                        currentFontIndex = fontIndex;
+            const fontIndex = availableFonts.findIndex(font => font.value === config.fontFamily);
+            if (fontIndex !== -1) {
+                currentFontIndex = fontIndex;
                         if (currentFontDisplay) currentFontDisplay.textContent = availableFonts[fontIndex].name;
                     }
                 }
@@ -2153,10 +2192,10 @@
                 // Highlight active preset buttons
                 highlightBorderRadiusButton(config.borderRadius || '8px');
                 highlightBoxShadowButton(config.boxShadow || 'none');
-                
-                // Highlight active color buttons
-                highlightActiveColorButtons();
-                
+
+            // Highlight active color buttons
+            highlightActiveColorButtons();
+
                 console.log("Config panel controls updated successfully.");
             } catch (error) {
                 console.error("Error updating config panel from config:", error);
@@ -2170,6 +2209,10 @@
         updateThemeDisplay(); // Helpers are defined before this now
         loadSavedConfig();    // Helpers are defined before this now
         
+        // Ensure channel form is visible and disconnect button is hidden initially
+        if (channelForm) channelForm.style.display = 'flex';
+        if (disconnectBtn) disconnectBtn.style.display = 'none';
+        
         // Disconnect button
         disconnectBtn.addEventListener('click', () => {
             if (socket && socket.readyState === WebSocket.OPEN) {
@@ -2179,18 +2222,13 @@
             // No need to explicitly call updateStatus(false) or addSystemMessage here,
             // as the socket.onclose event handler already does that.
             
-            // Reset button text and hide channel actions
+            // Reset button text, hide disconnect btn, show channel form
             disconnectBtn.textContent = 'Disconnect'; 
-            const channelActions = document.getElementById('channel-actions');
-            if (channelActions) {
-                channelActions.style.display = 'none';
-            }
+            if (disconnectBtn) disconnectBtn.style.display = 'none';
+            if (channelForm) channelForm.style.display = 'flex';
             
             // Show the connection form again
-            const channelForm = document.getElementById('channel-form');
-            if (channelForm) {
-                channelForm.style.display = 'block';
-            }
+            // No longer needed, handled by showing channelForm above
             
             // Clear the last channel from config
             if (config) {
@@ -2210,7 +2248,7 @@
             saveConfigBtn.addEventListener('click', (e) => {
                 console.log('Save button clicked');
                 if (e) e.preventDefault();
-                saveConfiguration(); 
+                saveConfiguration();
             });
             saveConfigBtn.dataset.listenerAttached = 'true';
         }

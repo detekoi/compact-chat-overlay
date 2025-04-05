@@ -189,6 +189,7 @@ html, body {
     flex-direction: column;
     gap: 15px;
     border-left: 2px solid var(--config-border-color);
+    padding-bottom: 70px; /* Add padding to prevent overlap with fixed buttons */
 }
 
 #config-panel.visible {
@@ -941,4 +942,61 @@ button:hover {
 
 .theme-card.next {
     transform: translateX(100%);
+}
+
+/* Settings Panel Enhancements */
+#config-panel {
+    /* ... existing styles ... */
+    padding-bottom: 70px; /* Add padding to prevent overlap with fixed buttons */
+}
+
+/* Ensure connection management section fits well */
+#connection-management {
+    display: flex;
+    flex-direction: column; /* Stack form and button */
+    gap: 10px; /* Space between form row and disconnect button */
+}
+
+/* Style the channel form within the panel */
+#config-panel #channel-form {
+    display: flex; /* Use flex for inline layout */
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0; /* Remove default form margin */
+}
+
+#config-panel #channel-form label {
+    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-bottom: 0; /* Override default label margin */
+}
+
+#config-panel #channel-form input[type="text"] {
+    flex-grow: 1; /* Allow input to take available space */
+    min-width: 100px; /* Ensure input doesn't get too small */
+}
+
+#config-panel #channel-form button {
+    flex-shrink: 0; /* Prevent button from shrinking */
+    padding: 6px 12px; /* Adjust padding */
+    margin-top: 0; /* Reset margin */
+}
+
+/* Style the disconnect button within the panel */
+#config-panel #disconnect-btn {
+    width: 100%;
+    /* display: none; /* Initially hidden - controlled by JS */
+    margin-top: 5px; /* Add space above when visible */
+    padding: 8px 15px; /* Adjust padding */
+}
+
+/* Style the save/cancel/reset buttons container */
+#config-panel > div:last-of-type {
+    background-color: var(--panel-bg-color, #2a2a2e); /* Match panel background */
+    padding-top: 10px; /* Add space above buttons */
+    border-top: 1px solid rgba(128,128,128,0.2); /* Subtle separator */
+    margin-top: 20px; /* Add space above the button group */
+    /* Ensure it stretches full width within padding */
+    box-sizing: border-box;
+    width: 100%; 
 }
