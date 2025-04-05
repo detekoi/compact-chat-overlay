@@ -1598,7 +1598,9 @@
         if (prevThemeBtn && !prevThemeBtn.dataset.listenerAttached) { 
             prevThemeBtn.addEventListener('click', () => {
                 currentThemeIndex = (currentThemeIndex - 1 + window.availableThemes.length) % window.availableThemes.length;
-                updateThemeDisplay();
+                const newThemeValue = window.availableThemes[currentThemeIndex].value;
+                applyTheme(newThemeValue); // Apply the new theme visuals
+                updateThemeDisplay();      // Update the carousel display text/index state
             });
             prevThemeBtn.dataset.listenerAttached = 'true';
         }
@@ -1606,22 +1608,45 @@
         if (nextThemeBtn && !nextThemeBtn.dataset.listenerAttached) { 
             nextThemeBtn.addEventListener('click', () => {
                 currentThemeIndex = (currentThemeIndex + 1) % window.availableThemes.length;
-                updateThemeDisplay();
+                const newThemeValue = window.availableThemes[currentThemeIndex].value;
+                applyTheme(newThemeValue); // Apply the new theme visuals
+                updateThemeDisplay();      // Update the carousel display text/index state
             });
             nextThemeBtn.dataset.listenerAttached = 'true';
         }
         
-        // Initialize theme display
-        function updateThemeDisplay() {
-            const theme = window.availableThemes[currentThemeIndex];
-            currentThemeDisplay.textContent = theme.name;
-            lastAppliedThemeValue = theme.value; // UPDATE the tracked value
+        // Initialize theme display - ONLY updates the carousel text and internal index
+        function updateThemeDisplay(themeValue = null) { 
+            // If a themeValue is provided, find its index and update currentThemeIndex
+            if (themeValue) {
+                const newIndex = window.availableThemes.findIndex(t => t.value === themeValue);
+                if (newIndex !== -1) {
+                    console.log(`[updateThemeDisplay] Received themeValue '${themeValue}', updating currentThemeIndex from ${currentThemeIndex} to ${newIndex}`);
+                    currentThemeIndex = newIndex;
+                } else {
+                    console.warn(`[updateThemeDisplay] Received themeValue '${themeValue}' but could not find it in availableThemes.`);
+                    // Keep currentThemeIndex as is if not found
+                }
+            }
 
-                // Apply the current theme using existing method
-                applyTheme(theme.value); // applyTheme now handles all cases
-                
-                // Update theme preview - applyTheme now calls updateThemePreview
-                // updateThemePreview(theme); // REMOVED redundant call
+            // Ensure currentThemeIndex is valid before proceeding
+            if (currentThemeIndex < 0 || currentThemeIndex >= window.availableThemes.length) {
+                 console.error(`[updateThemeDisplay] Invalid currentThemeIndex: ${currentThemeIndex}. Resetting to 0.`);
+                 currentThemeIndex = 0; // Reset to default index if invalid
+            }
+
+            const theme = window.availableThemes[currentThemeIndex];
+             if (!theme) {
+                 console.error(`[updateThemeDisplay] Could not get theme at index ${currentThemeIndex}. Available themes count: ${window.availableThemes.length}`);
+                 return; 
+             }
+
+            // Update ONLY the display text and the tracked value used for saving
+            currentThemeDisplay.textContent = theme.name;
+            lastAppliedThemeValue = theme.value; 
+            console.log(`[updateThemeDisplay] Updated display to: ${theme.name} (Index: ${currentThemeIndex}, Value: ${theme.value})`);
+
+            // REMOVED call to applyTheme(theme.value); 
         }
         window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
         
@@ -2358,12 +2383,25 @@
         
         // Initialize the application
         updateFontDisplay();  // Helpers are defined before this now
-        updateThemeDisplay(); // Helpers are defined before this now
+        // REMOVED Initial updateThemeDisplay() call, applyConfiguration handles initial theme
         loadSavedConfig();    // Helpers are defined before this now
+        
+        // Listen for newly generated themes being added
+        document.addEventListener('theme-generated-and-added', (event) => {
+            if (event.detail && event.detail.themeValue) {
+                const newThemeValue = event.detail.themeValue;
+                console.log(`[Event Listener] Received theme-generated-and-added event for: ${newThemeValue}`);
+                // Apply the theme visuals first
+                applyTheme(newThemeValue);
+                // Then update the carousel display
+                updateThemeDisplay(newThemeValue);
+            } else {
+                console.warn("[Event Listener] Received theme-generated-and-added event without valid themeValue in detail.");
+            }
+        });
         
         // Ensure channel form is visible and disconnect button is hidden initially
         if (channelForm) channelForm.style.display = 'flex';
-        if (disconnectBtn) disconnectBtn.style.display = 'none';
         
         // Disconnect button
         disconnectBtn.addEventListener('click', () => {

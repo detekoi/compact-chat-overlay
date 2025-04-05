@@ -386,19 +386,30 @@
             // Add the theme using the theme carousel's API
             const currentThemeCarousel = window.themeCarousel; // Get reference *now*
 
+            // --- Ensure the global array is updated BEFORE applying/displaying ---
+            if (!window.availableThemes) { 
+                console.error("window.availableThemes is not defined! Cannot add theme.");
+                return; 
+            }
+            window.availableThemes.push(theme);
+            console.log(`Explicitly pushed ${theme.name} to window.availableThemes. New length: ${window.availableThemes.length}`);
+            // -------------------------------------------------------------------
+
             if (currentThemeCarousel && typeof currentThemeCarousel.addTheme === 'function') {
-                 const addedTheme = currentThemeCarousel.addTheme(theme);
-                 console.log("Theme added to carousel:", addedTheme.name);
+                 // Let the carousel handle its internal logic (like localStorage)
+                 const addedTheme = currentThemeCarousel.addTheme(theme); 
+                 console.log("Theme added to carousel internal state:", addedTheme.name);
 
-                 // Explicitly update the display AFTER adding the theme
-                 if (typeof window.updateThemeDisplay === 'function') {
-                     console.log(`Calling updateThemeDisplay for ${addedTheme.name}`);
-                     window.updateThemeDisplay();
-                 } else {
-                     console.warn('window.updateThemeDisplay is not defined when trying to update after adding theme.');
-                 }
+                 // Dispatch an event for chat.js to handle theme application and display update
+                 const applyThemeEvent = new CustomEvent('theme-generated-and-added', {
+                     detail: { themeValue: addedTheme.value },
+                     bubbles: true, // Allow event to bubble up if needed
+                     cancelable: true
+                 });
+                 console.log(`Dispatching theme-generated-and-added event for theme: ${addedTheme.value}`);
+                 document.dispatchEvent(applyThemeEvent);
 
-                 // Dispatch event AFTER updating display
+                 // Dispatch event AFTER applying and updating display
                  const themeProcessedEvent = new CustomEvent('theme-data-processed', {
                      detail: { theme }
                  });
