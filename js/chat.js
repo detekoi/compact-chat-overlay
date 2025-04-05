@@ -804,11 +804,9 @@
         
         // Background color + opacity handling
         function updateBgColor() {
-            console.log('[updateBgColor] Running...');
             // Get the hex color without transparency
             const hexColor = bgColorInput.value;
             const opacity = parseInt(bgOpacityInput.value) / 100;
-            console.log(`[updateBgColor] Read hexColor: ${hexColor}, Read opacity value: ${bgOpacityInput.value}, Calculated opacity: ${opacity}`);
             
             // Set the color and opacity separately
             document.documentElement.style.setProperty('--chat-bg-color', hexColor);
@@ -869,13 +867,8 @@
             }
             
             button.addEventListener('click', (e) => {
-                console.log("[Color Button] Event target:", e.target); // Log the target element
                 const colorAttr = e.target.getAttribute('data-color');
-                if (colorAttr === null) {
-                    console.error("[Color Button] Error: data-color attribute is null for", e.target);
-                    return; // Prevent further execution if attribute is missing
-                }
-                const color = colorAttr.trim(); // Trim whitespace just in case
+                const color = colorAttr;
                 const target = e.target.getAttribute('data-target');
                 
                 // Mark this button as active and remove active class from sibling buttons
@@ -885,25 +878,15 @@
                 
                 // Set the appropriate color input based on target
                 if (target === 'bg') {
-                    console.log(`[Color Button] Clicked target: ${target}, Processed color value: '${color}'`);
                     // Special handling for the transparent button
                     if (color === 'transparent') {
-                        console.log('[Color Button] Applying None (transparent) background.');
                         bgColorInput.value = '#000000'; // Set base color to black for transparent
                         if (bgOpacityInput) {
                             bgOpacityInput.value = 0; // Force opacity slider to 0
-                            console.log(`[Color Button] Set bgOpacityInput value to: ${bgOpacityInput.value}`);
                         }
                         updateBgColor(); // Apply black bg with 0 opacity
                     } else {
-                        console.log(`[Color Button] Applying solid background: ${color}`);
-                        // Ensure the color is a valid hex format before setting input
-                        if (/^#[0-9A-F]{6}$/i.test(color)) {
-                            bgColorInput.value = color;
-                        } else {
-                            console.warn(`[Color Button] Invalid color format received: ${color}. Using default.`);
-                            bgColorInput.value = '#121212'; // Default fallback
-                        }
+                        bgColorInput.value = color;
                         // Optionally reset opacity slider to default when a solid color is chosen?
                         // if (bgOpacityInput) bgOpacityInput.value = 85;
                         updateBgColor(); // Apply selected color with current/default opacity
