@@ -70,7 +70,7 @@
         // Define the default themes here, creating window.availableThemes
          window.availableThemes = [
              { name: 'Default', value: 'default', bgColor: '#121212', bgColorOpacity: 0.85, borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
-             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
+             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', backgroundImage: null, borderRadius: '0px', boxShadow: 'none' },
              { name: 'Light', value: 'light-theme', bgColor: '#ffffff', bgColorOpacity: 0.9, borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
              { name: 'Natural', value: 'natural-theme', bgColor: '#3d2b1f', bgColorOpacity: 0.85, borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d', fontFamily: "'EB Garamond', serif" },
              { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: '#0d0c19', bgColorOpacity: 0.85, borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp', fontFamily: "'Tektur', sans-serif" },
