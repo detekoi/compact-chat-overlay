@@ -185,8 +185,14 @@
             </div>
         </div>
         <div class="config-row">
-            <label for="username-color">Username:</label>
+            <label for="username-color">Username Color Override:</label>
             <div class="color-picker">
+                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <input type="checkbox" id="override-username-colors" style="margin-right: 8px;">
+                    <label for="override-username-colors" style="font-weight: normal; font-style: italic;">
+                        Use custom color instead of Twitch's colors
+                    </label>
+                </div>
                 <div class="color-buttons">
                     <button type="button" class="color-btn" data-color="#9147ff" data-target="username">Purple.tv</button>
                     <button type="button" class="color-btn" data-color="#508d69" data-target="username">Forest</button>
@@ -195,6 +201,9 @@
                     <button type="button" class="color-btn" data-color="#ff2e97" data-target="username">Neon</button>
                 </div>
                 <input type="color" id="username-color" value="#9147ff" style="visibility: hidden; width: 0; height: 0;">
+                <div style="font-size: 12px; color: #888; margin-top: 5px;">
+                    <span style="color: red;">!</span> Check the box above to apply these colors to all usernames
+                </div>
             </div>
         </div>
 
@@ -224,10 +233,6 @@
         
         <div class="section-divider">Settings</div>
         
-        <div class="config-row">
-            <label for="override-username-colors">Override Username Colors:</label>
-            <input type="checkbox" id="override-username-colors">
-        </div>
         <div class="config-row font-section">
             <div class="font-selector-label" id="font-selector-label">Font:</div>
             <div id="font-buttons" class="font-buttons-container" role="group" aria-labelledby="font-selector-label">
