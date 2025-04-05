@@ -885,14 +885,12 @@
             // Get opacity value (0-1) from the slider
             const opacity = parseInt(bgOpacityInput.value) / 100;
 
-            // Convert hex and opacity to rgba string
-            const rgbaColor = hexToRgba(hexColor, opacity);
+            // Convert hex and opacity to rgba string for immediate visual feedback
+            const rgbaColorForCSS = hexToRgba(hexColor, opacity);
 
             // Set the combined rgba color for both chat and popup backgrounds
-            document.documentElement.style.setProperty('--chat-bg-color', rgbaColor);
-            document.documentElement.style.setProperty('--popup-bg-color', rgbaColor);
-
-            // REMOVED setting --chat-bg-opacity and --popup-bg-opacity
+            document.documentElement.style.setProperty('--chat-bg-color', rgbaColorForCSS);
+            document.documentElement.style.setProperty('--popup-bg-color', rgbaColorForCSS);
 
             // Update the display value for the opacity slider
             const bgOpacityValue = document.getElementById('bg-opacity-value');
@@ -1397,7 +1395,8 @@
             config.boxShadow = theme.boxShadow || 'none'; // Default to none
             config.bgImage = theme.backgroundImage; // NEW: Store theme's background image in config
 
-            // Handle opacity separately (comes from theme or slider)
+            // Handle background color AND opacity from theme
+            config.bgColor = theme.bgColor || '#121212'; // Store hex
             let themeOpacityValue = 0.85; // Default opacity
             if (typeof theme.bgColorOpacity !== 'undefined') {
                 themeOpacityValue = theme.bgColorOpacity; // Use the theme's opacity (0-1 range)
@@ -1408,7 +1407,7 @@
                 if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
             }
             
-            // Store the opacity value (0-1 range) in the config object
+            // Store opacity (0-1) in the config object
             config.bgColorOpacity = themeOpacityValue;
             
             // NEW: Update font family from theme
@@ -1476,30 +1475,12 @@
                 config.bgColorOpacity = 0;
                 config.borderColor = 'transparent';
 
-                document.documentElement.style.setProperty('--chat-bg-color', '#000000');
-                document.documentElement.style.setProperty('--chat-bg-opacity', 0);
-                document.documentElement.style.setProperty('--chat-border-color', 'transparent');
-                document.documentElement.style.setProperty('--popup-bg-color', '#000000');
-                document.documentElement.style.setProperty('--popup-bg-opacity', 0);
-                document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                // Remove background image for transparent theme
+                config.bgImage = null;
+                config.bgImageOpacity = 0;
 
-                // Also update the text/username colors from the theme object if defined
-                config.textColor = theme.textColor || '#ffffff'; // Default for transparent
-                config.usernameColor = theme.usernameColor || '#9147ff';
-                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
-                document.documentElement.style.setProperty('--username-color', config.usernameColor);
-                document.documentElement.style.setProperty('--popup-text-color', config.textColor);
-                document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
-
-                // Update opacity slider value
-                if (bgOpacityInput) bgOpacityInput.value = 0;
-                if (bgOpacityValue) bgOpacityValue.textContent = '0%';
-
-                // NEW: Ensure background image is removed for transparent theme
-                document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                document.documentElement.style.setProperty('--chat-bg-image-opacity', 0); // Opacity doesn't matter
-                document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                document.documentElement.style.setProperty('--popup-bg-image-opacity', 0);
+                // Apply all settings using central function
+                applyConfiguration(config);
 
             } else {
                 // Apply styles normally for other themes
@@ -1519,15 +1500,17 @@
                 // Use the current opacity slider value from config for consistency
                 const themeBgImageOpacity = config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55; 
 
-                document.documentElement.style.setProperty('--chat-bg-image', themeBgImageURL);
-                document.documentElement.style.setProperty('--chat-bg-image-opacity', themeBgImageOpacity);
-                document.documentElement.style.setProperty('--popup-bg-image', themeBgImageURL); // Apply to popup too
-                document.documentElement.style.setProperty('--popup-bg-image-opacity', themeBgImageOpacity);
+                // Store background image settings in config
+                config.bgImage = theme.backgroundImage;
+                config.bgImageOpacity = themeBgImageOpacity;
 
                 // Update opacity slider from config (already done earlier, but safe to repeat)
                 const opacityPercent = Math.round(config.bgColorOpacity * 100);
                 if (bgOpacityInput) bgOpacityInput.value = opacityPercent;
                 if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
+
+                // Apply all settings using central function
+                applyConfiguration(config);
             }
 
             // Apply font family
@@ -1911,7 +1894,7 @@
                 };
                 
                 // Helper to get color (keep existing)
-                const getColor = (inputElement, buttonSelector, defaultColor) => {
+                const getColor = (inputElement, buttonSelector, defaultColor, isHexOnly = false) => {
                      // REMOVED: Check for !inputElement - handled by callers potentially
                     
                     // Find the active button first
@@ -1938,18 +1921,23 @@
                         return activeColor;
                     }
                     
+                    // For background color, always return the hex input value
+                    if (isHexOnly) {
+                        return inputElement?.value || defaultColor;
+                    }
+                    
                     // If no button is active, fallback to input value (for custom colors) or default
                     // Ensure inputElement exists before accessing its value
                     return inputElement?.value || defaultColor; 
                 };
                  
-                 // Helper to get opacity (keep existing)
-                 const getOpacity = (element, defaultValue) => {
-                     if (!element) return defaultValue;
-                      // Make sure to handle potential NaN
-                      const parsedValue = parseFloat(element.value);
-                      return !isNaN(parsedValue) ? parsedValue / 100.0 : defaultValue; 
-                 };
+                 // Helper to get opacity (0-1 range) from the slider
+                  const getOpacity = (element, defaultValue) => {
+                      if (!element) return defaultValue;
+                       // Make sure to handle potential NaN
+                       const parsedValue = parseFloat(element.value);
+                       return !isNaN(parsedValue) ? parsedValue / 100.0 : defaultValue; 
+                  };
 
                 // --- Read current state from UI controls ---
                 const currentFontValue = window.availableFonts[currentFontIndex]?.value || config.fontFamily;
@@ -1959,21 +1947,6 @@
                 // Find the full theme object matching the current theme value (used for theme name and potentially image)
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
 
-                // --- Calculate Effective Background Color ---
-                let effectiveBgColor;
-                const currentOpacity = getOpacity(bgOpacityInput, 0.85); // Get current opacity value (0-1)
-                const currentHexColor = bgColorInput?.value || '#121212'; // Get current hex color input value
-                const isTransparentButtonActive = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]')?.classList.contains('active');
-
-                if (isTransparentButtonActive || currentOpacity === 0) {
-                    effectiveBgColor = 'rgba(0, 0, 0, 0)'; // Use fully transparent black
-                } else {
-                    // Use the hexToRgba helper to combine current hex input and opacity slider
-                    effectiveBgColor = hexToRgba(currentHexColor, currentOpacity);
-                }
-                console.log(`[saveConfiguration] Calculated effective BG Color: ${effectiveBgColor}`);
-
-
                 // --- Create new config object from UI values ---
                 // PRIORITIZE UI control values using helpers
                 const newConfig = {
@@ -1981,12 +1954,11 @@
                     fontFamily: currentFontValue, // Read from font carousel state
                     fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
 
-                    // Save the calculated RGBA background color
-                    bgColor: effectiveBgColor, 
-                    // REMOVE bgColorOpacity - It's now part of bgColor
-                    // bgColorOpacity: getOpacity(bgOpacityInput, 0.85), 
+                    // Save background color (hex) and opacity (0-1) separately
+                    bgColor: getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212', true), // Get hex only
+                    bgColorOpacity: getOpacity(bgOpacityInput, 0.85),
 
-                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#9147ff'),
+                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#444444'), // Default dark grey
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
                     
@@ -2005,14 +1977,6 @@
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
                     
-                    // Explicit override check *after* reading UI, specifically for the transparent theme case
-                     // REMOVED: This block was overriding UI selections when transparent theme was active.
-                     /* ...(currentThemeValue === 'transparent-theme' ? {
-                         bgColor: '#000000', // Force black base for transparency effect
-                         bgColorOpacity: 0,    // Force 0 opacity
-                         borderColor: 'transparent', // Force transparent border
-                     } : {}), */
-
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
@@ -2033,12 +1997,15 @@
                 applyConfiguration(config); // Apply the new config visually
                 console.log("[saveConfiguration] Visual application complete.");
 
+                // === CRITICAL LOGGING: Check values JUST BEFORE saving ===
+                console.log(`[saveConfiguration] >> Preparing to save - bgColor: ${newConfig.bgColor}, bgColorOpacity: ${newConfig.bgColorOpacity}`);
+
                 const scene = getUrlParameter('scene') || 'default';
                 localStorage.setItem(`chatConfig_${scene}`, JSON.stringify(config));
                 console.log(`Configuration saved for scene '${scene}':`, config);
                 
                 closeConfigPanel(false); // Close without reverting
-                addSystemMessage("Settings saved successfully."); // Optional feedback
+                // addSystemMessage("Settings saved successfully."); // Keep console cleaner
                 
             } catch (error) {
                 console.error("Error saving configuration:", error);
@@ -2078,10 +2045,9 @@
                             chatMode: parsedConfig.chatMode || 'window',
                             
                             // Window mode settings
-                            // Load bgColor (could be hex or rgba)
-                            bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.85)', 
-                            // REMOVED loading of separate bgColorOpacity
-                            // bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, 
+                            // Load bgColor (hex) and opacity (0-1) separately
+                            bgColor: parsedConfig.bgColor || '#121212', // Default hex
+                            bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, // Default opacity
                             
                             // Correctly load bgImage from parsed config, fallback to theme default
                             bgImage: parsedConfig.bgImage !== undefined ? parsedConfig.bgImage : themeBgImage,
@@ -2173,9 +2139,8 @@
             config = {
                 chatMode: 'window',
                 // Store default background as RGBA
-                bgColor: 'rgba(18, 18, 18, 0.85)', 
-                // REMOVED separate opacity
-                // bgColorOpacity: 0.85, 
+                bgColor: '#121212', 
+                bgColorOpacity: 0.85, 
                 bgImage: null,
                 bgImageOpacity: 0.55,
                 borderColor: '#9147ff',
@@ -2255,44 +2220,24 @@
          */
         function updateConfigPanelFromConfig() {
             // --- Update Background Color Controls --- START
-            let hexColor = '#121212'; // Default hex
-            let opacityPercent = 85; // Default opacity percentage
-
-            if (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('rgba')) {
-                // Try parsing RGBA string
-                try {
-                    const match = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
-                    if (match) {
-                        const [, r, g, b, a] = match;
-                        // Convert RGB to hex
-                        hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
-                        // Convert alpha (0-1) to percentage
-                        opacityPercent = Math.round(parseFloat(a) * 100);
-                    } else {
-                        console.warn("Could not parse RGBA string:", config.bgColor);
-                        // Fallback if parse fails but starts with rgba
-                        hexColor = '#121212'; // Default black
-                        opacityPercent = 85; // Default opacity
-                    }
-                } catch (e) {
-                    console.error("Error parsing RGBA for config panel update:", e);
-                    hexColor = '#121212'; // Default black on error
-                    opacityPercent = 85; // Default opacity on error
-                }
-            } else if (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('#')) {
-                // Handle case where saved value might be just hex (legacy or error)
-                hexColor = config.bgColor;
-                opacityPercent = 100; // Assume full opacity if only hex is stored
-            } else {
-                 // Default values if config.bgColor is missing or invalid format
-                 hexColor = '#121212';
-                 opacityPercent = 85;
+            // Always use config.bgColor directly (hex) and config.bgColorOpacity directly (float)
+            const hexColor = (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('#')) 
+                ? config.bgColor  // Use stored hex color
+                : '#121212';      // Fallback to default dark
+            
+            // Convert opacity (0-1) to percentage for UI
+            let opacityPercent = (config.bgColorOpacity !== undefined && typeof config.bgColorOpacity === 'number') // Changed to let
+                 ? Math.round(config.bgColorOpacity * 100)  // Convert stored opacity to percentage
+                 : 85;                                      // Fallback to default 85%
+             
+            // Special handling for transparent theme - always use 0 opacity
+            if (config.theme === 'transparent-theme') {
+                // Force opacity to 0 for transparent theme
+                opacityPercent = 0;
             }
 
             // Update the UI elements
-            if (bgColorInput) {
-                 bgColorInput.value = hexColor;
-            }
+            if (bgColorInput) bgColorInput.value = hexColor;
             if (bgOpacityInput && bgOpacityValue) {
                 bgOpacityInput.value = opacityPercent;
                 bgOpacityValue.textContent = `${opacityPercent}%`;
@@ -2472,8 +2417,22 @@
                 console.log(`[applyConfiguration] Updated lastAppliedThemeValue to: ${lastAppliedThemeValue}`);
             }
 
+            // --- Generate RGBA from hex color and opacity ---
+            let bgColorRgba;
+            if (cfg.theme === 'transparent-theme') {
+                // Force fully transparent for transparent theme
+                bgColorRgba = 'rgba(0, 0, 0, 0)';
+                console.log('[applyConfiguration] Using forced transparent rgba for transparent theme');
+            } else {
+                // Combine hex and opacity into rgba
+                const hexColor = cfg.bgColor || '#121212';
+                const opacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85;
+                bgColorRgba = hexToRgba(hexColor, opacity);
+                console.log(`[applyConfiguration] Combined ${hexColor} with opacity ${opacity} to: ${bgColorRgba}`);
+            }
+
             // --- Apply Core CSS Variables ---
-            document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || 'rgba(18, 18, 18, 0.85)'); // Fallback to default rgba
+            document.documentElement.style.setProperty('--chat-bg-color', bgColorRgba);
             // REMOVE the separate opacity setting
             // document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
             
@@ -2495,7 +2454,7 @@
              document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
              // Popup styles (mirror chat styles)
-             document.documentElement.style.setProperty('--popup-bg-color', cfg.bgColor || 'rgba(18, 18, 18, 0.85)'); // Use same value as chat bg
+             document.documentElement.style.setProperty('--popup-bg-color', bgColorRgba); // Use same rgba for popup
              // REMOVE the separate popup opacity setting
              // document.documentElement.style.setProperty('--popup-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
              
