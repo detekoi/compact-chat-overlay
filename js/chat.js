@@ -1313,28 +1313,19 @@
             config.boxShadow = theme.boxShadow || 'none'; // Default to none
             
             // Handle opacity separately (comes from theme or slider)
+            let themeOpacityValue = 0.85; // Default opacity
             if (typeof theme.bgColorOpacity !== 'undefined') {
-                // Convert opacity from 0-1 range (theme) to 0-100 (slider)
-                let opacityPercent = Math.round(theme.bgColorOpacity * 100);
+                themeOpacityValue = theme.bgColorOpacity; // Use the theme's opacity (0-1 range)
                 
-                // Apply the opacity via the bg-opacity-handler module
-                if (window.applyBackgroundOpacity) {
-                    window.applyBackgroundOpacity(opacityPercent);
-                }
-                
-                // Update the slider value in the config panel
-                if (bgOpacityInput && bgOpacityValue) {
-                    bgOpacityInput.value = opacityPercent;
-                    bgOpacityValue.textContent = `${opacityPercent}%`;
-                }
-            } else {
-                // If theme doesn't specify opacity, use current slider value (or default 85%)
-                const currentOpacity = bgOpacityInput ? parseInt(bgOpacityInput.value, 10) : 85;
-                if (window.applyBackgroundOpacity) {
-                    window.applyBackgroundOpacity(currentOpacity);
-                }
+                // Update the slider value and display
+                const opacityPercent = Math.round(themeOpacityValue * 100);
+                if (bgOpacityInput) bgOpacityInput.value = opacityPercent;
+                if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
             }
-
+            
+            // Store the opacity value (0-1 range) in the config object
+            config.bgColorOpacity = themeOpacityValue;
+            
             // NEW: Update font family from theme
             if (theme.fontFamily) {
                 config.fontFamily = theme.fontFamily;
@@ -1357,16 +1348,49 @@
             }
             
             // Apply the theme's visual styles
-            document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
-            document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
-            document.documentElement.style.setProperty('--chat-text-color', config.textColor);
-            document.documentElement.style.setProperty('--username-color', config.usernameColor);
-            
-            // Mirror to popup settings
-            document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
-            document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
-            document.documentElement.style.setProperty('--popup-text-color', config.textColor);
-            document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+            if (theme.value === 'transparent-theme') {
+                // Force specific settings for transparent theme
+                console.log("Applying forced transparent theme styles");
+                config.bgColor = '#000000';
+                config.bgColorOpacity = 0;
+                config.borderColor = 'transparent';
+
+                document.documentElement.style.setProperty('--chat-bg-color', '#000000');
+                document.documentElement.style.setProperty('--chat-bg-opacity', 0);
+                document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                document.documentElement.style.setProperty('--popup-bg-color', '#000000');
+                document.documentElement.style.setProperty('--popup-bg-opacity', 0);
+                document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+
+                // Also update the text/username colors from the theme object if defined
+                config.textColor = theme.textColor || '#ffffff'; // Default for transparent
+                config.usernameColor = theme.usernameColor || '#9147ff';
+                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                document.documentElement.style.setProperty('--popup-text-color', config.textColor);
+                document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+
+                // Update opacity slider value
+                if (bgOpacityInput) bgOpacityInput.value = 0;
+                if (bgOpacityValue) bgOpacityValue.textContent = '0%';
+            } else {
+                // Apply styles normally for other themes
+                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+                document.documentElement.style.setProperty('--username-color', config.usernameColor);
+                document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
+                document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+                document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
+                document.documentElement.style.setProperty('--popup-text-color', config.textColor);
+                document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+                document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
+
+                // Update opacity slider from config (already done earlier, but safe to repeat)
+                const opacityPercent = Math.round(config.bgColorOpacity * 100);
+                if (bgOpacityInput) bgOpacityInput.value = opacityPercent;
+                if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
+            }
 
             // Apply font family
             document.documentElement.style.setProperty('--font-family', config.fontFamily);
