@@ -773,14 +773,30 @@
             connectBtn.addEventListener('click', function(e) {
                 console.log('Connect button clicked');
                 if (e) e.preventDefault();
-                connectToChat();
-                
-                // Save the channel immediately after connection attempt
+                connectToChat(); // Initiate connection
+
+                // Save ONLY the lastChannel after connection attempt, don't close panel
                 if (channel) {
                     config.lastChannel = channel;
-                    saveConfiguration();
+                    try {
+                        // Update just the lastChannel in localStorage without triggering full save/close
+                        const scene = getUrlParameter('scene') || 'default';
+                        const configKey = `chatConfig_${scene}`;
+                        let existingConfig = {};
+                        try {
+                            const saved = localStorage.getItem(configKey);
+                            if (saved) existingConfig = JSON.parse(saved);
+                        } catch (parseError) {
+                            console.error("Error parsing existing config for channel save:", parseError);
+                        }
+                        existingConfig.lastChannel = channel;
+                        localStorage.setItem(configKey, JSON.stringify(existingConfig));
+                        console.log(`Saved lastChannel '${channel}' for scene '${scene}'`);
+                    } catch (storageError) {
+                        console.error("Error saving lastChannel to localStorage:", storageError);
+                    }
                 }
-                
+
                 return false;
             });
             
@@ -795,10 +811,26 @@
             if (e.key === 'Enter') {
                 connectToChat();
                 
-                // Also save the channel after connection is attempted
+                // Also save ONLY the lastChannel after connection is attempted via Enter
                 if (channel) {
                     config.lastChannel = channel;
-                    saveConfiguration();
+                    try {
+                        // Update just the lastChannel in localStorage without triggering full save/close
+                        const scene = getUrlParameter('scene') || 'default';
+                        const configKey = `chatConfig_${scene}`;
+                        let existingConfig = {};
+                        try {
+                            const saved = localStorage.getItem(configKey);
+                            if (saved) existingConfig = JSON.parse(saved);
+                        } catch (parseError) {
+                            console.error("Error parsing existing config for channel save:", parseError);
+                        }
+                        existingConfig.lastChannel = channel;
+                        localStorage.setItem(configKey, JSON.stringify(existingConfig));
+                        console.log(`Saved lastChannel '${channel}' for scene '${scene}' via Enter`);
+                    } catch (storageError) {
+                        console.error("Error saving lastChannel to localStorage via Enter:", storageError);
+                    }
                 }
             }
         });
@@ -1101,16 +1133,29 @@
         // Helper function to highlight the active color buttons based on current values
         function highlightActiveColorButtons() {
             // Background color
-            const bgColorValue = bgColorInput.value || '#121212';
+            const bgColorValue = bgColorInput?.value || '#121212';
+            const bgOpacityValue = bgOpacityInput ? parseInt(bgOpacityInput.value) : 85; // Get opacity value as number
             const bgButtons = document.querySelectorAll('.color-btn[data-target="bg"]');
             bgButtons.forEach(btn => {
-                if (btn.getAttribute('data-color') === bgColorValue) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+                const btnColor = btn.getAttribute('data-color');
+                // Special case for transparent button
+                if (btnColor === 'transparent') {
+                    // Active if color is black AND opacity is 0
+                    if (bgColorValue === '#000000' && bgOpacityValue === 0) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                } else { // Normal buttons
+                    // Active if color matches AND opacity is NOT 0
+                    if (btnColor === bgColorValue && bgOpacityValue > 0) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
                 }
             });
-            
+
             // Border color
             const borderColorValue = borderColorInput.value || '#9147ff';
             const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
@@ -1785,29 +1830,27 @@
                 // Helper to get color (keep existing)
                 const getColor = (inputElement, buttonSelector, defaultColor) => {
                     if (!inputElement) return defaultColor;
-                     // Prioritize the hidden input's value if it's set and not the default
-                     // (This assumes custom color picker interaction updates the input)
-                     if (inputElement.value !== defaultColor) { // Check if it was changed
-                         // Find the button that corresponds to this color IF it exists
-                         const matchingButton = document.querySelector(`${buttonSelector}[data-color="${inputElement.value}"]`);
-                         if (matchingButton && matchingButton.classList.contains('active')) {
-                             // If a button matching the input value is active, use the input value
-                             return inputElement.value;
-                         } else if (!document.querySelector(`${buttonSelector}.active`)) {
-                             // If NO button is active, assume the input holds a custom color
-                             return inputElement.value;
-                         }
-                     }
-                     
-                     // Otherwise, find the active button and get its color
-                     const activeButton = document.querySelector(`${buttonSelector}.active`);
-                     if (activeButton) {
-                         return activeButton.dataset.color;
-                     }
-                     
-                     // Fallback to input value or default if no button is active
-                     return inputElement.value || defaultColor;
-                 };
+
+                    // Find the active button first
+                    const activeButton = document.querySelector(`${buttonSelector}.active`);
+
+                    if (activeButton) {
+                        const activeColor = activeButton.dataset.color;
+                        // Special handling for background transparent button
+                        if (buttonSelector.includes('[data-target="bg"]') && activeColor === 'transparent') {
+                            return '#000000'; // Return the actual hex color value for transparent bg
+                        }
+                        // Special handling for border transparent button
+                        if (buttonSelector.includes('[data-target="border"]') && activeColor === 'transparent') {
+                            return 'transparent'; // Keep 'transparent' string for border CSS
+                        }
+                        // Return the button's color if not a special case
+                        return activeColor;
+                    }
+
+                    // If no button is active, fallback to input value (for custom colors) or default
+                    return inputElement.value || defaultColor;
+                };
                  
                  // Helper to get opacity (keep existing)
                  const getOpacity = (element, defaultValue) => {
