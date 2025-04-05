@@ -647,12 +647,16 @@ button:hover {
 
 /* Color picker buttons */
 .color-btn {
-    width: 36px;
-    height: 20px;
+    width: 60px;
+    height: 25px;
     margin: 2px;
     border: 1px solid #444;
     border-radius: 3px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .color-buttons {

@@ -1343,6 +1343,15 @@
                     document.documentElement.style.setProperty('--popup-bg-image', 'none');
                 }
                 
+                // --- NEW: Apply border radius and box shadow from theme --- 
+                if (theme.borderRadius) {
+                    applyBorderRadius(theme.borderRadius); // Use existing function to apply + highlight
+                }
+                if (theme.boxShadow) {
+                    applyBoxShadow(theme.boxShadow); // Use existing function to apply + highlight
+                }
+                // --- END NEW --- 
+
                 // Update the theme index and display
                 if (currentThemeDisplay) {
                     currentThemeDisplay.textContent = theme.name;
@@ -1767,16 +1776,20 @@
                 const currentFontValue = availableFonts[currentFontIndex]?.value || config.fontFamily;
                 // const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.value || config.theme; // Use VALUE, not ID - REMOVED
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
-                const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
-                const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
-                const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
-                const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
+                // REMOVED: Reading from active buttons is incorrect when saving a theme's state
+                // const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
+                // const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
+                // const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
+                // const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
                 const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212');
                 const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85);
 
                 // Find the full theme object matching the current theme value
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
+                // CORRECT: Get borderRadius and boxShadow directly from the selected theme object
+                const themeBorderRadius = currentFullTheme.borderRadius || config.borderRadius; // Fallback to existing config if theme lacks it
+                const themeBoxShadow = currentFullTheme.boxShadow || config.boxShadow; // Fallback to existing config if theme lacks it
 
                 // --- Create new config object from UI values ---
                 const newConfig = {
@@ -1792,8 +1805,8 @@
                      // Get bgImage from current config - themes handle this, not direct UI input
                      bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
                     bgImageOpacity: bgImageOpacityValue,
-                    borderRadius: borderRadiusValue,
-                    boxShadow: boxShadowValue,
+                    borderRadius: themeBorderRadius, // Use theme's value
+                    boxShadow: themeBoxShadow, // Use theme's value
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
                     chatHeight: getValue(chatHeightInput, 600, true),
