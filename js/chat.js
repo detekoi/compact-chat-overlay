@@ -1833,8 +1833,8 @@
                 // Get scene ID from URL parameter, default to 'default' if not specified
                 const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
                 
-                // Use scene-specific storage key
-                const savedConfig = localStorage.getItem(`twitch-chat-overlay-config-${sceneId}`);
+                // Use scene-specific storage key - CORRECTED KEY
+                const savedConfig = localStorage.getItem(`chatConfig_${sceneId}`); // Use the same key format as saving
                 console.log(`Loading config for scene: ${sceneId}`);
                 
                 if (savedConfig) {
