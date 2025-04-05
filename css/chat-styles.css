@@ -969,7 +969,6 @@ button:hover {
 }
 
 #config-panel > div:last-of-type {
-    background-color: var(--panel-color, #2a2a2e);
     padding-top: 10px;
     border-top: 1px solid rgba(128,128,128,0.2);
     margin-top: 20px;

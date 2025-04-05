@@ -963,7 +963,7 @@
                 
                 // Update color previews
                 updateColorPreviews();
-                updatePreviewFromCurrentSettings();
+                // updatePreviewFromCurrentSettings(); // REMOVED CALL
             });
         });
         
@@ -1379,6 +1379,15 @@
             }
             
             // Apply the theme's visual styles
+            // --> NEW: Update input values FIRST <--
+            if (bgColorInput) bgColorInput.value = config.bgColor;
+            if (borderColorInput) {
+                // Don't set input to 'transparent' directly
+                borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor;
+            }
+            if (textColorInput) textColorInput.value = config.textColor;
+            if (usernameColorInput) usernameColorInput.value = config.usernameColor;
+
             if (theme.value === 'transparent-theme') {
                 // Force specific settings for transparent theme
                 console.log("Applying forced transparent theme styles");
@@ -1776,16 +1785,23 @@
                 
                 // Helper to get color (keep existing)
                 const getColor = (inputElement, buttonSelector, defaultColor) => {
-                    if (!inputElement) return defaultColor;
-
+                     // REMOVED: Check for !inputElement - handled by callers potentially
+                    
                     // Find the active button first
                     const activeButton = document.querySelector(`${buttonSelector}.active`);
-
+                    
                     if (activeButton) {
                         const activeColor = activeButton.dataset.color;
                         // Special handling for background transparent button
                         if (buttonSelector.includes('[data-target="bg"]') && activeColor === 'transparent') {
-                            return '#000000'; // Return the actual hex color value for transparent bg
+                             // If bg transparent button is active, opacity slider dictates actual value
+                             const opacity = getOpacity(bgOpacityInput, 0); // Get current opacity
+                             if (opacity === 0) {
+                                 return '#000000'; // Represents transparent via 0 opacity on black
+                             } else {
+                                 // If opacity > 0 but transparent button is somehow active, revert to input
+                                 return inputElement?.value || defaultColor;
+                             }
                         }
                         // Special handling for border transparent button
                         if (buttonSelector.includes('[data-target="border"]') && activeColor === 'transparent') {
@@ -1794,15 +1810,18 @@
                         // Return the button's color if not a special case
                         return activeColor;
                     }
-
+                    
                     // If no button is active, fallback to input value (for custom colors) or default
-                    return inputElement.value || defaultColor;
+                    // Ensure inputElement exists before accessing its value
+                    return inputElement?.value || defaultColor; 
                 };
                  
                  // Helper to get opacity (keep existing)
                  const getOpacity = (element, defaultValue) => {
                      if (!element) return defaultValue;
-                     return parseFloat(element.value) / 100.0; // Convert percentage 0-100 to 0-1
+                      // Make sure to handle potential NaN
+                      const parsedValue = parseFloat(element.value);
+                      return !isNaN(parsedValue) ? parsedValue / 100.0 : defaultValue; 
                  };
 
                 // --- Read current state from UI controls ---
@@ -1810,61 +1829,47 @@
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
 
-                // Find the full theme object matching the current theme value
+                // Find the full theme object matching the current theme value (used for theme name and potentially image)
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
-                // Ensure we have the correct theme object if the value is transparent
-                if (currentThemeValue === 'transparent-theme' && !currentFullTheme.value) {
-                    const transparentThemeObj = window.availableThemes?.find(t => t.value === 'transparent-theme');
-                    if (transparentThemeObj) Object.assign(currentFullTheme, transparentThemeObj);
-                }
 
-                // --- Create new config object from UI values AND theme ---
+                // --- Create new config object from UI values ---
+                // PRIORITIZE UI control values using helpers
                 const newConfig = {
-                    theme: currentThemeValue, // Reads from lastAppliedThemeValue
-                    // Prioritize theme font, else keep existing config font
-                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, 
+                    theme: currentThemeValue, // Still store the last *selected* theme name
+                    fontFamily: currentFontValue, // Read from font carousel state
                     fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
 
-                    // PRIORITIZE THEME COLORS if theme is not default, otherwise read from UI/inputs via helpers
-                    bgColor: (currentThemeValue !== 'default' && currentFullTheme.bgColor !== undefined) 
-                        ? currentFullTheme.bgColor 
-                        : getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'),
-                    bgColorOpacity: (currentThemeValue !== 'default' && currentFullTheme.bgColorOpacity !== undefined) 
-                        ? currentFullTheme.bgColorOpacity 
-                        : getOpacity(bgOpacityInput, 0.85),
-                    // Border color needs special 'transparent' handling from helper OR theme
-                    borderColor: (currentThemeValue !== 'default' && currentFullTheme.borderColor !== undefined)
-                        ? currentFullTheme.borderColor // Theme provides value (could be 'transparent')
-                        : getColor(borderColorInput, '.color-buttons [data-target="border"]', '#9147ff'), // Helper handles 'transparent' button case
-                    textColor: (currentThemeValue !== 'default' && currentFullTheme.textColor !== undefined) 
-                        ? currentFullTheme.textColor 
-                        : getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
-                    usernameColor: (currentThemeValue !== 'default' && currentFullTheme.usernameColor !== undefined) 
-                        ? currentFullTheme.usernameColor 
-                        : getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
+                    // Read directly from UI controls using helpers
+                    bgColor: getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'),
+                    bgColorOpacity: getOpacity(bgOpacityInput, 0.85),
+                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#9147ff'),
+                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
+                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
                     
-                    // Explicit override for transparent theme to ensure correct values are saved
-                    ...(currentThemeValue === 'transparent-theme' ? {
-                        bgColor: '#000000',
-                        bgColorOpacity: 0,
-                        borderColor: 'transparent'
-                        // textColor/usernameColor will correctly come from the theme object via the logic above
-                    } : {}),
-
+                    // Override username colors based on checkbox
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
-                    // Use theme image if defined, otherwise null
-                    bgImage: currentFullTheme.backgroundImage || null, 
+                    
+                    // Background Image: Use theme's default ONLY if no specific image is set/saved
+                    // This logic might need refinement if users can *upload* images later.
+                    // For now, if a theme *has* an image, keep it unless explicitly changed?
+                    // Let's keep it simple: if theme has image, use it. Assume UI doesn't change this yet.
+                    bgImage: currentFullTheme.backgroundImage || null,
                     // Image opacity always read from slider
                     bgImageOpacity: bgImageOpacityValue, 
                     
-                    // Appearance: Prioritize theme unless 'default'
-                    borderRadius: (currentThemeValue !== 'default' && currentFullTheme.borderRadius !== undefined)
-                        ? currentFullTheme.borderRadius // Use theme value (could be name or px)
-                        : (borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius), // Fallback to UI state or previous config
-                    boxShadow: (currentThemeValue !== 'default' && currentFullTheme.boxShadow !== undefined)
-                        ? currentFullTheme.boxShadow // Use theme value (preset name)
-                        : (boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow), // Fallback to UI state or previous config
+                    // Appearance: Read from active preset buttons or fallback to current config
+                    borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
+                    boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
                     
+                    // Explicit override check *after* reading UI, specifically for the transparent theme case
+                     ...(currentThemeValue === 'transparent-theme' ? {
+                         bgColor: '#000000', // Force black base for transparency effect
+                         bgColorOpacity: 0,    // Force 0 opacity
+                         borderColor: 'transparent', // Force transparent border
+                         // Keep UI-selected text/username colors unless theme dictates otherwise
+                         // textColor: currentFullTheme.textColor || getColor(textColorInput, ...), // Example if needed
+                     } : {}),
+
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
@@ -2316,7 +2321,7 @@
             }
 
             // --- Apply Core CSS Variables ---
-            document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || '#1e1e1e');
+            document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || '#121212');
             document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
             document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
             document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
