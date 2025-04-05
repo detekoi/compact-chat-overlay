@@ -1174,11 +1174,25 @@
             });
 
             // Border color
-            const borderColorValue = borderColorInput.value || '#9147ff';
+            // Read both the input value and the current CSS value
+            const currentBorderCSS = document.documentElement.style.getPropertyValue('--chat-border-color').trim();
+            const borderColorInputValue = borderColorInput.value || '#9147ff'; // Fallback for input
             const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
+
             borderButtons.forEach(btn => {
-                if ((borderColorValue === 'transparent' && btn.getAttribute('data-color') === 'transparent') || 
-                    (borderColorValue !== 'transparent' && btn.getAttribute('data-color') === borderColorValue)) {
+                const btnColor = btn.getAttribute('data-color');
+                let isActive = false;
+
+                if (btnColor === 'transparent') {
+                    // The 'None' button is active if the CSS variable is literally 'transparent'
+                    isActive = (currentBorderCSS === 'transparent');
+                } else {
+                    // Other buttons are active if the CSS variable is NOT 'transparent'
+                    // AND the button's color matches the input value
+                    isActive = (currentBorderCSS !== 'transparent' && btnColor === borderColorInputValue);
+                }
+
+                if (isActive) {
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
@@ -1862,13 +1876,12 @@
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
                     
                     // Explicit override check *after* reading UI, specifically for the transparent theme case
-                     ...(currentThemeValue === 'transparent-theme' ? {
+                     // REMOVED: This block was overriding UI selections when transparent theme was active.
+                     /* ...(currentThemeValue === 'transparent-theme' ? {
                          bgColor: '#000000', // Force black base for transparency effect
                          bgColorOpacity: 0,    // Force 0 opacity
                          borderColor: 'transparent', // Force transparent border
-                         // Keep UI-selected text/username colors unless theme dictates otherwise
-                         // textColor: currentFullTheme.textColor || getColor(textColorInput, ...), // Example if needed
-                     } : {}),
+                     } : {}), */
 
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
@@ -2156,9 +2169,10 @@
             }
             
             if (bgOpacityInput && bgOpacityValue) {
-                const currentOpacity = window.getCurrentBgOpacity ? window.getCurrentBgOpacity() : 85; // Get from module
-                bgOpacityInput.value = currentOpacity;
-                bgOpacityValue.textContent = `${currentOpacity}%`;
+                // Read opacity from the config object (0-1 range) and convert to percentage
+                const configOpacityPercent = Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100);
+                bgOpacityInput.value = configOpacityPercent;
+                bgOpacityValue.textContent = `${configOpacityPercent}%`;
             }
             
             // borderColorInput.value = config.borderColor || '#9147ff';
