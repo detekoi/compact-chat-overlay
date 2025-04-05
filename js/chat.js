@@ -2346,6 +2346,42 @@
             }
             // --- END REPLACEMENT ---
             
+            // --- Update Chat Mode Radio Buttons --- START
+            const currentMode = config.chatMode || 'window'; // Default to window if undefined
+            const modeRadioButtons = document.querySelectorAll('input[name="chat-mode"]');
+            modeRadioButtons.forEach(radio => {
+                if (radio.value === currentMode) {
+                    radio.checked = true;
+                } else {
+                    radio.checked = false;
+                }
+            });
+            updateModeSpecificSettingsVisibility(currentMode); // Also update settings visibility
+            // --- Update Chat Mode Radio Buttons --- END
+            
+            // --- Update Popup Direction --- START
+            const currentPopupDirection = config.popup?.direction || 'from-bottom';
+            const directionRadioButtons = document.querySelectorAll('input[name="popup-direction"]');
+            directionRadioButtons.forEach(radio => {
+                 radio.checked = (radio.value === currentPopupDirection);
+            });
+            // --- Update Popup Direction --- END
+
+            // --- Update Popup Duration/Max Messages --- START
+            const popupDurationInput = document.getElementById('popup-duration');
+            const popupDurationValue = document.getElementById('popup-duration-value');
+            const popupMaxMessagesInput = document.getElementById('popup-max-messages');
+
+            if (popupDurationInput && popupDurationValue) {
+                const duration = config.popup?.duration || 5;
+                popupDurationInput.value = duration;
+                popupDurationValue.textContent = `${duration}s`;
+            }
+            if (popupMaxMessagesInput) {
+                popupMaxMessagesInput.value = config.popup?.maxMessages || 3;
+            }
+            // --- Update Popup Duration/Max Messages --- END
+
             console.log("Config panel updated.");
         }
 
