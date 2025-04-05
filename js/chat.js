@@ -111,41 +111,8 @@
         
         // Font selection
         let currentFontIndex = 0;
-        const availableFonts = [
-            // Custom fonts
-            { name: 'Atkinson Hyperlegible', value: "'Atkinson Hyperlegible', sans-serif", description: 'Designed for high legibility and reading clarity, especially at small sizes.', custom: true },
-            { name: 'EB Garamond', value: "'EB Garamond', serif", description: 'Elegant serif font with classical old-style proportions, perfect for literary or historical themes.', custom: true },
-            { name: 'Tektur', value: "'Tektur', sans-serif", description: 'Modern and slightly angular typeface with a technical/sci-fi aesthetic.', custom: true },
-            { name: 'Medieval Sharp', value: "'MedievalSharp', cursive", description: 'Evokes a medieval/fantasy atmosphere with calligraphic details.', custom: true },
-            { name: 'Press Start 2P', value: "'Press Start 2P', monospace", description: 'Pixelated retro gaming font that resembles 8-bit text.', custom: true },
-            { name: 'Jacquard 12', value: "'Jacquard', monospace", description: 'Clean monospaced font inspired by classic computer terminals.', custom: true },
-            
-            // System fonts organized by categories
-            // Sans-serif fonts
-            { name: 'System UI', value: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
-            { name: 'Arial', value: "Arial, sans-serif", description: 'Classic sans-serif font with good readability.' },
-            { name: 'Helvetica', value: "Helvetica, Arial, sans-serif", description: 'Clean modern sans-serif font widely used in design.' },
-            { name: 'Verdana', value: "Verdana, Geneva, sans-serif", description: 'Sans-serif designed for good readability on screens.' },
-            { name: 'Tahoma', value: "Tahoma, Geneva, sans-serif", description: 'Compact sans-serif with good readability at small sizes.' },
-            { name: 'Trebuchet MS', value: "'Trebuchet MS', sans-serif", description: 'Humanist sans-serif with distinctive character shapes.' },
-            { name: 'Calibri', value: "Calibri, sans-serif", description: 'Modern sans-serif with rounded details and good readability.' },
-            
-            // Serif fonts
-            { name: 'Times New Roman', value: "'Times New Roman', Times, serif", description: 'Classic serif font with traditional letterforms.' },
-            { name: 'Georgia', value: "Georgia, serif", description: 'Elegant serif font designed for screen readability.' },
-            { name: 'Palatino', value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif", description: 'Elegant serif based on Renaissance letterforms.' },
-            { name: 'Garamond', value: "Garamond, Baskerville, 'Baskerville Old Face', serif", description: 'Classical serif with elegant proportions.' },
-            
-            // Monospace fonts
-            { name: 'Courier New', value: "'Courier New', Courier, monospace", description: 'Classic monospaced font resembling typewriter text.' },
-            { name: 'Consolas', value: "Consolas, monaco, monospace", description: 'Modern monospaced font designed for coding.' },
-            { name: 'Lucida Console', value: "'Lucida Console', Monaco, monospace", description: 'Clear monospace font with good readability.' },
-            
-            // Display/Decorative fonts that are commonly available
-            { name: 'Impact', value: "Impact, Haettenschweiler, sans-serif", description: 'Bold condensed sans-serif font, often used for headlines.' },
-            { name: 'Comic Sans MS', value: "'Comic Sans MS', cursive", description: 'Casual script-like font with a friendly appearance.' },
-            { name: 'Arial Black', value: "'Arial Black', Gadget, sans-serif", description: 'Extra bold version of Arial for strong emphasis.' }
-        ];
+        // availableFonts is now defined globally in theme-carousel.js
+        // const availableFonts = [ ... ]; // REMOVED local definition
         
         // Theme selection (populated by theme-carousel.js)
         let currentThemeIndex = 0;
@@ -1313,200 +1280,149 @@
         // Switch themes with the carousel
         
         function applyTheme(themeName) {
-            try {
-                // First find the theme object matching this name
-                const themeIndex = availableThemes.findIndex(theme => theme.value === themeName);
-                if (themeIndex === -1) return;
-                
-                const theme = availableThemes[themeIndex];
-                console.log("Applying theme:", theme.name);
-                
-                // First remove all theme classes
-                document.documentElement.classList.remove(
-                    'light-theme', 
-                    'natural-theme', 
-                    'transparent-theme', 
-                    'pink-theme', 
-                    'cyberpunk-theme'
-                    // Add any other theme-specific classes here dynamically later if needed
-                    // Or better, rely purely on CSS variables set below
-                );
-                
-                // Then apply the selected theme if it's not default
-                if (themeName !== 'default') {
-                    document.documentElement.classList.add(themeName);
-                }
-                
-                // Apply CSS variables directly
-                let themeHexColor = theme.bgColor; // Assume hex initially
-                let themeOpacity = 0.85; // Default opacity
-
-                // *** Revised Opacity Handling ***
-                if (theme.bgColorOpacity !== undefined) {
-                    // Priority 1: Use explicit opacity property if defined
-                    themeOpacity = theme.bgColorOpacity;
-                    console.log(`Using theme's defined opacity: ${themeOpacity}`);
-                    // Ensure themeHexColor is set correctly (it should be hex already)
-                    themeHexColor = theme.bgColor;
-                } else {
-                    // Priority 2: Check if theme.bgColor is RGBA (legacy fallback)
-                const rgbaMatch = theme.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)/);
-                if (rgbaMatch) {
-                        console.warn(`Theme ${theme.name} uses legacy RGBA bgColor. Converting.`);
-                    const [, r, g, b, a] = rgbaMatch;
-                    // Convert the RGB part to hex
-                    themeHexColor = '#' + parseInt(r).toString(16).padStart(2, '0') +
-                                     parseInt(g).toString(16).padStart(2, '0') +
-                                     parseInt(b).toString(16).padStart(2, '0');
-                    // Use the alpha value from the RGBA string
-                    themeOpacity = parseFloat(a);
-                    } else {
-                        // Priority 3: If not explicit and not RGBA, use default opacity with theme's color
-                        themeHexColor = theme.bgColor; // Should be hex
-                        // Use default 0.85 or read from slider? Reading slider here could cause issues.
-                        // Let's stick to a sensible default for themes without explicit opacity.
-                        themeOpacity = 0.85; 
-                        console.log(`Theme ${theme.name} has no explicit opacity or RGBA. Using default opacity ${themeOpacity}.`);
-                    }
-                }
-                // *** END Revised Opacity Handling ***
-
-                // *** Update the opacity slider and its display value AFTER determining themeOpacity ***
-                    if (bgOpacityInput) {
-                        const themeOpacityPercent = Math.round(themeOpacity * 100);
-                        bgOpacityInput.value = themeOpacityPercent;
-                        if (bgOpacityValue) {
-                            bgOpacityValue.textContent = `${themeOpacityPercent}%`;
-                        }
-                    console.log(`Set opacity slider to ${themeOpacityPercent}% based on theme.`);
-                }
-                
-                // Now set the CSS variables using the determined hex color and opacity
-                document.documentElement.style.setProperty('--chat-bg-color', themeHexColor);
-                document.documentElement.style.setProperty('--chat-bg-opacity', themeOpacity);
-                document.documentElement.style.setProperty('--chat-border-color', theme.borderColor);
-                document.documentElement.style.setProperty('--chat-text-color', theme.textColor);
-                document.documentElement.style.setProperty('--username-color', theme.usernameColor);
-                
-                // Also set popup mode variables for consistent theming
-                document.documentElement.style.setProperty('--popup-bg-color', themeHexColor);
-                document.documentElement.style.setProperty('--popup-bg-opacity', themeOpacity);
-                document.documentElement.style.setProperty('--popup-border-color', theme.borderColor);
-                document.documentElement.style.setProperty('--popup-text-color', theme.textColor);
-                document.documentElement.style.setProperty('--popup-username-color', theme.usernameColor);
-                
-                // Special handling for Transparent theme to ensure border is transparent
-                if (theme.value === 'transparent-theme') {
-                    document.documentElement.style.setProperty('--chat-border-color', 'transparent');
-                    document.documentElement.style.setProperty('--popup-border-color', 'transparent');
-                }
-                
-                // Apply background image if available
-                if (theme.backgroundImage) {
-                    // Apply to both chat container and popup container
-                    document.documentElement.style.setProperty('--chat-bg-image', `url("${theme.backgroundImage}")`); 
-                    document.documentElement.style.setProperty('--popup-bg-image', `url("${theme.backgroundImage}")`); 
-                } else {
-                    document.documentElement.style.setProperty('--chat-bg-image', 'none');
-                    document.documentElement.style.setProperty('--popup-bg-image', 'none');
-                }
-                
-                // --- NEW: Apply border radius and box shadow from theme --- 
-                    if (theme.borderRadius) {
-                    applyBorderRadius(theme.borderRadius); // Use existing function to apply + highlight
-                }
-                    if (theme.boxShadow) {
-                    applyBoxShadow(theme.boxShadow); // Use existing function to apply + highlight
-                }
-                // --- END NEW --- 
-
-                // --- NEW: Apply font family from theme --- 
-                if (theme.fontFamily) {
-                    // CORRECTED: Compare theme.fontFamily against font.name
-                    const fontIndex = availableFonts.findIndex(font => font.name === theme.fontFamily);
-                    if (fontIndex !== -1) {
-                        currentFontIndex = fontIndex; // Update the global font index
-                        updateFontDisplay(); // Apply the font and update the carousel display
-                    } else {
-                        // Fallback check against value just in case some themes store the full value
-                        const fontIndexByValue = availableFonts.findIndex(font => font.value === theme.fontFamily);
-                        if (fontIndexByValue !== -1) {
-                            currentFontIndex = fontIndexByValue;
-                            updateFontDisplay();
-                        } else {
-                            console.warn(`Theme specified font '${theme.fontFamily}' not found in availableFonts (checked name and value). Using current font.`);
-                        }
-                    }
-                }
-                // --- END NEW ---
-                
-                // Update the theme index and display
-                if (currentThemeDisplay) {
-                    currentThemeDisplay.textContent = theme.name;
-                }
-                
-                // Also apply the preview
-                updateThemePreview(theme);
-                
-                // Update any hidden color inputs to match the theme
-                if (bgColorInput) {
-                    // Set the input to the hex color we determined (whether from hex or RGBA)
-                    bgColorInput.value = themeHexColor;
-                }
-                
-                // Special handling for transparent border
-                if (borderColorInput) {
-                    if (theme.value === 'transparent-theme' || theme.borderColor === 'transparent') {
-                        borderColorInput.value = 'transparent';
-                        // Also update the None button to appear active
-                        const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
-                        borderButtons.forEach(btn => {
-                            if (btn.getAttribute('data-color') === 'transparent') {
-                                btn.classList.add('active');
-                            } else {
-                                btn.classList.remove('active');
-                            }
-                        });
-                    } else {
-                        borderColorInput.value = theme.borderColor;
-                    }
-                }
-                if (textColorInput) textColorInput.value = theme.textColor;
-                if (usernameColorInput) usernameColorInput.value = theme.usernameColor;
-                
-                // Update color previews (which also highlights buttons)
-                updateColorPreviews();
-                
-            } catch (error) {
-                console.error("Error applying theme:", error);
+            console.log(`Applying theme: ${themeName}`);
+            
+            // Ensure window.availableThemes is available
+            if (!window.availableThemes || window.availableThemes.length === 0) {
+                console.error('Available themes not initialized yet.');
+                return;
             }
+            
+            // Find the theme object by name or value
+            const theme = window.availableThemes.find(t => t.value === themeName || t.name === themeName);
+            
+            if (!theme) {
+                console.warn(`Theme "${themeName}" not found. Applying default.`);
+                // Fallback to default theme if not found
+                const defaultTheme = window.availableThemes.find(t => t.value === 'default');
+                if (defaultTheme) {
+                    applyTheme(defaultTheme.value); // Recursively call with default theme
+                }
+                return;
+            }
+            
+            console.log('Theme object found:', theme);
+            
+            // Update config object with theme settings
+            config.theme = theme.value; // Store the theme value
+            config.bgColor = theme.bgColor || '#121212'; // Default to dark if missing
+            config.borderColor = theme.borderColor || '#9147ff'; // Default to Twitch purple
+            config.textColor = theme.textColor || '#efeff1'; // Default to light text
+            config.usernameColor = theme.usernameColor || '#9147ff'; // Default to Twitch purple
+            config.borderRadius = theme.borderRadius || '8px'; // Default to subtle
+            config.boxShadow = theme.boxShadow || 'none'; // Default to none
+            
+            // Handle opacity separately (comes from theme or slider)
+            if (typeof theme.bgColorOpacity !== 'undefined') {
+                // Convert opacity from 0-1 range (theme) to 0-100 (slider)
+                let opacityPercent = Math.round(theme.bgColorOpacity * 100);
+                
+                // Apply the opacity via the bg-opacity-handler module
+                if (window.applyBackgroundOpacity) {
+                    window.applyBackgroundOpacity(opacityPercent);
+                }
+                
+                // Update the slider value in the config panel
+                if (bgOpacityInput && bgOpacityValue) {
+                    bgOpacityInput.value = opacityPercent;
+                    bgOpacityValue.textContent = `${opacityPercent}%`;
+                }
+            } else {
+                // If theme doesn't specify opacity, use current slider value (or default 85%)
+                const currentOpacity = bgOpacityInput ? parseInt(bgOpacityInput.value, 10) : 85;
+                if (window.applyBackgroundOpacity) {
+                    window.applyBackgroundOpacity(currentOpacity);
+                }
+            }
+
+            // NEW: Update font family from theme
+            if (theme.fontFamily) {
+                config.fontFamily = theme.fontFamily;
+                // Find the index of this font in the global list
+                const fontIndex = window.availableFonts.findIndex(f => f.value === theme.fontFamily);
+                if (fontIndex !== -1) {
+                    currentFontIndex = fontIndex;
+                } else {
+                    // If theme font not in list, find default or set to 0
+                    const defaultFontIndex = window.availableFonts.findIndex(f => f.value.includes('Atkinson'));
+                    currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
+                    config.fontFamily = window.availableFonts[currentFontIndex].value;
+                    console.warn(`Theme font "${theme.fontFamily}" not found in availableFonts. Using default.`);
+                }
+                updateFontDisplay(); // Update font selector UI
+            } else {
+                // If theme has no font, keep current font setting
+                // Ensure config reflects the current selection
+                config.fontFamily = window.availableFonts[currentFontIndex].value;
+            }
+            
+            // Apply the theme's visual styles
+            document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
+            document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
+            document.documentElement.style.setProperty('--chat-text-color', config.textColor);
+            document.documentElement.style.setProperty('--username-color', config.usernameColor);
+            
+            // Mirror to popup settings
+            document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
+            document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
+            document.documentElement.style.setProperty('--popup-text-color', config.textColor);
+            document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
+
+            // Apply font family
+            document.documentElement.style.setProperty('--font-family', config.fontFamily);
+            
+            // Apply border radius (using preset name or value)
+            applyBorderRadius(config.borderRadius);
+            
+            // Apply box shadow (using preset name or value)
+            applyBoxShadow(config.boxShadow);
+            
+            // Update config panel display to reflect theme changes (if open)
+            if (configPanel.style.display === 'block') {
+                updateConfigPanelFromConfig();
+            }
+            
+            // Update theme carousel display
+            updateThemePreview(theme); // Update preview with selected theme
+            
+            // Store the last successfully applied theme value
+            lastAppliedThemeValue = theme.value;
+            
+            console.log(`Theme "${theme.name}" applied successfully.`);
         }
         
         // Initialize font selection
         function updateFontDisplay() {
-            currentFontDisplay.textContent = availableFonts[currentFontIndex].name;
-            
-            // Update the CSS variable
-            const fontFamily = availableFonts[currentFontIndex].value;
-            document.documentElement.style.setProperty('--font-family', fontFamily);
-            
-            // Update the theme preview's font
-            const themePreview = document.getElementById('theme-preview');
-            if (themePreview) {
-                themePreview.style.fontFamily = fontFamily;
+            // Ensure window.availableFonts is available
+            if (!window.availableFonts || window.availableFonts.length === 0) {
+                console.error('Available fonts not initialized yet.');
+                currentFontDisplay.textContent = 'Error';
+                return;
             }
             
-            // Show font description if available
-            const fontDescription = document.getElementById('font-description');
-            if (fontDescription) {
-                fontDescription.textContent = availableFonts[currentFontIndex].description || '';
+            // Validate currentFontIndex
+            if (currentFontIndex < 0 || currentFontIndex >= window.availableFonts.length) {
+                console.warn(`Invalid currentFontIndex (${currentFontIndex}), resetting to 0.`);
+                currentFontIndex = 0;
             }
+            
+            const currentFont = window.availableFonts[currentFontIndex];
+            currentFontDisplay.textContent = currentFont.name;
+            
+            // Apply the font immediately
+            config.fontFamily = currentFont.value;
+            document.documentElement.style.setProperty('--font-family', config.fontFamily);
+            
+            console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
+            
+            // Update the theme preview to reflect the font change
+            updatePreviewFromCurrentSettings();
         }
         
         // Font selection carousel
         if (prevFontBtn && !prevFontBtn.dataset.listenerAttached) { 
         prevFontBtn.addEventListener('click', () => {
-            currentFontIndex = (currentFontIndex - 1 + availableFonts.length) % availableFonts.length;
+            currentFontIndex = (currentFontIndex - 1 + window.availableFonts.length) % window.availableFonts.length;
             updateFontDisplay();
         });
             prevFontBtn.dataset.listenerAttached = 'true';
@@ -1514,7 +1430,7 @@
         
         if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) { 
         nextFontBtn.addEventListener('click', () => {
-            currentFontIndex = (currentFontIndex + 1) % availableFonts.length;
+            currentFontIndex = (currentFontIndex + 1) % window.availableFonts.length;
             updateFontDisplay();
         });
             nextFontBtn.dataset.listenerAttached = 'true';
@@ -1523,7 +1439,7 @@
         // Setting theme listeners only once
         if (prevThemeBtn && !prevThemeBtn.dataset.listenerAttached) { 
             prevThemeBtn.addEventListener('click', () => {
-                currentThemeIndex = (currentThemeIndex - 1 + availableThemes.length) % availableThemes.length;
+                currentThemeIndex = (currentThemeIndex - 1 + window.availableThemes.length) % window.availableThemes.length;
                 updateThemeDisplay();
             });
             prevThemeBtn.dataset.listenerAttached = 'true';
@@ -1531,7 +1447,7 @@
         
         if (nextThemeBtn && !nextThemeBtn.dataset.listenerAttached) { 
             nextThemeBtn.addEventListener('click', () => {
-                currentThemeIndex = (currentThemeIndex + 1) % availableThemes.length;
+                currentThemeIndex = (currentThemeIndex + 1) % window.availableThemes.length;
                 updateThemeDisplay();
             });
             nextThemeBtn.dataset.listenerAttached = 'true';
@@ -1539,7 +1455,7 @@
         
         // Initialize theme display
         function updateThemeDisplay() {
-            const theme = availableThemes[currentThemeIndex];
+            const theme = window.availableThemes[currentThemeIndex];
             currentThemeDisplay.textContent = theme.name;
             lastAppliedThemeValue = theme.value; // UPDATE the tracked value
 
@@ -1710,7 +1626,7 @@
             }
             
             // Apply the current font family and size
-            const fontFamily = availableFonts[currentFontIndex].value;
+            const fontFamily = window.availableFonts[currentFontIndex].value;
             const fontSize = fontSizeSlider.value;
             document.documentElement.style.setProperty('--font-family', fontFamily);
             themePreview.style.fontFamily = fontFamily;
@@ -1719,7 +1635,7 @@
         
         // Update the preview whenever colors or settings change
         function updatePreviewFromCurrentSettings() {
-            updateThemePreview(availableThemes[currentThemeIndex], true);
+            updateThemePreview(window.availableThemes[currentThemeIndex], true);
         }
         
         // Username color override toggle
@@ -1859,7 +1775,7 @@
                  };
 
                 // --- Read current state from UI controls ---
-                const currentFontValue = availableFonts[currentFontIndex]?.value || config.fontFamily;
+                const currentFontValue = window.availableFonts[currentFontIndex]?.value || config.fontFamily;
                 // const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.value || config.theme; // Use VALUE, not ID - REMOVED
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
                 // REVERTED: Read from active preset buttons to allow manual override
@@ -2133,118 +2049,129 @@
          * Called after reverting or applying a theme.
          */
         function updateConfigPanelFromConfig() {
-            console.log("Updating config panel controls from config object...");
+            console.log("Updating config panel from current config:", config);
             
-            try {
-                // Set color inputs
-                if (bgColorInput) bgColorInput.value = config.bgColor || '#1e1e1e';
-                if (borderColorInput) borderColorInput.value = config.borderColor || '#444444';
-                if (textColorInput) textColorInput.value = config.textColor || '#efeff1';
-                if (usernameColorInput) usernameColorInput.value = config.usernameColor || '#9147ff';
-                
-                // Set opacity sliders
-             if (bgOpacityInput) {
-                    const opacity = Math.round((config.bgColorOpacity || 0.85) * 100);
-                    bgOpacityInput.value = opacity;
-                    if (bgOpacityValue) bgOpacityValue.textContent = `${opacity}%`;
-                }
-                
-              if (bgImageOpacityInput) {
-                    const opacity = Math.round((config.bgImageOpacity || 0.55) * 100);
-                    bgImageOpacityInput.value = opacity;
-                    const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
-                    if (bgImageOpacityValue) bgImageOpacityValue.textContent = `${opacity}%`;
-                }
-                
-                // Set font size slider
-                if (fontSizeSlider) {
-                    fontSizeSlider.value = config.fontSize || 14;
-                    if (fontSizeValue) fontSizeValue.textContent = `${config.fontSize || 14}px`;
-                }
-                
-                // Set size sliders
-                if (chatWidthInput) {
-                    chatWidthInput.value = config.chatWidth || 100;
-                    if (chatWidthValue) chatWidthValue.textContent = `${config.chatWidth || 100}%`;
-                }
-                
-                if (chatHeightInput) {
-                    chatHeightInput.value = config.chatHeight || 600;
-                    if (chatHeightValue) chatHeightValue.textContent = `${config.chatHeight || 600}px`;
-                }
-                
-                // Set checkboxes
-                if (overrideUsernameColorsInput) overrideUsernameColorsInput.checked = config.overrideUsernameColors || false;
-                if (showTimestampsInput) showTimestampsInput.checked = config.showTimestamps !== false; // Default to true
-                
-                // Set max messages
-                if (maxMessagesInput) maxMessagesInput.value = config.maxMessages || 50;
-                
-                // Set chat mode radio buttons
-                const chatMode = config.chatMode || 'window';
-                document.querySelectorAll('input[name="chat-mode"]').forEach(input => {
-                    input.checked = input.value === chatMode;
-                });
-                
-                // Show/hide popup settings based on mode
-                document.querySelectorAll('.popup-setting').forEach(el => {
-                    el.style.display = chatMode === 'popup' ? 'flex' : 'none';
-                });
-                document.querySelectorAll('.window-only-setting').forEach(el => {
-                    el.style.display = chatMode === 'window' ? 'flex' : 'none';
-                });
+            // Ensure window.availableThemes and window.availableFonts are ready
+            if (!window.availableThemes || !window.availableFonts) {
+                console.warn("Themes or fonts not ready, delaying config panel update.");
+                // Optionally, retry after a short delay or wait for an event
+                // setTimeout(updateConfigPanelFromConfig, 100); 
+                return;
+            }
 
-            // Set popup settings
-                if (config.popup) {
-                    // Set direction radio buttons
-                    const direction = config.popup.direction || 'from-bottom';
-                    document.querySelectorAll('input[name="popup-direction"]').forEach(input => {
-                        input.checked = input.value === direction;
-                    });
-                    
-                    // Set popup duration
-                    const popupDurationInput = document.getElementById('popup-duration');
-                    const popupDurationValue = document.getElementById('popup-duration-value');
-                    if (popupDurationInput) {
-                        popupDurationInput.value = config.popup.duration || 5;
-                        if (popupDurationValue) popupDurationValue.textContent = `${config.popup.duration || 5}s`;
-                    }
-                    
-                    // Set popup max messages
-                    const popupMaxMessagesInput = document.getElementById('popup-max-messages');
-                    if (popupMaxMessagesInput) {
-                        popupMaxMessagesInput.value = config.popup.maxMessages || 3;
+            // Update Display Mode radios
+            const chatModeRadios = document.querySelectorAll('input[name="chat-mode"]');
+            chatModeRadios.forEach(radio => {
+                radio.checked = (radio.value === config.chatMode);
+            });
+            switchChatMode(config.chatMode, false); // Update visibility without saving
+            
+            // Update Popup settings (only if in popup mode)
+            const popupDirectionRadios = document.querySelectorAll('input[name="popup-direction"]');
+            popupDirectionRadios.forEach(radio => {
+                radio.checked = (radio.value === config.popup.direction);
+            });
+            if (document.getElementById('popup-duration')) {
+                document.getElementById('popup-duration').value = config.popup.duration;
+                document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
+            }
+            if (document.getElementById('popup-max-messages')) {
+                document.getElementById('popup-max-messages').value = config.popup.maxMessages;
+            }
+            
+            // Update Colors
+            if (bgColorInput && config.bgColor) {
+                // Extract color part from rgba string if necessary
+                let hexColor = config.bgColor;
+                if (config.bgColor.startsWith('rgba')) {
+                    try {
+                        // Basic conversion: assumes format rgba(r, g, b, a)
+                        const parts = config.bgColor.match(/\d+/g);
+                        if (parts && parts.length >= 3) {
+                            hexColor = `#${parseInt(parts[0]).toString(16).padStart(2, '0')}${parseInt(parts[1]).toString(16).padStart(2, '0')}${parseInt(parts[2]).toString(16).padStart(2, '0')}`;
+                        }
+                    } catch (e) {
+                        console.warn("Could not parse rgba for hex input:", config.bgColor);
+                        hexColor = '#121212'; // Fallback
                     }
                 }
-                
-                // Update font and theme indices based on current config
-                if (config.fontFamily) {
-            const fontIndex = availableFonts.findIndex(font => font.value === config.fontFamily);
+                // bgColorInput.value = hexColor;
+            }
+            
+            if (bgOpacityInput && bgOpacityValue) {
+                const currentOpacity = window.getCurrentBgOpacity ? window.getCurrentBgOpacity() : 85; // Get from module
+                bgOpacityInput.value = currentOpacity;
+                bgOpacityValue.textContent = `${currentOpacity}%`;
+            }
+            
+            // borderColorInput.value = config.borderColor || '#9147ff';
+            // textColorInput.value = config.textColor || '#efeff1';
+            // usernameColorInput.value = config.usernameColor || '#9147ff';
+            highlightActiveColorButtons(); // Highlight buttons based on current config
+            
+            // Update Appearance
+            const effectiveBorderRadius = getBorderRadiusValue(config.borderRadius);
+            highlightBorderRadiusButton(effectiveBorderRadius);
+            
+            const effectiveBoxShadow = getBoxShadowValue(config.boxShadow);
+            highlightBoxShadowButton(config.boxShadow); // Use original preset name for highlighting
+            
+            // Update Settings
+            overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+            
+            // Find the current font index based on config.fontFamily
+            const fontIndex = window.availableFonts.findIndex(f => f.value === config.fontFamily);
             if (fontIndex !== -1) {
                 currentFontIndex = fontIndex;
-                        if (currentFontDisplay) currentFontDisplay.textContent = availableFonts[fontIndex].name;
-                    }
-                }
-                
-                if (config.theme) {
-                    const themeIndex = window.availableThemes.findIndex(theme => theme.id === config.theme);
-                    if (themeIndex !== -1) {
-                        currentThemeIndex = themeIndex;
-                        if (currentThemeDisplay) currentThemeDisplay.textContent = window.availableThemes[themeIndex].name;
-                    }
-                }
-                
-                // Highlight active preset buttons
-                highlightBorderRadiusButton(config.borderRadius || '8px');
-                highlightBoxShadowButton(config.boxShadow || 'none');
-
-            // Highlight active color buttons
-            highlightActiveColorButtons();
-
-                console.log("Config panel controls updated successfully.");
-            } catch (error) {
-                console.error("Error updating config panel from config:", error);
+            } else {
+                 // If font not found, default to Atkinson Hyperlegible or index 0
+                 const defaultFontIndex = window.availableFonts.findIndex(f => f.value.includes('Atkinson'));
+                 currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
+                 config.fontFamily = window.availableFonts[currentFontIndex].value; // Ensure config is updated
+                 console.warn(`Font from config ("${config.fontFamily}") not found, defaulting.`);
             }
+            updateFontDisplay();
+            
+            fontSizeSlider.value = config.fontSize;
+            fontSizeValue.textContent = `${config.fontSize}px`;
+            chatWidthInput.value = config.chatWidth;
+            chatWidthValue.textContent = `${config.chatWidth}%`;
+            chatHeightInput.value = config.chatHeight;
+            chatHeightValue.textContent = `${config.chatHeight}px`;
+            maxMessagesInput.value = config.maxMessages;
+            showTimestampsInput.checked = config.showTimestamps;
+            
+            // Update Theme Carousel
+            const themeIndex = window.availableThemes.findIndex(t => t.value === config.theme);
+            if (themeIndex !== -1) {
+                currentThemeIndex = themeIndex;
+            } else {
+                // If theme not found, default to 'default' theme or index 0
+                const defaultThemeIndex = window.availableThemes.findIndex(t => t.value === 'default');
+                currentThemeIndex = defaultThemeIndex !== -1 ? defaultThemeIndex : 0;
+                config.theme = window.availableThemes[currentThemeIndex].value; // Ensure config is updated
+                console.warn(`Theme from config ("${config.theme}") not found, defaulting.`);
+            }
+            // updateThemeDisplay(); // Update carousel UI - REMOVED RECURSIVE CALL
+            updateThemePreview(window.availableThemes[currentThemeIndex]); // Update preview
+            
+            // Update Connection status
+            channelInput.value = config.lastChannel || '';
+            // updateConnectionUI(socket && socket.readyState === WebSocket.OPEN);
+            // --- BEGIN REPLACEMENT for updateConnectionUI ---
+            const isConnected = socket && socket.readyState === WebSocket.OPEN;
+            if (channelForm) {
+                channelForm.style.display = isConnected ? 'none' : 'flex'; // Use 'flex' for visibility
+            }
+            if (disconnectBtn) {
+                disconnectBtn.style.display = isConnected ? 'block' : 'none';
+                if (isConnected) {
+                    disconnectBtn.textContent = `Disconnect from ${channel || config.lastChannel}`; // Ensure channel name is shown
+                }
+            }
+            // --- END REPLACEMENT ---
+            
+            console.log("Config panel updated.");
         }
 
         // ... (rest of event listeners: disconnect, reset, save, enter key) ...

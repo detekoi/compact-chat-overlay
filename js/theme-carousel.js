@@ -11,6 +11,44 @@
     // State for the theme carousel
     let generatedThemes = [];
     
+    // Define available fonts globally
+    window.availableFonts = [
+        // Custom fonts
+        { name: 'Atkinson Hyperlegible', value: "'Atkinson Hyperlegible', sans-serif", description: 'Designed for high legibility and reading clarity, especially at small sizes.', custom: true },
+        { name: 'EB Garamond', value: "'EB Garamond', serif", description: 'Elegant serif font with classical old-style proportions, perfect for literary or historical themes.', custom: true },
+        { name: 'Tektur', value: "'Tektur', sans-serif", description: 'Modern and slightly angular typeface with a technical/sci-fi aesthetic.', custom: true },
+        { name: 'Medieval Sharp', value: "'MedievalSharp', cursive", description: 'Evokes a medieval/fantasy atmosphere with calligraphic details.', custom: true },
+        { name: 'Press Start 2P', value: "'Press Start 2P', monospace", description: 'Pixelated retro gaming font that resembles 8-bit text.', custom: true },
+        { name: 'Jacquard 12', value: "'Jacquard', monospace", description: 'Clean monospaced font inspired by classic computer terminals.', custom: true },
+        
+        // System fonts organized by categories
+        // Sans-serif fonts
+        { name: 'System UI', value: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+        { name: 'Arial', value: "Arial, sans-serif", description: 'Classic sans-serif font with good readability.' },
+        { name: 'Helvetica', value: "Helvetica, Arial, sans-serif", description: 'Clean modern sans-serif font widely used in design.' },
+        { name: 'Verdana', value: "Verdana, Geneva, sans-serif", description: 'Sans-serif designed for good readability on screens.' },
+        { name: 'Tahoma', value: "Tahoma, Geneva, sans-serif", description: 'Compact sans-serif with good readability at small sizes.' },
+        { name: 'Trebuchet MS', value: "'Trebuchet MS', sans-serif", description: 'Humanist sans-serif with distinctive character shapes.' },
+        { name: 'Calibri', value: "Calibri, sans-serif", description: 'Modern sans-serif with rounded details and good readability.' },
+        
+        // Serif fonts
+        { name: 'Times New Roman', value: "'Times New Roman', Times, serif", description: 'Classic serif font with traditional letterforms.' },
+        { name: 'Georgia', value: "Georgia, serif", description: 'Elegant serif font designed for screen readability.' },
+        { name: 'Palatino', value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif", description: 'Elegant serif based on Renaissance letterforms.' },
+        { name: 'Garamond', value: "Garamond, Baskerville, 'Baskerville Old Face', serif", description: 'Classical serif with elegant proportions.' }, // Note: EB Garamond is custom/imported
+        
+        // Monospace fonts
+        { name: 'Courier New', value: "'Courier New', Courier, monospace", description: 'Classic monospaced font resembling typewriter text.' },
+        { name: 'Consolas', value: "'Consolas', monaco, monospace", description: 'Modern monospaced font designed for coding.' },
+        { name: 'Lucida Console', value: "'Lucida Console', Monaco, monospace", description: 'Clear monospace font with good readability.' },
+        
+        // Display/Decorative fonts that are commonly available
+        { name: 'Impact', value: "Impact, Haettenschweiler, sans-serif", description: 'Bold condensed sans-serif font, often used for headlines.' },
+        { name: 'Comic Sans MS', value: "'Comic Sans MS', cursive", description: 'Casual script-like font with a friendly appearance.' },
+        { name: 'Arial Black', value: "'Arial Black', Gadget, sans-serif", description: 'Extra bold version of Arial for strong emphasis.' }
+    ];
+    console.log('Available fonts defined globally in theme-carousel.js');
+    
     // Carousel API - publicly accessible functions
     const carouselAPI = {
         addTheme: addThemeToCarousel,
@@ -31,12 +69,12 @@
     function init() {
         // Define the default themes here, creating window.availableThemes
          window.availableThemes = [
-             { name: 'Default', value: 'default', bgColor: '#121212', bgColorOpacity: 0.85, borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
-             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none' },
-             { name: 'Light', value: 'light-theme', bgColor: '#ffffff', bgColorOpacity: 0.9, borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft' },
-             { name: 'Natural', value: 'natural-theme', bgColor: '#3d2b1f', bgColorOpacity: 0.85, borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d' },
-             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: '#0d0c19', bgColorOpacity: 0.85, borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp' },
-             { name: 'Pink', value: 'pink-theme', bgColor: '#ffdeec', bgColorOpacity: 0.85, borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d' }
+             { name: 'Default', value: 'default', bgColor: '#121212', bgColorOpacity: 0.85, borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
+             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', borderRadius: '0px', boxShadow: 'none', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
+             { name: 'Light', value: 'light-theme', bgColor: '#ffffff', bgColorOpacity: 0.9, borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
+             { name: 'Natural', value: 'natural-theme', bgColor: '#3d2b1f', bgColorOpacity: 0.85, borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d', fontFamily: "'EB Garamond', serif" },
+             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: '#0d0c19', bgColorOpacity: 0.85, borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp', fontFamily: "'Tektur', sans-serif" },
+             { name: 'Pink', value: 'pink-theme', bgColor: '#ffdeec', bgColorOpacity: 0.85, borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d', fontFamily: "'Atkinson Hyperlegible', sans-serif" }
         ];
         console.log('Default themes initialized in theme-carousel.js');
 
