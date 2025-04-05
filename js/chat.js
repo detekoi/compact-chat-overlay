@@ -47,8 +47,9 @@
         
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
+        const chatWrapper = document.getElementById('chat-wrapper'); // Get reference to the wrapper
         const chatMessages = document.getElementById('chat-messages');
-        const scrollArea = document.getElementById('chat-scroll-area'); // Define scroll area element
+        const scrollArea = document.getElementById('chat-scroll-area');
         // Create status indicator if it doesn't exist
         let statusIndicator;
         if (!document.getElementById('status-indicator')) {
@@ -1210,121 +1211,101 @@
         }
         
         // Toggle between window and popup modes
-        function switchChatMode(mode) {
+        function switchChatMode(mode, applyConfig = true) { // Added applyConfig flag
             try {
                 console.log(`Switching chat mode to: ${mode}`);
                 config.chatMode = mode;
-                
-                // Make sure message containers and settings are properly initialized
+
+                // Get references to containers
                 const popupContainer = document.getElementById('popup-container');
-                const popupMessages = document.getElementById('popup-messages');
-                if (!popupContainer || !popupMessages) {
-                    console.error('Popup containers not found in DOM');
+                // const chatContainer = document.getElementById('chat-container'); // Already defined globally
+                // const chatWrapper = document.getElementById('chat-wrapper'); // Already defined globally
+
+                if (!popupContainer || !chatContainer || !chatWrapper) {
+                    console.error('Required containers (popup, chat, wrapper) not found in DOM');
                     return;
                 }
-                
-                // Clear existing messages from popup container to prevent them from persisting
-                if (popupMessages) {
-                    popupMessages.innerHTML = '';
-                }
-                
-                // Update both containers based on mode
+
+                // Clear popup messages container
+                const popupMessages = document.getElementById('popup-messages');
+                if (popupMessages) popupMessages.innerHTML = '';
+
+                // Update visibility based on mode
                 if (mode === 'popup') {
-                    // Show popup container, hide window container
-                    popupContainer.style.display = 'block';
-                    
-                    if (chatContainer) {
-                        chatContainer.style.display = 'none';
-                    }
-                    
-                    // Move channel form to popup container if not connected
-                    const channelForm = document.getElementById('channel-form');
-                    if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
-                        // Form stays in the config panel now, just ensure it's visible if disconnected
-                        channelForm.style.display = 'flex'; // Use flex for the form layout
-                    }
-                    
+                    popupContainer.style.display = 'block'; // Show popup area
+                    chatWrapper.style.display = 'none'; // Hide the main chat window wrapper
+
                     document.body.classList.add('popup-mode');
                     document.body.classList.remove('window-mode');
-                    
-                    // Ensure popup settings button is visible
+
+                    // Show popup settings button
                     const popupSettingsBtn = document.getElementById('popup-settings-btn');
-                    if (popupSettingsBtn) {
-                        popupSettingsBtn.style.opacity = '0.7';
-                    }
-                } else {
-                    // Show window container, hide popup container
-                    popupContainer.style.display = 'none';
-                    
-                    if (chatContainer) {
-                        chatContainer.style.display = 'block';
-                    }
-                    
-                    // Move channel form back to main container if not connected
-                    const channelForm = document.getElementById('channel-form');
-                    if (channelForm && (!socket || socket.readyState !== WebSocket.OPEN)) {
-                        // Form stays in the config panel now, just ensure it's visible if disconnected
-                        channelForm.style.display = 'flex'; // Use flex for the form layout
-                    }
-                    
+                    if (popupSettingsBtn) popupSettingsBtn.style.opacity = '0.7';
+
+                } else { // Window mode
+                    popupContainer.style.display = 'none'; // Hide popup area
+                    chatWrapper.style.display = 'block'; // Show the main chat window wrapper
+
                     document.body.classList.add('window-mode');
                     document.body.classList.remove('popup-mode');
                 }
-                
-                // Only clear messages if we have a container to display them
+
+                // Clear main chat messages and add mode-specific info
                 if (chatMessages) {
-                    chatMessages.innerHTML = '';
-                    
-                    // Re-add some system messages explaining the current mode
-                    if (mode === 'popup') {
-                        addSystemMessage(`Switched to popup mode. Messages will appear temporarily from the ${(config.popup?.direction || 'from-bottom').replace('from-', '')}.`);
-                    } else {
-                        addSystemMessage('Switched to window mode. Messages will appear in a scrollable window.');
+                    chatMessages.innerHTML = ''; // Clear existing messages from window view
+                    if (applyConfig) { // Only add messages if not just updating UI
+                         if (mode === 'popup') {
+                             addSystemMessage(`Switched to popup mode. Messages will appear temporarily.`);
+                         } else {
+                             addSystemMessage('Switched to window mode.');
+                         }
+                         // Add a dummy message to demonstrate the mode
+                         addChatMessage({
+                             username: 'ExampleUser',
+                             message: 'This is a sample message to demonstrate the current chat mode.',
+                             color: config.usernameColor || '#9147ff'
+                         });
                     }
-                    
-                    // Add a dummy message to demonstrate the mode
-                    addChatMessage({
-                        username: 'ExampleUser',
-                        message: 'This is a sample message to demonstrate the current chat mode.',
-                        color: config.usernameColor || '#9147ff'
-                    });
                 }
-                
-                // Update popup message container position based on direction
-                if (popupMessages && config.popup) {
-                    // Get direction with fallback
+
+                // Update popup message container position (only relevant if mode is popup)
+                if (mode === 'popup' && popupMessages && config.popup) {
                     const direction = config.popup.direction || 'from-bottom';
-                    
-                    // Create a simplified positioning object
-                    const position = {
-                        top: null,
-                        bottom: null
-                    };
-                    
-                    // Set position based on direction
+                    const position = { top: null, bottom: null };
                     switch(direction) {
                         case 'from-top':
                         case 'from-left':
                         case 'from-right':
-                            position.top = '10px';
-                            position.bottom = 'auto';
-                            break;
+                            position.top = '10px'; position.bottom = 'auto'; break;
                         case 'from-bottom':
                         default:
-                            position.bottom = '10px';
-                            position.top = 'auto';
+                            position.bottom = '10px'; position.top = 'auto';
                     }
-                    
-                    // Clear the style completely first
-                    popupMessages.removeAttribute('style');
-                    
-                    // Apply new styles, only setting vertical position
+                    popupMessages.removeAttribute('style'); // Clear existing styles first
                     popupMessages.style.top = position.top;
                     popupMessages.style.bottom = position.bottom;
                 }
+
+                // Update visibility of mode-specific settings in the panel
+                updateModeSpecificSettingsVisibility(mode);
+
             } catch (error) {
                 console.error('Error switching chat mode:', error);
                 addSystemMessage('Error switching chat mode. Please try refreshing the page.');
+            }
+        }
+
+        // Helper function to show/hide settings based on mode
+        function updateModeSpecificSettingsVisibility(mode) {
+            const popupSettings = document.querySelectorAll('.popup-setting');
+            const windowOnlySettings = document.querySelectorAll('.window-only-setting');
+
+            if (mode === 'popup') {
+                popupSettings.forEach(el => el.style.display = 'flex'); // Use flex for visibility
+                windowOnlySettings.forEach(el => el.style.display = 'none');
+            } else {
+                popupSettings.forEach(el => el.style.display = 'none');
+                windowOnlySettings.forEach(el => el.style.display = 'flex'); // Use flex for visibility
             }
         }
         
@@ -2164,7 +2145,7 @@
             chatModeRadios.forEach(radio => {
                 radio.checked = (radio.value === config.chatMode);
             });
-            switchChatMode(config.chatMode, false); // Update visibility without saving
+            updateModeSpecificSettingsVisibility(config.chatMode); // Call the helper here
             
             // Update Popup settings (only if in popup mode)
             const popupDirectionRadios = document.querySelectorAll('input[name="popup-direction"]');
@@ -2435,7 +2416,7 @@
 
             // Update chat mode display (Handles showing/hiding containers)
             console.log("[applyConfiguration] Switching chat mode based on config...");
-            switchChatMode(cfg.chatMode || 'window'); // <<< Moved mode switch here
+            switchChatMode(cfg.chatMode || 'window', false); // Pass false to prevent adding messages
             console.log("[applyConfiguration] Mode switch complete.");
 
             // Ensure visual previews reflect the applied config
