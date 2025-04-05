@@ -880,8 +880,6 @@
             if (bgImageOpacityValue) {
                 bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
             }
-            
-            updatePreviewFromCurrentSettings();
         }
         
         if (bgImageOpacityInput) {
@@ -1048,7 +1046,7 @@
             configPanel.classList.add('visible');
             configPanel.style.display = 'block';
             // Initial theme preview update when panel opens
-            updatePreviewFromCurrentSettings();
+            // updatePreviewFromCurrentSettings(); // REMOVED CALL
         }
         
         // Settings button handlers
@@ -1146,7 +1144,7 @@
             highlightActiveColorButtons();
             
             // Update the main theme preview to keep everything in sync
-            updatePreviewFromCurrentSettings();
+            // updatePreviewFromCurrentSettings(); // REMOVED CALL
         }
         
         // Helper function to highlight the active color buttons based on current values
@@ -1490,7 +1488,7 @@
             console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
             
             // Update the theme preview to reflect the font change
-            updatePreviewFromCurrentSettings();
+            // updatePreviewFromCurrentSettings(); // REMOVED CALL
         }
         
         // Font selection carousel
@@ -1536,181 +1534,140 @@
                 // Apply the current theme using existing method
                 applyTheme(theme.value); // applyTheme now handles all cases
                 
-                // Update theme preview
-                updateThemePreview(theme);
+                // Update theme preview - applyTheme now calls updateThemePreview
+                // updateThemePreview(theme); // REMOVED redundant call
         }
         window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
         
         // Update theme preview with current theme
-        function updateThemePreview(theme, useCustom = false) {
+        /**
+         * Update theme preview based ONLY on the provided theme object.
+         * @param {object} theme - The theme object to display in the preview.
+         */
+        function updateThemePreview(theme) {
             // Get the preview element
             const themePreview = document.getElementById('theme-preview');
-            if (!themePreview) return;
-            
-            // Update the HTML example first so we can style its elements
+            if (!themePreview || !theme) return; // Exit if no preview element or theme object
+
+            console.log(`[updateThemePreview] Updating preview for theme: ${theme.name} (${theme.value})`); // Log theme being previewed
+
+            // --- Get properties directly from the theme object ---
+            // Provide defaults for essential properties if missing in the theme object
+            const themeBgColor = theme.bgColor || '#121212';
+            const themeBgOpacity = theme.bgColorOpacity !== undefined ? theme.bgColorOpacity : 0.85; // Use theme opacity
+            const themeBorderColor = theme.borderColor || '#9147ff';
+            const themeTextColor = theme.textColor || '#efeff1';
+            const themeUsernameColor = theme.usernameColor || '#9147ff';
+            const themeFontFamily = theme.fontFamily || config.fontFamily || "'Atkinson Hyperlegible', sans-serif"; // Use theme font, fallback to config/default
+            const themeBorderRadius = theme.borderRadius || config.borderRadius || '8px'; // Use theme radius, fallback
+            const themeBoxShadow = theme.boxShadow || config.boxShadow || 'none'; // Use theme shadow, fallback
+            const themeBgImage = theme.backgroundImage; // Can be null/undefined
+
+            // Determine current font size from the slider/config (as this isn't part of the theme object)
+            const currentFontSize = `${config.fontSize || 14}px`;
+            const showTimestamps = config.showTimestamps !== undefined ? config.showTimestamps : true;
+
+            // Update the HTML example
             themePreview.innerHTML = `
                 <div class="preview-chat-message">
-                    ${config.showTimestamps ? '<span class="timestamp">12:34</span> ' : ''}
-                    <span class="preview-username">Username:</span> 
+                    ${showTimestamps ? '<span class="timestamp">12:34</span> ' : ''}
+                    <span class="preview-username">Username:</span>
                     <span class="preview-message">Example chat message</span>
                 </div>
                 <div class="preview-chat-message">
-                    ${config.showTimestamps ? '<span class="timestamp">12:35</span> ' : ''}
-                    <span class="preview-username">AnotherUser:</span> 
+                    ${showTimestamps ? '<span class="timestamp">12:35</span> ' : ''}
+                    <span class="preview-username">AnotherUser:</span>
                     <span class="preview-message">This is how your chat will look</span>
                 </div>
             `;
-            
-            // First remove all theme classes
-            themePreview.classList.remove(
-                'light-theme', 
-                'natural-theme', 
-                'transparent-theme', 
-                'pink-theme', 
-                'cyberpunk-theme'
-            );
-            
-            // Apply theme colors directly regardless of class
-            const usernameElems = themePreview.querySelectorAll('.preview-username');
-            const messageElems = themePreview.querySelectorAll('.preview-message');
-            const timestampElems = themePreview.querySelectorAll('.timestamp');
-            
-            // Use either theme colors or custom input colors
-            if (theme.value !== 'default' && !useCustom) {
-                // Apply predefined theme colors directly
-                themePreview.style.backgroundColor = theme.bgColor;
-                
-                // Apply background image if available
-                if (theme.backgroundImage) {
-                    themePreview.style.backgroundImage = `url("${theme.backgroundImage}")`;
-                    themePreview.style.backgroundRepeat = 'repeat';
-                    themePreview.style.backgroundSize = 'auto';
+
+            // --- Apply Styles Directly to Preview ---
+
+            // Background Color & Opacity
+            let previewBgColor = themeBgColor;
+            // If the theme background color is hex, convert it to rgba with theme opacity
+            if (themeBgColor.startsWith('#')) {
+                const hexMatch = themeBgColor.match(/#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})/i);
+                if (hexMatch) {
+                    const [, r, g, b] = hexMatch;
+                    previewBgColor = `rgba(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)}, ${themeBgOpacity})`;
                 } else {
-                    themePreview.style.backgroundImage = 'none';
+                     previewBgColor = `rgba(18, 18, 18, ${themeBgOpacity})`; // Fallback if hex is invalid
                 }
-                
-                // Special handling for transparent border in themes
-                if (theme.borderColor === 'transparent') {
-                    themePreview.style.border = 'none';
-                } else {
-                    themePreview.style.border = `2px solid ${theme.borderColor}`;
-                }
-                
-                // Apply border radius if specified in the theme
-                if (theme.borderRadius) {
-                    // Check if the value is a preset name or an actual CSS value
-                    const borderRadiusValues = {
-                        "none": "0px",
-                        "subtle": "8px",
-                        "rounded": "16px",
-                        "pill": "24px"
-                    };
-                    
-                    // Convert named values to CSS values if needed
-                    const borderRadiusValue = borderRadiusValues[theme.borderRadius.toLowerCase()] || theme.borderRadius;
-                    themePreview.style.borderRadius = borderRadiusValue;
-                }
-                
-                // Apply box shadow if specified in the theme
-                if (theme.boxShadow) {
-                    const boxShadowValue = window.getBoxShadowValue(theme.boxShadow);
-                    themePreview.style.boxShadow = boxShadowValue;
-                }
-                
-                themePreview.style.color = theme.textColor;
-                
-                // Add the theme class for any additional styles (especially important for transparent theme)
-                themePreview.classList.add(theme.value);
-                
-                // Apply text colors
-                if (usernameElems && usernameElems.length) {
-                    usernameElems.forEach(elem => {
-                        elem.style.color = theme.usernameColor;
-                    });
-                }
-                
-                if (messageElems && messageElems.length) {
-                    messageElems.forEach(elem => {
-                        elem.style.color = theme.textColor;
-                    });
-                }
-                
-                if (timestampElems && timestampElems.length) {
-                    timestampElems.forEach(elem => {
-                        elem.style.color = "rgba(170, 170, 170, 0.8)"; // Timestamp color
-                    });
-                }
-                
+            } else if (themeBgColor.startsWith('rgba')) {
+                 // If theme already provides rgba, use it directly (ignoring separate opacity if theme includes it)
+                 previewBgColor = themeBgColor;
             } else {
-                // Apply custom colors from inputs
-                const bgColor = bgColorInput.value || '#121212';
-                const opacity = parseInt(bgOpacityInput.value || 80) / 100;
-                const rgbaMatch = bgColor.match(/#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})/i);
-                
-                if (rgbaMatch) {
-                    const [, r, g, b] = rgbaMatch;
-                    const r_int = parseInt(r, 16);
-                    const g_int = parseInt(g, 16);
-                    const b_int = parseInt(b, 16);
-                    themePreview.style.backgroundColor = `rgba(${r_int}, ${g_int}, ${b_int}, ${opacity})`;
-                } else {
-                    themePreview.style.backgroundColor = bgColor;
-                    themePreview.style.opacity = opacity;
-                }
-                
-                // Apply background image from the current theme if available
-                if (config.backgroundImage) {
-                    themePreview.style.backgroundImage = `url("${config.backgroundImage}")`;
-                    themePreview.style.backgroundRepeat = 'repeat';
-                    themePreview.style.backgroundSize = 'auto';
-                } else {
-                    themePreview.style.backgroundImage = 'none';
-                }
-                
-                // Handle transparent borders properly
-                if (borderColorInput.value === 'transparent') {
-                    themePreview.style.border = 'none';
-                } else {
-                    themePreview.style.border = `2px solid ${borderColorInput.value || '#9147ff'}`;
-                }
-                
-                // Apply text colors
-                if (usernameElems && usernameElems.length) {
-                    usernameElems.forEach(elem => {
-                        elem.style.color = usernameColorInput.value || '#9147ff';
-                    });
-                }
-                
-                if (messageElems && messageElems.length) {
-                    messageElems.forEach(elem => {
-                        elem.style.color = textColorInput.value || '#efeff1';
-                    });
-                }
-                
-                if (timestampElems && timestampElems.length) {
-                    timestampElems.forEach(elem => {
-                        elem.style.color = "rgba(170, 170, 170, 0.8)"; // Timestamp color
-                    });
-                }
-                
-                // Special handling for transparent background
-                if (bgColor === '#000' || opacity === 0) {
-                    themePreview.classList.add('transparent-theme');
+                // Default fallback if color format is unknown
+                previewBgColor = `rgba(18, 18, 18, ${themeBgOpacity})`;
+            }
+            // Special override for transparent theme
+             if (theme.value === 'transparent-theme') {
+                 previewBgColor = 'rgba(0, 0, 0, 0)';
+             }
+            themePreview.style.backgroundColor = previewBgColor;
+            console.log(`[updateThemePreview] Applied background: ${previewBgColor}`);
+
+            // Background Image
+            if (themeBgImage && themeBgImage !== 'none') {
+                themePreview.style.backgroundImage = `url("${themeBgImage}")`;
+                themePreview.style.backgroundRepeat = 'repeat'; // Or based on theme? Default repeat.
+                themePreview.style.backgroundSize = 'auto'; // Or based on theme? Default auto.
+                // Note: Image opacity isn't typically applied directly to the preview background-image,
+                // but relies on the main CSS var '--chat-bg-image-opacity' affecting the actual chat.
+            } else {
+                themePreview.style.backgroundImage = 'none';
+            }
+            console.log(`[updateThemePreview] Applied background image: ${themePreview.style.backgroundImage}`);
+
+            // Border
+            if (themeBorderColor === 'transparent') {
+                themePreview.style.border = 'none'; // Use 'none' for transparent
+            } else {
+                themePreview.style.border = `2px solid ${themeBorderColor}`; // Use theme border color
+            }
+             console.log(`[updateThemePreview] Applied border: ${themePreview.style.border}`);
+
+            // Border Radius
+            const borderRadiusCss = window.getBorderRadiusValue(themeBorderRadius); // Convert preset name if necessary
+            themePreview.style.borderRadius = borderRadiusCss;
+             console.log(`[updateThemePreview] Applied border-radius: ${borderRadiusCss}`);
+
+            // Box Shadow
+            const boxShadowCss = window.getBoxShadowValue(themeBoxShadow); // Convert preset name if necessary
+            themePreview.style.boxShadow = boxShadowCss;
+             console.log(`[updateThemePreview] Applied box-shadow: ${boxShadowCss}`);
+
+            // Text Colors
+            themePreview.style.color = themeTextColor; // General text color
+            themePreview.querySelectorAll('.preview-username').forEach(elem => elem.style.color = themeUsernameColor);
+            themePreview.querySelectorAll('.preview-message').forEach(elem => elem.style.color = themeTextColor);
+            themePreview.querySelectorAll('.timestamp').forEach(elem => elem.style.color = "rgba(170, 170, 170, 0.8)"); // Consistent timestamp color
+
+            // Font
+            themePreview.style.fontFamily = themeFontFamily;
+            themePreview.style.fontSize = currentFontSize; // Use current font size setting
+
+            // --- Apply theme class for potential extra styles (like transparent) ---
+            // First remove all potential theme classes
+            const classList = themePreview.classList;
+            for (let i = classList.length - 1; i >= 0; i--) {
+                const className = classList[i];
+                // Keep 'theme-preview' but remove others ending in '-theme'
+                if (className.endsWith('-theme')) {
+                    classList.remove(className);
                 }
             }
-            
-            // Apply the current font family and size
-            const fontFamily = window.availableFonts[currentFontIndex].value;
-            const fontSize = fontSizeSlider.value;
-            document.documentElement.style.setProperty('--font-family', fontFamily);
-            themePreview.style.fontFamily = fontFamily;
-            themePreview.style.fontSize = `${fontSize}px`;
+            // Add the specific theme class if it's not default
+            if (theme.value && theme.value !== 'default') {
+                themePreview.classList.add(theme.value); // e.g., 'transparent-theme', 'generated-xyz-theme'
+            }
         }
         
         // Update the preview whenever colors or settings change
-        function updatePreviewFromCurrentSettings() {
-            updateThemePreview(window.availableThemes[currentThemeIndex], true);
-        }
+        // function updatePreviewFromCurrentSettings() { // REMOVED FUNCTION
+        //    updateThemePreview(window.availableThemes[currentThemeIndex], true);
+        // }
         
         // Username color override toggle
         overrideUsernameColorsInput.addEventListener('change', () => {
@@ -1850,16 +1807,8 @@
 
                 // --- Read current state from UI controls ---
                 const currentFontValue = window.availableFonts[currentFontIndex]?.value || config.fontFamily;
-                // const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.value || config.theme; // Use VALUE, not ID - REMOVED
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
-                // REVERTED: Read from active preset buttons to allow manual override
-                const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
-                const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
-                const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
-                const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
-                // const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'); // Will be handled below
-                // const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85); // Will be handled below
 
                 // Find the full theme object matching the current theme value
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
@@ -1908,9 +1857,13 @@
                     // Image opacity always read from slider
                     bgImageOpacity: bgImageOpacityValue, 
                     
-                    // Appearance settings read from active buttons (allows user override of theme defaults)
-                    borderRadius: borderRadiusValue, 
-                    boxShadow: boxShadowValue, 
+                    // Appearance: Prioritize theme unless 'default'
+                    borderRadius: (currentThemeValue !== 'default' && currentFullTheme.borderRadius !== undefined)
+                        ? currentFullTheme.borderRadius // Use theme value (could be name or px)
+                        : (borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius), // Fallback to UI state or previous config
+                    boxShadow: (currentThemeValue !== 'default' && currentFullTheme.boxShadow !== undefined)
+                        ? currentFullTheme.boxShadow // Use theme value (preset name)
+                        : (boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow), // Fallback to UI state or previous config
                     
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
@@ -2115,7 +2068,7 @@
              document.documentElement.style.setProperty('--chat-border-radius', cssValue);
              config.borderRadius = cssValue; 
              highlightBorderRadiusButton(cssValue); // Now DEFINITELY defined
-             updatePreviewFromCurrentSettings();
+             // updatePreviewFromCurrentSettings(); // REMOVED CALL
         }
         
         /**
@@ -2128,7 +2081,7 @@
              document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
              config.boxShadow = preset; // Store the preset name in config
              highlightBoxShadowButton(preset); // Highlight based on preset name
-             updatePreviewFromCurrentSettings();
+             // updatePreviewFromCurrentSettings(); // REMOVED CALL
         }
 
         // Add listeners to preset buttons
@@ -2439,7 +2392,12 @@
 
             // Ensure visual previews reflect the applied config
             updateColorPreviews(); // Update color button highlights
-            updatePreviewFromCurrentSettings(); // Update the main theme preview box
+            // updatePreviewFromCurrentSettings(); // REMOVED CALL
+            // Ensure theme preview updates based on the applied config's theme
+            const appliedThemeObj = window.availableThemes.find(t => t.value === cfg.theme) || window.availableThemes[0];
+            if (appliedThemeObj) {
+                updateThemePreview(appliedThemeObj);
+            }
 
             console.log("Configuration applied.");
         }
