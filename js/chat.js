@@ -1343,7 +1343,8 @@
             config.usernameColor = theme.usernameColor || '#9147ff'; // Default to Twitch purple
             config.borderRadius = theme.borderRadius || '8px'; // Default to subtle
             config.boxShadow = theme.boxShadow || 'none'; // Default to none
-            
+            config.bgImage = theme.backgroundImage; // NEW: Store theme's background image in config
+
             // Handle opacity separately (comes from theme or slider)
             let themeOpacityValue = 0.85; // Default opacity
             if (typeof theme.bgColorOpacity !== 'undefined') {
@@ -1405,6 +1406,13 @@
                 // Update opacity slider value
                 if (bgOpacityInput) bgOpacityInput.value = 0;
                 if (bgOpacityValue) bgOpacityValue.textContent = '0%';
+
+                // NEW: Ensure background image is removed for transparent theme
+                document.documentElement.style.setProperty('--chat-bg-image', 'none');
+                document.documentElement.style.setProperty('--chat-bg-image-opacity', 0); // Opacity doesn't matter
+                document.documentElement.style.setProperty('--popup-bg-image', 'none');
+                document.documentElement.style.setProperty('--popup-bg-image-opacity', 0);
+
             } else {
                 // Apply styles normally for other themes
                 document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
@@ -1417,6 +1425,16 @@
                 document.documentElement.style.setProperty('--popup-text-color', config.textColor);
                 document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
                 document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
+
+                // NEW: Apply background image for non-transparent themes
+                const themeBgImageURL = theme.backgroundImage && theme.backgroundImage !== 'none' ? `url("${theme.backgroundImage}")` : 'none';
+                // Use the current opacity slider value from config for consistency
+                const themeBgImageOpacity = config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55; 
+
+                document.documentElement.style.setProperty('--chat-bg-image', themeBgImageURL);
+                document.documentElement.style.setProperty('--chat-bg-image-opacity', themeBgImageOpacity);
+                document.documentElement.style.setProperty('--popup-bg-image', themeBgImageURL); // Apply to popup too
+                document.documentElement.style.setProperty('--popup-bg-image-opacity', themeBgImageOpacity);
 
                 // Update opacity slider from config (already done earlier, but safe to repeat)
                 const opacityPercent = Math.round(config.bgColorOpacity * 100);
