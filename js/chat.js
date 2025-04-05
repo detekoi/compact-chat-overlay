@@ -1798,7 +1798,8 @@
                     fontSize: getValue(fontSizeSlider, 14, true),
                     bgColor: bgColorValue,
                     bgColorOpacity: bgColorOpacityValue,
-                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#444444'),
+                    // CORRECTED: Directly use the theme's border color value, don't rely on getColor helper for border
+                    borderColor: currentFullTheme.borderColor || config.borderColor, 
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
