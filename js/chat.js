@@ -882,25 +882,29 @@
         function updateBgColor() {
             // Get the hex color without transparency
             const hexColor = bgColorInput.value;
+            // Get opacity value (0-1) from the slider
             const opacity = parseInt(bgOpacityInput.value) / 100;
-            
-            // Set the color and opacity separately
-            document.documentElement.style.setProperty('--chat-bg-color', hexColor);
-            document.documentElement.style.setProperty('--chat-bg-opacity', opacity);
-            
-            // Also update popup settings for consistency
-            document.documentElement.style.setProperty('--popup-bg-color', hexColor);
-            document.documentElement.style.setProperty('--popup-bg-opacity', opacity);
-            
-            // Update the display value
+
+            // Convert hex and opacity to rgba string
+            const rgbaColor = hexToRgba(hexColor, opacity);
+
+            // Set the combined rgba color for both chat and popup backgrounds
+            document.documentElement.style.setProperty('--chat-bg-color', rgbaColor);
+            document.documentElement.style.setProperty('--popup-bg-color', rgbaColor);
+
+            // REMOVED setting --chat-bg-opacity and --popup-bg-opacity
+
+            // Update the display value for the opacity slider
             const bgOpacityValue = document.getElementById('bg-opacity-value');
             if (bgOpacityValue) {
                 bgOpacityValue.textContent = `${Math.round(opacity * 100)}%`;
             }
         }
-        
+
+        // Add event listeners to update the background color when either input changes
         bgColorInput.addEventListener('input', updateBgColor);
-        
+        bgOpacityInput.addEventListener('input', updateBgColor); // Add listener for opacity slider
+
         // Background image opacity handling
         const bgImageOpacityInput = document.getElementById('bg-image-opacity');
         const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
@@ -2076,7 +2080,7 @@
                             // Window mode settings
                             // Load bgColor (could be hex or rgba)
                             bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.85)', 
-                            // REMOVE loading of separate bgColorOpacity
+                            // REMOVED loading of separate bgColorOpacity
                             // bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, 
                             
                             // Correctly load bgImage from parsed config, fallback to theme default
@@ -2170,7 +2174,7 @@
                 chatMode: 'window',
                 // Store default background as RGBA
                 bgColor: 'rgba(18, 18, 18, 0.85)', 
-                // REMOVE separate opacity
+                // REMOVED separate opacity
                 // bgColorOpacity: 0.85, 
                 bgImage: null,
                 bgImageOpacity: 0.55,
@@ -2254,43 +2258,46 @@
             let hexColor = '#121212'; // Default hex
             let opacityPercent = 85; // Default opacity percentage
 
-            if (config.bgColor && typeof config.bgColor === 'string') {
-                if (config.bgColor.startsWith('rgba')) {
-                    // Try parsing RGBA string
-                    try {
-                        const match = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
-                        if (match) {
-                            const [, r, g, b, a] = match;
-                             // Convert RGB to hex
-                             hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
-                             // Convert alpha (0-1) to percentage
-                             opacityPercent = Math.round(parseFloat(a) * 100);
-                        } else {
-                             console.warn("Could not parse RGBA string:", config.bgColor);
-                        }
-                    } catch (e) {
-                        console.error("Error parsing RGBA for config panel update:", e);
+            if (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('rgba')) {
+                // Try parsing RGBA string
+                try {
+                    const match = config.bgColor.match(/rgba\\((\\d+),\\s*(\\d+),\\s*(\\d+),\\s*([\\d.]+)\\)/);
+                    if (match) {
+                        const [, r, g, b, a] = match;
+                        // Convert RGB to hex
+                        hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
+                        // Convert alpha (0-1) to percentage
+                        opacityPercent = Math.round(parseFloat(a) * 100);
+                    } else {
+                        console.warn("Could not parse RGBA string:", config.bgColor);
+                        // Fallback if parse fails but starts with rgba
+                        hexColor = '#121212'; // Default black
+                        opacityPercent = 85; // Default opacity
                     }
-                } else if (config.bgColor.startsWith('#')) {
-                    // If it's already hex, use it and assume full opacity
-                    // unless it's transparent black (which shouldn't happen with the new save logic, but handle defensively)
-                    hexColor = config.bgColor;
-                    opacityPercent = (hexColor === '#000000' && config.bgColor === 'rgba(0, 0, 0, 0)') ? 0 : 100; // Check for effective transparency
-                } else if (config.bgColor === 'transparent') {
-                     // Handle 'transparent' keyword (legacy or border case)
-                     hexColor = '#000000';
-                     opacityPercent = 0;
+                } catch (e) {
+                    console.error("Error parsing RGBA for config panel update:", e);
+                    hexColor = '#121212'; // Default black on error
+                    opacityPercent = 85; // Default opacity on error
                 }
+            } else if (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('#')) {
+                // Handle case where saved value might be just hex (legacy or error)
+                hexColor = config.bgColor;
+                opacityPercent = 100; // Assume full opacity if only hex is stored
+            } else {
+                 // Default values if config.bgColor is missing or invalid format
+                 hexColor = '#121212';
+                 opacityPercent = 85;
             }
+
             // Update the UI elements
             if (bgColorInput) {
                  bgColorInput.value = hexColor;
-             }
-             if (bgOpacityInput && bgOpacityValue) {
-                 bgOpacityInput.value = opacityPercent;
-                 bgOpacityValue.textContent = `${opacityPercent}%`;
-             }
-             // --- Update Background Color Controls --- END
+            }
+            if (bgOpacityInput && bgOpacityValue) {
+                bgOpacityInput.value = opacityPercent;
+                bgOpacityValue.textContent = `${opacityPercent}%`;
+            }
+            // --- Update Background Color Controls --- END
 
             // Update Border/Text/Username Color Inputs (Simplified)
             borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Use black for transparent input
