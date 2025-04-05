@@ -48,6 +48,7 @@
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
         const chatMessages = document.getElementById('chat-messages');
+        const scrollArea = document.getElementById('chat-scroll-area'); // Define scroll area element
         // Create status indicator if it doesn't exist
         let statusIndicator;
         if (!document.getElementById('status-indicator')) {
@@ -298,11 +299,24 @@
             }
         }
         
+        /**
+         * Check if the user is scrolled near the bottom of an element.
+         */
+        function isUserScrolledToBottom(element) {
+            if (!element) return false;
+            // Use a tolerance (e.g., 5 pixels) for slight variations
+            const tolerance = 5;
+            return element.scrollHeight - element.clientHeight <= element.scrollTop + tolerance;
+        }
+        
         // Add a system message to the chat
         function addSystemMessage(message) {
+            // Determine if we should scroll after adding the message (only in window mode)
+            const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(scrollArea);
+
             const messageElement = document.createElement('div');
             messageElement.className = 'chat-message system-message';
-            
+
             let timestamp = '';
             if (config.showTimestamps) {
                 const now = new Date();
@@ -310,13 +324,27 @@
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 timestamp = `${hours}:${minutes} `;
             }
-            
+
             messageElement.innerHTML = `<span class="timestamp">${timestamp}</span><span class="message-content">${message}</span>`;
-            chatMessages.appendChild(messageElement);
             
-            // Auto-scroll and limit messages
-            limitMessages();
-            scrollToBottom();
+            // Append to the correct container (chatMessages is inside scrollArea)
+            if (chatMessages) {
+                chatMessages.appendChild(messageElement);
+            } else {
+                console.error("Chat messages container not found for system message.");
+                return;
+            }
+
+            // Limit messages (only makes sense in window mode)
+            if (config.chatMode === 'window') {
+                limitMessages();
+            }
+
+            // Conditionally scroll down only if user was at the bottom before adding
+            if (shouldScroll && scrollArea) {
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+            }
+            // Removed unconditional scrollToBottom();
         }
         
         // Add a user message to the chat
@@ -326,23 +354,41 @@
                 
                 // First check which mode we're in and get appropriate container
                 let targetContainer;
+                let currentScrollArea; // Define specific scroll area for this function instance
+                
                 if (config.chatMode === 'popup') {
                     targetContainer = document.getElementById('popup-messages');
+                    currentScrollArea = null; // No scrolling needed for popup
                     if (!targetContainer) {
                         console.error('Popup messages container not found');
                         return; // Exit early if container not found
                     }
                 } else {
                     targetContainer = chatMessages;
+                    currentScrollArea = scrollArea; // Use the globally defined scroll area
                     if (!targetContainer) {
                         console.error('Chat messages container not found');
                         return; // Exit early if container not found
                     }
+                    if (!currentScrollArea) {
+                         console.error('Chat scroll area not found');
+                        // Potentially try to find it again, though it should exist
+                        // currentScrollArea = document.getElementById('chat-scroll-area');
+                        // If still not found, maybe return or log error
+                    }
                 }
-                
-                // Create appropriate message element based on mode
+
+                 if (!targetContainer) {
+                    console.error('Target container could not be determined or found.');
+                    return;
+                 }
+
+
+                // Check scroll position *before* adding the message (only in window mode)
+                const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(currentScrollArea);
+
                 const messageElement = document.createElement('div');
-                
+
                 if (config.chatMode === 'popup') {
                     messageElement.className = 'popup-message';
                     // Add animation direction class
@@ -454,8 +500,13 @@
                 if (config.chatMode === 'window') {
                     // Limit messages to maintain performance
                     limitMessages();
-                    // Auto-scroll to the bottom
-                    scrollToBottom();
+                    
+                    // Conditionally scroll down only if user was at the bottom before adding
+                    if (shouldScroll && currentScrollArea) {
+                        currentScrollArea.scrollTop = currentScrollArea.scrollHeight;
+                    }
+                    // Removed unconditional scrollToBottom();
+                    
                 } else if (config.chatMode === 'popup') {
                     
                     // For popup mode, limit messages and set auto-remove timer
@@ -704,18 +755,6 @@
             // If we were at the bottom before, make sure we stay there
             if (isAtBottom) {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        }
-        
-        // Scroll chat to bottom
-        function scrollToBottom() {
-            if (config.chatMode === 'window') {
-                // Get the chat container element
-                const chatContainer = document.getElementById('chat-container');
-                
-                // Ensure we always show the bottom of chat
-                if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-                if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
         

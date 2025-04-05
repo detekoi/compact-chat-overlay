@@ -253,59 +253,73 @@ button:hover {
     color: var(--config-text-color);
 }
 
-#chat-container {
+/* New Wrapper Styles */
+#chat-wrapper {
     width: var(--chat-width);
     height: var(--chat-height);
-    overflow-y: scroll; /* Force scrollbar to be present */
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Required for pseudo-elements positioning */
+    position: relative; /* For positioning #chat-container */
     border-radius: var(--chat-border-radius);
-    padding: 10px;
-    font-size: var(--font-size);
-    color: var(--chat-text-color);
-    /* Set font properties directly here */
-    font-family: var(--font-family);
-    /* Hide scrollbar but keep functionality */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    /* Use proper border handling to support transparent borders */
+    overflow: hidden; /* Clip contents like #chat-container */
+    box-shadow: var(--chat-box-shadow, none);
+    
+    /* Apply backgrounds directly here */
+    /* Background color with opacity */
+    background-color: color-mix(in srgb, var(--chat-bg-color, #1e1e1e) calc(var(--chat-bg-opacity, 0.85) * 100%), transparent);
+    /* Background image with opacity - using a pseudo-element is still best for layering opacity */
+    /* background-image: var(--chat-bg-image, none); <-- Let's use ::before/::after on the wrapper */
+    /* background-repeat: repeat; */
+    /* background-size: auto; */
+    /* opacity: var(--chat-bg-image-opacity, 0.55); <-- Doesn't work directly */
+    z-index: 0; /* Establish stacking context */
+}
+
+#chat-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: var(--chat-bg-image, none);
+    background-repeat: repeat;
+    background-size: auto;
+    opacity: var(--chat-bg-image-opacity, 0.55);
+    z-index: 1; /* Above background color, below container */
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* Modified Chat Container Styles */
+#chat-container {
+    /* width: var(--chat-width); REMOVED */
+    /* height: var(--chat-height); REMOVED */
+    position: absolute; /* Position relative to wrapper */
+    inset: 0; /* Fill the wrapper */
+    border-radius: inherit; /* Match wrapper radius */
+    /* font-size: var(--font-size); MOVED or inherited */
+    /* color: var(--chat-text-color); MOVED or inherited */
+    /* font-family: var(--font-family); MOVED or inherited */
     border: 2px solid;
     border-color: var(--chat-border-color);
-    /* Box shadow */
-    box-shadow: var(--chat-box-shadow, none);
-    /* Ensure content sits above pseudo-elements */
-    z-index: 1;
+    /* box-shadow: var(--chat-box-shadow, none); MOVED to wrapper */
+    overflow: hidden; /* Still needed for scroll area clipping */
+    background: transparent; /* Make container transparent */
+    z-index: 2; /* Above wrapper's ::before pseudo-element */
 }
 
-/* Background color layer for chat container */
-#chat-container::before {
-    content: "";
-    position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
-    /* Combine color and opacity directly */
-    background-color: color-mix(in srgb, var(--chat-bg-color, #1e1e1e) calc(var(--chat-bg-opacity, 0.85) * 100%), transparent);
-    border-radius: calc(var(--chat-border-radius) - 2px); /* Account for border */
-    z-index: -2; /* Below the background image */
-    pointer-events: none;
+/* Styles for the scrolling inner container - Adjust z-index relative to container */
+#chat-scroll-area {
+    height: 100%;
+    overflow-y: scroll;
+    padding: 10px;
+    position: relative; /* Keep relative */
+    z-index: 1; /* z-index relative to #chat-container now */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    box-sizing: border-box;
+    color: var(--chat-text-color); /* Apply text color here */
+    font-family: var(--font-family); /* Apply font family here */
+    font-size: var(--font-size); /* Apply font size here */
 }
 
-/* Background image layer for chat container */
-#chat-container::after {
-    content: "";
-    position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
-    background-image: var(--chat-bg-image, none);
-    background-repeat: repeat; /* Or adjust as needed */
-    background-size: auto; /* Or adjust as needed */
-    opacity: var(--chat-bg-image-opacity, 0.55);
-    /* background-color: color-mix(...) <-- REMOVED */
-    z-index: -1; /* Above the background color, below content */
-    border-radius: inherit; /* Match container radius */
-    pointer-events: none;
-}
-
-#chat-container::-webkit-scrollbar {
+#chat-scroll-area::-webkit-scrollbar {
     display: none;
 }
 
@@ -314,9 +328,9 @@ button:hover {
     display: flex;
     flex-direction: column;
     width: 100%;
-    flex-grow: 1;
-    margin-top: auto; /* Push content to the bottom */
-    justify-content: flex-end; /* Align content to the bottom */
+    min-height: 100%;
+    margin-top: auto;
+    justify-content: flex-end;
 }
 
 .chat-message {
@@ -351,7 +365,7 @@ button:hover {
 
 #channel-form {
     margin-bottom: 15px;
-    order: -1; /* Place form at the top */
+    order: -1;
 }
 
 #channel-input {
@@ -396,17 +410,16 @@ button:hover {
 /* Popup mode styles */
 #popup-container {
     position: fixed;
-    pointer-events: none; /* Allow clicking through for messages */
+    pointer-events: none;
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    /* Fixed position at top-left, just like the chat window */
     top: 0;
     left: 0;
-    width: var(--chat-width); /* Match chat width */
-    height: 100vh; /* Full viewport height */
+    width: var(--chat-width);
+    height: 100vh;
     box-sizing: border-box;
-    font-size: var(--font-size); /* Ensure font size is applied at container level */
+    font-size: var(--font-size);
 }
 
 #popup-messages {
@@ -415,9 +428,7 @@ button:hover {
     gap: 8px;
     padding: 10px;
     width: 100%;
-    /* Position based on popup direction, will be modified by JavaScript */
     position: absolute;
-    /* Initial values - these will be adjusted by JavaScript */
     bottom: auto;
     top: auto;
     left: auto;
@@ -426,14 +437,12 @@ button:hover {
     overflow: hidden;
 }
 
-/* Enable pointer events on form elements when in popup mode */
 #popup-container #channel-form,
 #popup-container input,
 #popup-container button {
     pointer-events: auto;
 }
 
-/* Style adjustments for channel form in popup mode */
 #popup-container #channel-form {
     background-color: var(--popup-bg-color);
     border: 2px solid var(--popup-border-color);
@@ -445,21 +454,20 @@ button:hover {
     max-width: 240px;
 }
 
-/* Initial state - popup container is hidden by default */
 #popup-container {
     display: none;
 }
 
 .popup-message {
-    position: relative; /* Required for pseudo-elements positioning */
+    position: relative;
     border-radius: var(--chat-border-radius);
     box-shadow: var(--chat-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.2));
     padding: 8px 12px;
-    width: 100%; /* Use container width */
+    width: 100%;
     margin-bottom: 8px;
     animation-duration: 0.3s, 0.3s;
     animation-fill-mode: forwards, forwards;
-    animation-delay: 0s, 5s; /* Will be customized via JS */
+    animation-delay: 0s, 5s;
     display: flex;
     flex-direction: column;
     pointer-events: none;
@@ -468,41 +476,36 @@ button:hover {
     font-family: inherit;
     max-width: 100%;
     box-sizing: border-box;
-    z-index: 1; /* Ensure content sits above pseudo-elements */
+    z-index: 1;
 }
 
-/* Background color layer for popup messages */
 .popup-message::before {
     content: "";
     position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
-    /* Combine color and opacity directly */
+    inset: 0;
     background-color: color-mix(in srgb, var(--popup-bg-color, #1e1e1e) calc(var(--popup-bg-opacity, 0.85) * 100%), transparent);
-    border-radius: calc(var(--chat-border-radius) - 2px); /* Account for border */
-    z-index: -2; /* Below the background image */
+    border-radius: calc(var(--chat-border-radius) - 2px);
+    z-index: -2;
     pointer-events: none;
 }
 
-/* Background image layer for popup messages */
 .popup-message::after {
     content: "";
     position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+    inset: 0;
     background-image: var(--popup-bg-image, none);
-    background-repeat: repeat; /* Or adjust as needed */
-    background-size: auto; /* Or adjust as needed */
+    background-repeat: repeat;
+    background-size: auto;
     opacity: var(--popup-bg-image-opacity, 0.55);
-    /* background-color: color-mix(...) <-- REMOVED */
-    z-index: -1; /* Above the background color, below content */
-    border-radius: inherit; /* Match container radius */
+    z-index: -1;
+    border-radius: inherit;
     pointer-events: none;
 }
 
 .popup-message.exiting {
-    animation-delay: 0s; /* No delay for exit animation */
+    animation-delay: 0s;
 }
 
-/* Popup settings area */
 .popup-settings-area {
     position: absolute;
     top: 10px;
@@ -534,7 +537,6 @@ button:hover {
     opacity: 1;
 }
 
-/* Shared keyframes for popup animations */
 @keyframes slideInFromTop {
     from { transform: translateY(-100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -575,7 +577,6 @@ button:hover {
     to { transform: translateX(100%); opacity: 0; }
 }
 
-/* Preset animations for different directions */
 .popup-message[data-direction="from-top"] {
     animation-name: slideInFromTop, slideOutToTop;
 }
@@ -592,7 +593,6 @@ button:hover {
     animation-name: slideInFromRight, slideOutToRight;
 }
 
-/* Override theme navigation buttons to have more distinct visibility */
 .theme-navigation, .font-navigation {
     display: flex;
     align-items: center;
@@ -614,7 +614,6 @@ button:hover {
     padding: 0;
 }
 
-/* Current theme display styles */
 .current-theme-display, .current-font-display {
     font-weight: 500;
     padding: 5px 10px;
@@ -625,7 +624,6 @@ button:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Theme selector and buttons container */
 .theme-buttons-container, .font-buttons-container {
     display: flex;
     align-items: center;
@@ -636,17 +634,14 @@ button:hover {
     margin-bottom: 8px;
 }
 
-/* Config toggle styles */
 .popup-setting, .window-only-setting {
     display: none;
 }
 
-/* Theme specific styles */
 .theme-section, .font-section {
     margin: 10px 0;
 }
 
-/* Color picker buttons */
 .color-btn {
     width: 60px;
     height: 25px;
@@ -667,11 +662,10 @@ button:hover {
     gap: 4px;
 }
 
-/* Theme preview */
 .theme-preview {
     width: 100%;
     height: 120px;
-    position: relative; /* Required for pseudo-elements positioning */
+    position: relative;
     border-radius: var(--chat-border-radius);
     padding: 10px;
     box-sizing: border-box;
@@ -683,32 +677,30 @@ button:hover {
     flex-direction: column;
     justify-content: center;
     font-family: var(--font-family);
-    z-index: 1; /* Ensure content sits above pseudo-elements */
+    z-index: 1;
 }
 
-/* Background color layer for theme preview */
 .theme-preview::before {
     content: "";
     position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+    inset: 0;
     background-color: var(--chat-bg-color, #1e1e1e);
     opacity: var(--chat-bg-opacity, 0.85);
-    border-radius: calc(var(--chat-border-radius) - 2px); /* Account for border */
-    z-index: -2; /* Below the background image */
+    border-radius: calc(var(--chat-border-radius) - 2px);
+    z-index: -2;
     pointer-events: none;
 }
 
-/* Background image layer for theme preview */
 .theme-preview::after {
     content: "";
     position: absolute;
-    inset: 0; /* Shorthand for top/right/bottom/left: 0 */
+    inset: 0;
     background-image: var(--chat-bg-image, none);
     background-repeat: repeat;
     background-size: 320px;
     opacity: var(--chat-bg-image-opacity, 0.55);
-    border-radius: calc(var(--chat-border-radius) - 2px); /* Account for border */
-    z-index: -1; /* Above the background color, below content */
+    border-radius: calc(var(--chat-border-radius) - 2px);
+    z-index: -1;
     pointer-events: none;
 }
 
@@ -729,7 +721,6 @@ button:hover {
     margin-right: 5px;
 }
 
-/* Border radius preset buttons */
 .preset-buttons-container {
     display: flex;
     flex-wrap: wrap;
@@ -752,7 +743,6 @@ button:hover {
     border-color: var(--primary-color);
 }
 
-/* Generated theme result display */
 #generated-theme-result {
     display: none;
     align-items: center;
@@ -768,14 +758,12 @@ button:hover {
     color: var(--primary-color);
 }
 
-/* Theme loading indicator */
 #theme-loading-indicator {
     display: none;
     align-items: center;
     margin-left: 10px;
 }
 
-/* Spinner Animation for chat loading and theme generation */
 .spinner {
     width: 20px;
     height: 20px;
@@ -786,7 +774,6 @@ button:hover {
     margin-right: 8px;
 }
 
-/* Add pulse effect during retries */
 .spinner.retrying {
     animation: spin 1s infinite linear, pulse 1.5s infinite ease-in-out;
 }
@@ -802,7 +789,6 @@ button:hover {
     to { transform: rotate(360deg); }
 }
 
-/* Custom system message style */
 .system-message {
     padding: 4px 8px;
     border-radius: 4px;
@@ -820,14 +806,12 @@ button:hover {
     color: var(--chat-text-color);
 }
 
-/* Theme preview for config panel */
 .theme-preview-container {
     margin-top: 10px;
     width: 100%;
     overflow: hidden;
 }
 
-/* Theme Carousel Styles */
 .generated-themes-carousel {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -944,59 +928,51 @@ button:hover {
     transform: translateX(100%);
 }
 
-/* Settings Panel Enhancements */
 #config-panel {
-    /* ... existing styles ... */
-    padding-bottom: 70px; /* Add padding to prevent overlap with fixed buttons */
+    padding-bottom: 70px;
 }
 
-/* Ensure connection management section fits well */
 #connection-management {
     display: flex;
-    flex-direction: column; /* Stack form and button */
-    gap: 10px; /* Space between form row and disconnect button */
+    flex-direction: column;
+    gap: 10px;
 }
 
-/* Style the channel form within the panel */
 #config-panel #channel-form {
-    display: flex; /* Use flex for inline layout */
+    display: flex;
     gap: 10px;
     align-items: center;
     width: 100%;
-    margin-bottom: 0; /* Remove default form margin */
+    margin-bottom: 0;
 }
 
 #config-panel #channel-form label {
-    flex-shrink: 0; /* Prevent label from shrinking */
-    margin-bottom: 0; /* Override default label margin */
+    flex-shrink: 0;
+    margin-bottom: 0;
 }
 
 #config-panel #channel-form input[type="text"] {
-    flex-grow: 1; /* Allow input to take available space */
-    min-width: 100px; /* Ensure input doesn't get too small */
+    flex-grow: 1;
+    min-width: 100px;
 }
 
 #config-panel #channel-form button {
-    flex-shrink: 0; /* Prevent button from shrinking */
-    padding: 6px 12px; /* Adjust padding */
-    margin-top: 0; /* Reset margin */
+    flex-shrink: 0;
+    padding: 6px 12px;
+    margin-top: 0;
 }
 
-/* Style the disconnect button within the panel */
 #config-panel #disconnect-btn {
     width: 100%;
-    /* display: none; /* Initially hidden - controlled by JS */
-    margin-top: 5px; /* Add space above when visible */
-    padding: 8px 15px; /* Adjust padding */
+    margin-top: 5px;
+    padding: 8px 15px;
 }
 
-/* Style the save/cancel/reset buttons container */
 #config-panel > div:last-of-type {
-    background-color: var(--panel-bg-color, #2a2a2e); /* Match panel background */
-    padding-top: 10px; /* Add space above buttons */
-    border-top: 1px solid rgba(128,128,128,0.2); /* Subtle separator */
-    margin-top: 20px; /* Add space above the button group */
-    /* Ensure it stretches full width within padding */
+    background-color: var(--panel-color, #2a2a2e);
+    padding-top: 10px;
+    border-top: 1px solid rgba(128,128,128,0.2);
+    margin-top: 20px;
     box-sizing: border-box;
-    width: 100%; 
+    width: 100%;
 }
