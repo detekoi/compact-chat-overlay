@@ -1820,8 +1820,8 @@
                 const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
                 const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : config.boxShadow;
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
-                const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212');
-                const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85);
+                // const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'); // Will be handled below
+                // const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85); // Will be handled below
 
                 // Find the full theme object matching the current theme value
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
@@ -1831,25 +1831,50 @@
                     if (transparentThemeObj) Object.assign(currentFullTheme, transparentThemeObj);
                 }
 
-                // --- Create new config object from UI values ---
+                // --- Create new config object from UI values AND theme ---
                 const newConfig = {
                     theme: currentThemeValue, // Reads from lastAppliedThemeValue
-                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, // Reads from theme object
+                    // Prioritize theme font, else keep existing config font
+                    fontFamily: currentFullTheme.fontFamily || config.fontFamily, 
                     fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
-                    bgColor: bgColorValue, // Reads from getColor helper
-                    // SAFEGUARD: Force opacity to 0 if transparent theme is active
-                    bgColorOpacity: currentThemeValue === 'transparent-theme' ? 0 : bgColorOpacityValue,
-                    // SAFEGUARD: Force border to transparent if transparent theme is active
-                    borderColor: currentThemeValue === 'transparent-theme' ? 'transparent' : (currentFullTheme.borderColor || config.borderColor),
-                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'), // Uses helper
-                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'), // Uses helper
+
+                    // PRIORITIZE THEME COLORS if theme is not default, otherwise read from UI/inputs via helpers
+                    bgColor: (currentThemeValue !== 'default' && currentFullTheme.bgColor !== undefined) 
+                        ? currentFullTheme.bgColor 
+                        : getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'),
+                    bgColorOpacity: (currentThemeValue !== 'default' && currentFullTheme.bgColorOpacity !== undefined) 
+                        ? currentFullTheme.bgColorOpacity 
+                        : getOpacity(bgOpacityInput, 0.85),
+                    // Border color needs special 'transparent' handling from helper OR theme
+                    borderColor: (currentThemeValue !== 'default' && currentFullTheme.borderColor !== undefined)
+                        ? currentFullTheme.borderColor // Theme provides value (could be 'transparent')
+                        : getColor(borderColorInput, '.color-buttons [data-target="border"]', '#9147ff'), // Helper handles 'transparent' button case
+                    textColor: (currentThemeValue !== 'default' && currentFullTheme.textColor !== undefined) 
+                        ? currentFullTheme.textColor 
+                        : getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
+                    usernameColor: (currentThemeValue !== 'default' && currentFullTheme.usernameColor !== undefined) 
+                        ? currentFullTheme.usernameColor 
+                        : getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
+                    
+                    // Explicit override for transparent theme to ensure correct values are saved
+                    ...(currentThemeValue === 'transparent-theme' ? {
+                        bgColor: '#000000',
+                        bgColorOpacity: 0,
+                        borderColor: 'transparent'
+                        // textColor/usernameColor will correctly come from the theme object via the logic above
+                    } : {}),
+
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
-                    // Get bgImage from current config - themes handle this, not direct UI input
-                    bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
-                    bgImageOpacity: bgImageOpacityValue,
-                    // REVERTED: Use values read from active buttons
+                    // Use theme image if defined, otherwise null
+                    bgImage: currentFullTheme.backgroundImage || null, 
+                    // Image opacity always read from slider
+                    bgImageOpacity: bgImageOpacityValue, 
+                    
+                    // Appearance settings read from active buttons (allows user override of theme defaults)
                     borderRadius: borderRadiusValue, 
                     boxShadow: boxShadowValue, 
+                    
+                    // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
                     chatHeight: getValue(chatHeightInput, 600, true),
@@ -1879,7 +1904,7 @@
             } catch (error) {
                 console.error("Error saving configuration:", error);
                  addSystemMessage("Error saving settings. Check console for details.");
-        }
+            }
         }
         
         // Load saved config on page load
@@ -1923,7 +1948,7 @@
                             textColor: parsedConfig.textColor || '#efeff1',
                             usernameColor: parsedConfig.usernameColor || '#9147ff',
                             fontSize: parsedConfig.fontSize || 14,
-                            fontFamily: parsedConfig.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif",
+                            fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
                             chatWidth: parsedConfig.chatWidth || 100,
                             chatHeight: parsedConfig.chatHeight || 600,
                             maxMessages: parsedConfig.maxMessages || 50,
