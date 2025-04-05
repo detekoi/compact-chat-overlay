@@ -804,7 +804,6 @@ button:hover {
 /* Custom system message style */
 .system-message {
     padding: 4px 8px;
-    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     margin-bottom: 8px;
     color: var(--timestamp-color);
