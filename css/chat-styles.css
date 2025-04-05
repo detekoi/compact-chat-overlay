@@ -465,9 +465,6 @@ button:hover {
     padding: 8px 12px;
     width: 100%;
     margin-bottom: 8px;
-    animation-duration: 0.3s, 0.3s;
-    animation-fill-mode: forwards, forwards;
-    animation-delay: 0s, 5s;
     display: flex;
     flex-direction: column;
     pointer-events: none;
@@ -477,6 +474,9 @@ button:hover {
     max-width: 100%;
     box-sizing: border-box;
     z-index: 1;
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
 }
 
 .popup-message::before {
@@ -537,60 +537,33 @@ button:hover {
     opacity: 1;
 }
 
-@keyframes slideInFromTop {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+/* Set INITIAL transform based on direction */
+.popup-message.from-top {
+    transform: translateY(-100%);
 }
 
-@keyframes slideOutToTop {
-    from { transform: translateY(0); opacity: 1; }
-    to { transform: translateY(-100%); opacity: 0; }
+.popup-message.from-bottom {
+    transform: translateY(100%);
 }
 
-@keyframes slideInFromBottom {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+.popup-message.from-left {
+    transform: translateX(-100%);
 }
 
-@keyframes slideOutToBottom {
-    from { transform: translateY(0); opacity: 1; }
-    to { transform: translateY(100%); opacity: 0; }
+.popup-message.from-right {
+    transform: translateX(100%);
 }
 
-@keyframes slideInFromLeft {
-    from { transform: translateX(-100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+/* Class to trigger the visible state (slide in) */
+.popup-message.visible {
+    opacity: 1;
+    transform: translate(0, 0);
 }
 
-@keyframes slideOutToLeft {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(-100%); opacity: 0; }
-}
-
-@keyframes slideInFromRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideOutToRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-}
-
-.popup-message[data-direction="from-top"] {
-    animation-name: slideInFromTop, slideOutToTop;
-}
-
-.popup-message[data-direction="from-bottom"] {
-    animation-name: slideInFromBottom, slideOutToBottom;
-}
-
-.popup-message[data-direction="from-left"] {
-    animation-name: slideInFromLeft, slideOutToLeft;
-}
-
-.popup-message[data-direction="from-right"] {
-    animation-name: slideInFromRight, slideOutToRight;
+/* Apply slide-out state when .removing class is added */
+.popup-message.removing {
+    opacity: 0;
+    /* The transform will transition back to the initial state defined by .from-* */
 }
 
 .theme-navigation, .font-navigation {

@@ -533,7 +533,14 @@
                 
                 // Add to appropriate container
                 targetContainer.appendChild(messageElement);
-                
+
+                // Trigger slide-in transition for popup mode
+                if (config.chatMode === 'popup') {
+                    // Force reflow before adding the class to trigger transition
+                    void messageElement.offsetWidth;
+                    messageElement.classList.add('visible');
+                }
+
                 if (config.chatMode === 'window') {
                     // Limit messages to maintain performance
                     limitMessages();
@@ -569,13 +576,24 @@
                     const duration = (config.popup?.duration || 5) * 1000;
                     if (duration > 0 && duration < 60000) { // Ensure valid duration (0-60 seconds)
                         setTimeout(() => {
-                            messageElement.classList.add('removing');
-                            setTimeout(() => {
-                                if (messageElement.parentNode) {
-                                    messageElement.parentNode.removeChild(messageElement);
-                                }
-                            }, 300); // Fade-out animation duration
-                        }, duration);
+                            // 1. Remove .visible to start slide-out transition state
+                            messageElement.classList.remove('visible');
+
+                            // 2. Use requestAnimationFrame to ensure .visible removal is processed
+                            requestAnimationFrame(() => {
+                                // Force reflow before adding .removing (belt-and-suspenders)
+                                void messageElement.offsetWidth;
+                                // 3. Add .removing class (CSS sets opacity: 0, transition handles the rest)
+                                messageElement.classList.add('removing');
+
+                                // 4. Set timeout to remove the DOM element *after* the transition completes
+                                setTimeout(() => {
+                                    if (messageElement.parentNode) {
+                                        messageElement.parentNode.removeChild(messageElement);
+                                    }
+                                }, 300); // Match the CSS transition duration
+                            });
+                        }, duration); // Start removal process after configured duration
                     }
                 }
             } catch (error) {
