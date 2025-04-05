@@ -1809,7 +1809,9 @@
 
                 // --- Apply & Save ---
                 config = newConfig; // Update the global config state
+                console.log("[saveConfiguration] Applying saved configuration visually...");
                 applyConfiguration(config); // Apply the new config visually
+                console.log("[saveConfiguration] Visual application complete.");
 
                 const scene = getUrlParameter('scene') || 'default';
                 localStorage.setItem(`chatConfig_${scene}`, JSON.stringify(config));
@@ -1885,18 +1887,25 @@
                             }
                         };
                         
+                        // --- Apply the loaded configuration visually using the central function ---
+                        console.log("[loadSavedConfig] Applying loaded configuration visually...");
+                        applyConfiguration(config); // <<< CHANGE: Call applyConfiguration here
+                        console.log("[loadSavedConfig] Visual application complete.");
+
+                        // REMOVED redundant direct style settings:
+                        /*
                         // Apply config settings to the UI
                         // Check if color override is active
                         if (overrideUsernameColorsInput) {
                             overrideUsernameColorsInput.checked = config.overrideUsernameColors;
                         }
-                        
+
                         if (config.overrideUsernameColors) {
                             document.documentElement.classList.add('override-username-colors');
                         } else {
                             document.documentElement.classList.remove('override-username-colors');
                         }
-                        
+
                         // Set color CSS variables directly
                         document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
                         document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
@@ -1913,10 +1922,10 @@
                         document.documentElement.style.setProperty('--font-family', config.fontFamily);
                         document.documentElement.style.setProperty('--chat-width', `${config.chatWidth}%`);
                         document.documentElement.style.setProperty('--chat-height', `${config.chatHeight}px`);
-                        
+
                         const borderRadiusValue = window.getBorderRadiusValue(config.borderRadius);
                         document.documentElement.style.setProperty('--chat-border-radius', borderRadiusValue);
-                        
+
                         if (config.boxShadow) {
                             const boxShadowValue = window.getBoxShadowValue(config.boxShadow);
                             document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
@@ -1924,28 +1933,29 @@
 
                         // Apply the background image using the correctly defined variable
                          if (themeBgImage) { // Use themeBgImage here
-                            document.documentElement.style.setProperty('--chat-bg-image', `url("${themeBgImage}")`); 
-                            document.documentElement.style.setProperty('--popup-bg-image', `url("${themeBgImage}")`); 
+                            document.documentElement.style.setProperty('--chat-bg-image', `url("${themeBgImage}")`);
+                            document.documentElement.style.setProperty('--popup-bg-image', `url("${themeBgImage}")`);
                          } else {
                             document.documentElement.style.setProperty('--chat-bg-image', 'none');
                             document.documentElement.style.setProperty('--popup-bg-image', 'none');
                         }
-                        
+
                         // Apply username color override setting
                         if (config.overrideUsernameColors) {
                             document.documentElement.classList.add('override-username-colors');
                         } else {
                             document.documentElement.classList.remove('override-username-colors');
                         }
-                        
+                        */
+
                         // Hide config panel (should already be hidden, but safe)
                         closeConfigPanel();
-                        
+
                         // Update the panel controls to match loaded state (important for initial load)
                         updateConfigPanelFromConfig();
-                        
-                        // Apply initial chat mode
-                        switchChatMode(config.chatMode);
+
+                        // Apply initial chat mode (switchChatMode is called within applyConfiguration now)
+                        // switchChatMode(config.chatMode); // <<< CHANGE: Removed, called by applyConfiguration
 
                         // If the channel was previously saved, auto-connect
                         if (config.lastChannel && channelInput) {
@@ -1960,39 +1970,74 @@
                              const channelForm = document.getElementById('channel-form');
                              if (channelForm) channelForm.style.display = 'block';
                         }
-                            
+
                     } catch (e) {
                         console.error('Error parsing or applying saved config:', e);
                         // In case of error, fall back to default settings
-                        applyDefaultSettings();
+                        applyDefaultSettings(); // Apply default styles
+                        updateConfigPanelFromConfig(); // Update panel to show defaults
                     }
                 } else {
                     // If no saved config, initialize with defaults
-                    applyDefaultSettings();
+                    applyDefaultSettings(); // Apply default styles
+                    updateConfigPanelFromConfig(); // Update panel to show defaults
                 }
-                
+
                 // Add initial system messages only after config is loaded/defaults applied
                 addSystemMessage('Welcome to Twitch Chat Overlay');
                 if (!config.lastChannel) {
                     addSystemMessage('Enter a channel name to connect');
                 }
-                
+
             } catch (error) {
                 console.error('Error in loadSavedConfig outer try:', error);
                 addSystemMessage('Error loading saved settings. Default settings applied.');
-                applyDefaultSettings();
+                applyDefaultSettings(); // Apply default styles
+                updateConfigPanelFromConfig(); // Update panel to show defaults
             }
         }
         
         // Apply default settings when no saved config or on error
         function applyDefaultSettings() {
+            console.log("Applying default settings...");
+            // Reset config object to defaults (adjust defaults as needed)
+            config = {
+                chatMode: 'window',
+                bgColor: '#121212',
+                bgColorOpacity: 0.85,
+                bgImage: null,
+                bgImageOpacity: 0.55,
+                borderColor: '#9147ff',
+                textColor: '#efeff1',
+                usernameColor: '#9147ff',
+                fontSize: 14,
+                fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+                chatWidth: 100,
+                chatHeight: 600,
+                maxMessages: 50,
+                showTimestamps: true,
+                overrideUsernameColors: false,
+                borderRadius: '8px', // Use CSS value
+                boxShadow: 'soft', // Use preset name
+                theme: 'default',
+                lastChannel: '',
+                popup: {
+                    direction: 'from-bottom',
+                    duration: 5,
+                    maxMessages: 3
+                }
+            };
+             // Apply the default config visually
+             applyConfiguration(config);
+             
             // If no saved config, initialize the theme preview and set default mode
-            updateThemePreview(availableThemes[currentThemeIndex]);
-            switchChatMode('window');
-            
-            // Hide popup settings by default
-            const popupSettings = document.querySelectorAll('.popup-setting');
-            popupSettings.forEach(el => el.style.display = 'none');
+            // updateThemePreview(availableThemes[currentThemeIndex]); // applyConfiguration handles this now
+            // switchChatMode('window'); // applyConfiguration handles this now
+
+            // Hide popup settings by default (applyConfiguration handles this too)
+            // const popupSettings = document.querySelectorAll('.popup-setting');
+            // popupSettings.forEach(el => el.style.display = 'none');
+            console.log("Default settings applied.");
         }
         
         /**
@@ -2233,63 +2278,70 @@
             document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 600}px`);
             document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
             document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
-            document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0);
+            // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
 
              // Background Image
              const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
              document.documentElement.style.setProperty('--chat-bg-image', bgImageURL);
              document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
-            
+
              // Popup styles (mirror chat styles)
              document.documentElement.style.setProperty('--popup-bg-color', cfg.bgColor || '#1e1e1e');
              document.documentElement.style.setProperty('--popup-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
-             document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444');
+             document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
              document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
              document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
              document.documentElement.style.setProperty('--popup-bg-image', bgImageURL);
              document.documentElement.style.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
-            // --- Apply Theme Class ---
-             // Remove all potential theme classes first
-             document.documentElement.classList.remove(
-                 'light-theme', 
-                 'natural-theme', 
-                 'transparent-theme', 
-                 'pink-theme', 
-                 'cyberpunk-theme'
-                 // Add any other theme-specific classes here dynamically later if needed
-                 // Or better, rely purely on CSS variables set below
-             );
-             // Dynamically remove potential generated theme classes as well
-             const classList = document.documentElement.classList;
-             for (let i = classList.length - 1; i >= 0; i--) {
-                 const className = classList[i];
-                 if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
-                     classList.remove(className);
-                 }
-             }
+            // --- Apply Theme Class & Override Class ---
+            // Remove all potential theme classes first
+            document.documentElement.classList.remove(
+                'light-theme', 
+                'natural-theme', 
+                'transparent-theme', 
+                'pink-theme', 
+                'cyberpunk-theme'
+                // Add any other theme-specific classes here dynamically later if needed
+                // Or better, rely purely on CSS variables set below
+            );
+            // Dynamically remove potential generated theme classes as well
+            const classList = document.documentElement.classList;
+            for (let i = classList.length - 1; i >= 0; i--) {
+                const className = classList[i];
+                if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
+                    classList.remove(className);
+                }
+            }
 
-             // Add the specific class for the current theme if it's not default
-             // const isPredefinedTheme = ['default', 'light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'].includes(cfg.theme); // REMOVED Check
-             // Apply the theme class regardless of whether it's predefined or generated
-             if (cfg.theme && cfg.theme !== 'default') {
-                 document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
-             }
+            // Add the specific class for the current theme if it's not default
+            // const isPredefinedTheme = ['default', 'light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'].includes(cfg.theme); // REMOVED Check
+            // Apply the theme class regardless of whether it's predefined or generated
+            if (cfg.theme && cfg.theme !== 'default') {
+                document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
+            }
 
-             // Special class for override? (If CSS uses it)
-             if (cfg.overrideUsernameColors) {
-                  document.documentElement.classList.add('override-username-colors');
-             } else {
-                  document.documentElement.classList.remove('override-username-colors');
-             }
+            // Special class for override? (If CSS uses it)
+            if (cfg.overrideUsernameColors) {
+                 document.documentElement.classList.add('override-username-colors');
+            } else {
+                 document.documentElement.classList.remove('override-username-colors');
+            }
 
             // --- Update UI State ---
-            // Update timestamp visibility (assuming addChatMessage checks config.showTimestamps)
-            // Maybe force redraw of existing messages if needed?
-            
+            // Apply timestamp visibility class (if CSS uses it)
+            if (cfg.showTimestamps) {
+                document.documentElement.classList.remove('hide-timestamps');
+            } else {
+                document.documentElement.classList.add('hide-timestamps');
+            }
+            // Maybe force redraw of existing messages if needed? (Less critical now)
+
             // Update chat mode display (Handles showing/hiding containers)
-            switchChatMode(cfg.chatMode || 'window');
-            
+            console.log("[applyConfiguration] Switching chat mode based on config...");
+            switchChatMode(cfg.chatMode || 'window'); // <<< Moved mode switch here
+            console.log("[applyConfiguration] Mode switch complete.");
+
             // Ensure visual previews reflect the applied config
             updateColorPreviews(); // Update color button highlights
             updatePreviewFromCurrentSettings(); // Update the main theme preview box
