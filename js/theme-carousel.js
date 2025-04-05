@@ -160,14 +160,6 @@
                 // Set as current theme if we have currentThemeIndex
                 if (typeof window.currentThemeIndex !== 'undefined') {
                     window.currentThemeIndex = 0;
-                    if (typeof window.updateThemeDisplay === 'function') {
-                        window.updateThemeDisplay();
-                    }
-                }
-                
-                // Update the theme display if function exists
-                if (typeof window.updateThemePreview === 'function') {
-                    window.updateThemePreview(theme);
                 }
             }
         }

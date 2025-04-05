@@ -335,77 +335,89 @@
      * @param {string | null} compressedImageDataUrl - The compressed background image data URL, or null.
      */
     function processAndAddTheme(themeData, compressedImageDataUrl) {
-        console.log(`Processing theme '${themeData.theme_name}' with${compressedImageDataUrl ? '' : 'out'} background image`);
+        try {
+            console.log(`Processing theme '${themeData.theme_name}' ${compressedImageDataUrl ? 'with' : 'without'} background image`);
 
-        // Create unique theme ID
-        const propsHash = `${themeData.background_color}-${themeData.border_color}-${themeData.text_color}-${themeData.username_color}`.replace(/[^a-z0-9]/gi, '').substring(0, 8);
-        const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
+            // Create unique theme ID
+            const propsHash = `${themeData.background_color}-${themeData.border_color}-${themeData.text_color}-${themeData.username_color}`.replace(/[^a-z0-9]/gi, '').substring(0, 8);
+            const newThemeValue = `generated-${Date.now()}-${propsHash}-${Math.floor(Math.random() * 1000)}`;
 
-        // Get actual CSS values from preset names using global helpers from chat.js
-        // Ensure these helpers are available globally
-        const borderRadiusValue = typeof window.getBorderRadiusValue === 'function'
-            ? window.getBorderRadiusValue(themeData.border_radius)
-            : (themeData.border_radius || "8px"); // Fallback
+            // Get actual CSS values from preset names using global helpers from chat.js
+            // Ensure these helpers are available globally
+            const borderRadiusValue = typeof window.getBorderRadiusValue === 'function'
+                ? window.getBorderRadiusValue(themeData.border_radius)
+                : (themeData.border_radius || "8px"); // Fallback
 
-        const boxShadowValue = typeof window.getBoxShadowValue === 'function'
-            ? window.getBoxShadowValue(themeData.box_shadow)
-            : (themeData.box_shadow || "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px"); // Fallback
+            const boxShadowValue = typeof window.getBoxShadowValue === 'function'
+                ? window.getBoxShadowValue(themeData.box_shadow)
+                : (themeData.box_shadow || "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px"); // Fallback
 
-        // Check for existing themes with same name to add variant number
-        const existingThemes = (window.themeCarousel && typeof window.themeCarousel.getThemes === 'function')
-                             ? window.themeCarousel.getThemes()
-                             : (window.availableThemes || []); // Fallback to availableThemes if carousel API missing
+            // Check for existing themes with same name to add variant number
+            const existingThemes = (window.themeCarousel && typeof window.themeCarousel.getThemes === 'function')
+                                 ? window.themeCarousel.getThemes()
+                                 : (window.availableThemes || []); // Fallback to availableThemes if carousel API missing
 
-        const existingThemesWithSameName = existingThemes.filter(t =>
-            t.originalThemeName === themeData.theme_name);
+            const existingThemesWithSameName = existingThemes.filter(t =>
+                t.originalThemeName === themeData.theme_name);
 
-        const variantNum = existingThemesWithSameName.length;
-        const nameSuffix = variantNum > 0 ? ` (Variant ${variantNum + 1})` : '';
+            const variantNum = existingThemesWithSameName.length;
+            const nameSuffix = variantNum > 0 ? ` (Variant ${variantNum + 1})` : '';
 
-        // Create the final theme object
-        const theme = {
-            name: themeData.theme_name + nameSuffix,
-            value: newThemeValue,
-            bgColor: themeData.background_color,
-            borderColor: themeData.border_color,
-            textColor: themeData.text_color,
-            usernameColor: themeData.username_color,
-            borderRadius: themeData.border_radius || 'Subtle',        // Preset name from proxy
-            borderRadiusValue: themeData.border_radius_value || window.getBorderRadiusValue(themeData.border_radius || 'Subtle'), // CSS value from proxy (or fallback)
-            boxShadow: themeData.box_shadow || 'Soft',              // Preset name from proxy
-            boxShadowValue: themeData.box_shadow_value || window.getBoxShadowValue(themeData.box_shadow || 'Soft'),      // CSS value from proxy (or fallback)
-            description: themeData.description,
-            backgroundImage: compressedImageDataUrl, // Use compressed image
-            fontFamily: themeData.font_family,
-            isGenerated: true,
-            originalThemeName: themeData.theme_name,
-            variant: variantNum + 1
-        };
+            // Create the final theme object
+            const theme = {
+                name: themeData.theme_name + nameSuffix,
+                value: newThemeValue,
+                bgColor: themeData.background_color,
+                borderColor: themeData.border_color,
+                textColor: themeData.text_color,
+                usernameColor: themeData.username_color,
+                borderRadius: themeData.border_radius || 'Subtle',        // Preset name from proxy
+                borderRadiusValue: themeData.border_radius_value || window.getBorderRadiusValue(themeData.border_radius || 'Subtle'), // CSS value from proxy (or fallback)
+                boxShadow: themeData.box_shadow || 'Soft',              // Preset name from proxy
+                boxShadowValue: themeData.box_shadow_value || window.getBoxShadowValue(themeData.box_shadow || 'Soft'),      // CSS value from proxy (or fallback)
+                description: themeData.description,
+                backgroundImage: compressedImageDataUrl, // Use compressed image
+                fontFamily: themeData.font_family,
+                isGenerated: true,
+                originalThemeName: themeData.theme_name,
+                variant: variantNum + 1
+            };
 
-        // Add the theme using the theme carousel's API
-        const currentThemeCarousel = window.themeCarousel; // Get reference *now*
+            // Add the theme using the theme carousel's API
+            const currentThemeCarousel = window.themeCarousel; // Get reference *now*
 
-        if (currentThemeCarousel && typeof currentThemeCarousel.addTheme === 'function') {
-             const addedTheme = currentThemeCarousel.addTheme(theme);
-             console.log("Theme added to carousel:", addedTheme.name);
-             // Optionally, automatically apply the newly added theme
-             if (currentThemeCarousel.applyTheme && typeof currentThemeCarousel.applyTheme === 'function') {
-                console.log("Automatically applying newly generated theme.");
-                currentThemeCarousel.applyTheme(addedTheme);
-             }
-        } else {
-            console.error('Theme carousel API (window.themeCarousel.addTheme) not found or invalid. Cannot add generated theme.');
+            if (currentThemeCarousel && typeof currentThemeCarousel.addTheme === 'function') {
+                 const addedTheme = currentThemeCarousel.addTheme(theme);
+                 console.log("Theme added to carousel:", addedTheme.name);
+
+                 // Explicitly update the display AFTER adding the theme
+                 if (typeof window.updateThemeDisplay === 'function') {
+                     console.log(`Calling updateThemeDisplay for ${addedTheme.name}`);
+                     window.updateThemeDisplay();
+                 } else {
+                     console.warn('window.updateThemeDisplay is not defined when trying to update after adding theme.');
+                 }
+
+                 // Dispatch event AFTER updating display
+                 const themeProcessedEvent = new CustomEvent('theme-data-processed', {
+                     detail: { theme }
+                 });
+                 document.dispatchEvent(themeProcessedEvent);
+                 console.log("Dispatched theme-data-processed event");
+
+            } else {
+                console.error('Theme carousel API (window.themeCarousel.addTheme) not found or invalid. Cannot add generated theme.');
+                if (typeof addSystemMessage === 'function') {
+                    addSystemMessage('❌ Error: Could not add or apply generated theme via carousel API.');
+                }
+            }
+
+        } catch (error) {
+            console.error('Error processing theme:', error);
             if (typeof addSystemMessage === 'function') {
-                addSystemMessage('❌ Error: Could not add or apply generated theme via carousel API.');
+                addSystemMessage(`❌ Error processing theme: ${error.message || 'Unknown error'}`);
             }
         }
-
-        // Dispatch event indicating theme data was processed (for potential listeners)
-         const themeProcessedEvent = new CustomEvent('theme-data-processed', {
-             detail: { theme }
-         });
-         document.dispatchEvent(themeProcessedEvent);
-         console.log("Dispatched theme-data-processed event");
     }
 
 })();

@@ -160,6 +160,7 @@
         
         // Theme selection (populated by theme-carousel.js)
         let currentThemeIndex = 0;
+        let lastAppliedThemeValue = 'default'; // NEW variable to track applied theme
         // availableThemes is now managed globally, initialized by theme-carousel.js
         // const availableThemes = [ ... ]; // Removed initial definition
         
@@ -1278,10 +1279,9 @@
                     'transparent-theme', 
                     'pink-theme', 
                     'cyberpunk-theme'
+                    // Add any other theme-specific classes here dynamically later if needed
+                    // Or better, rely purely on CSS variables set below
                 );
-                
-                // Store the theme in config
-                config.theme = themeName;
                 
                 // Then apply the selected theme if it's not default
                 if (themeName !== 'default') {
@@ -1343,46 +1343,7 @@
                     document.documentElement.style.setProperty('--popup-bg-image', 'none');
                 }
                 
-                // Only update config if we explicitly want to - this prevents
-                // unwanted config overrides during save operations
-                if (config.theme === theme.value) {
-                    config.bgColor = theme.bgColor;
-                    config.borderColor = theme.borderColor;
-                    config.textColor = theme.textColor;
-                    config.usernameColor = theme.usernameColor;
-                    config.backgroundImage = theme.backgroundImage;
-                    
-                    // Apply border radius and box shadow if specified in the theme
-                    if (theme.borderRadius) {
-                        config.borderRadius = theme.borderRadius;
-                        
-                        // Check if the value is a preset name or an actual CSS value
-                        const borderRadiusValues = {
-                            "none": "0px",
-                            "subtle": "8px",
-                            "rounded": "16px",
-                            "pill": "24px"
-                        };
-                        
-                        // Convert named values to CSS values if needed
-                        const borderRadiusValue = borderRadiusValues[theme.borderRadius.toLowerCase()] || theme.borderRadius;
-                        document.documentElement.style.setProperty('--chat-border-radius', borderRadiusValue);
-                        
-                        // Highlight the matching button in the UI
-                        applyBorderRadius(theme.borderRadius);
-                    }
-                    
-                    if (theme.boxShadow) {
-                        config.boxShadow = theme.boxShadow;
-                        const boxShadowValue = window.getBoxShadowValue(theme.boxShadow);
-                        document.documentElement.style.setProperty('--chat-box-shadow', boxShadowValue);
-                        // Highlight the matching button in the UI
-                        applyBoxShadow(theme.boxShadow);
-                    }
-                }
-                
                 // Update the theme index and display
-                currentThemeIndex = themeIndex;
                 if (currentThemeDisplay) {
                     currentThemeDisplay.textContent = theme.name;
                 }
@@ -1481,29 +1442,17 @@
         
         // Initialize theme display
         function updateThemeDisplay() {
-            currentThemeDisplay.textContent = availableThemes[currentThemeIndex].name;
-            
-            // Save current theme to config before applying
             const theme = availableThemes[currentThemeIndex];
-            config.theme = theme.value;
-            
-            // Update config with theme colors
-            config.bgColor = theme.bgColor;
-            config.borderColor = theme.borderColor;
-            config.textColor = theme.textColor;
-            config.usernameColor = theme.usernameColor;
-            
-            // If it's a generated theme, apply it using our specialized function
-            // if (theme.isGenerated) {
-                // applyGeneratedTheme(theme); // REMOVED call
-            // } else {
-                // Apply the current theme using existing method
-                applyTheme(theme.value); // applyTheme now handles all cases
-                
-                // Update theme preview
-                updateThemePreview(theme);
-            // } // REMOVED else block wrapper
+            currentThemeDisplay.textContent = theme.name;
+            lastAppliedThemeValue = theme.value; // UPDATE the tracked value
+
+            // Apply the current theme using existing method
+            applyTheme(theme.value); // applyTheme now handles all cases
+
+            // Update theme preview
+            updateThemePreview(theme);
         }
+        window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
         
         // Update theme preview with current theme
         function updateThemePreview(theme, useCustom = false) {
@@ -1816,7 +1765,8 @@
 
                 // --- Read current state from UI controls ---
                 const currentFontValue = availableFonts[currentFontIndex]?.value || config.fontFamily;
-                const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.id || config.theme; // Use ID
+                // const currentThemeValue = window.availableThemes[window.currentThemeIndex]?.value || config.theme; // Use VALUE, not ID - REMOVED
+                const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
                 const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
                 const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : config.borderRadius;
                 const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
@@ -1824,6 +1774,9 @@
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
                 const bgColorValue = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212');
                 const bgColorOpacityValue = getOpacity(bgOpacityInput, 0.85);
+
+                // Find the full theme object matching the current theme value
+                const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
 
                 // --- Create new config object from UI values ---
                 const newConfig = {
@@ -1837,7 +1790,7 @@
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
                      // Get bgImage from current config - themes handle this, not direct UI input
-                     bgImage: config.bgImage, // Preserve image from current config/theme
+                     bgImage: currentFullTheme.backgroundImage || null, // Get image from the theme object
                     bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusValue,
                     boxShadow: boxShadowValue,
@@ -2304,14 +2257,25 @@
                  'transparent-theme', 
                  'pink-theme', 
                  'cyberpunk-theme'
-                 // Add any other theme-specific classes here
+                 // Add any other theme-specific classes here dynamically later if needed
+                 // Or better, rely purely on CSS variables set below
              );
-             // Add the specific class for the current theme if it's not default or generated
-             const isPredefinedTheme = ['default', 'light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'].includes(cfg.theme);
-             if (isPredefinedTheme && cfg.theme !== 'default') {
-                 document.documentElement.classList.add(cfg.theme);
+             // Dynamically remove potential generated theme classes as well
+             const classList = document.documentElement.classList;
+             for (let i = classList.length - 1; i >= 0; i--) {
+                 const className = classList[i];
+                 if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
+                     classList.remove(className);
+                 }
              }
-             
+
+             // Add the specific class for the current theme if it's not default
+             // const isPredefinedTheme = ['default', 'light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'].includes(cfg.theme); // REMOVED Check
+             // Apply the theme class regardless of whether it's predefined or generated
+             if (cfg.theme && cfg.theme !== 'default') {
+                 document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
+             }
+
              // Special class for override? (If CSS uses it)
              if (cfg.overrideUsernameColors) {
                   document.documentElement.classList.add('override-username-colors');
