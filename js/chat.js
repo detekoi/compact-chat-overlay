@@ -2261,7 +2261,7 @@
             if (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('rgba')) {
                 // Try parsing RGBA string
                 try {
-                    const match = config.bgColor.match(/rgba\\((\\d+),\\s*(\\d+),\\s*(\\d+),\\s*([\\d.]+)\\)/);
+                    const match = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
                     if (match) {
                         const [, r, g, b, a] = match;
                         // Convert RGB to hex
