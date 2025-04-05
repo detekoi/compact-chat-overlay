@@ -11,6 +11,42 @@
     function initApp() {
         console.log('DOM is fully loaded, initializing application...');
         
+        // --- HELPER FUNCTIONS (Defined Early) ---
+
+        /**
+         * Converts a hex color string and an opacity value (0-1) to an rgba string.
+         * @param {string} hex - The hex color string (e.g., "#ff0000").
+         * @param {number} opacity - The opacity value (0.0 to 1.0).
+         * @returns {string} The rgba color string (e.g., "rgba(255, 0, 0, 0.5)").
+         */
+        function hexToRgba(hex, opacity) {
+            if (!hex || typeof hex !== 'string') return `rgba(0, 0, 0, ${opacity})`; // Default black if hex invalid
+
+            let r = 0, g = 0, b = 0;
+            // 3 digit hex
+            if (hex.length === 4) {
+                r = parseInt(hex[1] + hex[1], 16);
+                g = parseInt(hex[2] + hex[2], 16);
+                b = parseInt(hex[3] + hex[3], 16);
+            }
+            // 6 digit hex
+            else if (hex.length === 7) {
+                r = parseInt(hex[1] + hex[2], 16);
+                g = parseInt(hex[3] + hex[4], 16);
+                b = parseInt(hex[5] + hex[6], 16);
+            }
+             else {
+                 // Invalid hex format, return default black with opacity
+                 console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
+                 return `rgba(0, 0, 0, ${opacity})`;
+             }
+
+            // Ensure opacity is within bounds
+            opacity = Math.max(0, Math.min(1, opacity));
+
+            return `rgba(${r}, ${g}, ${b}, ${opacity.toFixed(2)})`; // Keep 2 decimal places for opacity
+        }
+        
         // Default configuration
         let config = {
             // Display mode
@@ -1373,23 +1409,50 @@
             
             // NEW: Update font family from theme
             if (theme.fontFamily) {
-                config.fontFamily = theme.fontFamily;
-                // Find the index of this font in the global list
-                const fontIndex = window.availableFonts.findIndex(f => f.value === theme.fontFamily);
+                console.log(`[applyTheme] Theme specifies font: "${theme.fontFamily}" (Type: ${typeof theme.fontFamily})`); // Re-add type log
+                // Try finding the font by name OR value
+                let fontIndex = window.availableFonts.findIndex(f => {
+                   const themeFontTrimmedLower = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim().toLowerCase() : '';
+                   const fontNameTrimmedLower = f.name ? f.name.trim().toLowerCase() : null;
+                   const fontValueTrimmed = f.value ? f.value.trim() : null;
+                   const originalThemeFontTrimmed = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
+                   
+                   // Log the comparison values FOR EACH font being checked
+                   console.log(`[applyTheme findIndex] Comparing theme='${themeFontTrimmedLower}' with fontName='${fontNameTrimmedLower}', fontValue='${fontValueTrimmed}'`);
+ 
+                   const nameMatch = fontNameTrimmedLower !== null && (fontNameTrimmedLower === themeFontTrimmedLower);
+                   // Compare original trimmed theme value against trimmed font value
+                   const valueMatch = fontValueTrimmed !== null && (fontValueTrimmed === originalThemeFontTrimmed); 
+                   
+                   // Log if match found for this font item
+                   if (nameMatch || valueMatch) {
+                       console.log(`[applyTheme findIndex] Match FOUND: nameMatch=${nameMatch}, valueMatch=${valueMatch}`);
+                   }
+ 
+                   return nameMatch || valueMatch;
+                });
+
                 if (fontIndex !== -1) {
+                    console.log(`[applyTheme] Found matching font at index ${fontIndex}: Name="${window.availableFonts[fontIndex].name}", Value="${window.availableFonts[fontIndex].value}"`); // Add log
                     currentFontIndex = fontIndex;
-                } else {
-                    // If theme font not in list, find default or set to 0
-                    const defaultFontIndex = window.availableFonts.findIndex(f => f.value.includes('Atkinson'));
-                    currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
+                    // Set config.fontFamily to the ACTUAL CSS value from the found font
                     config.fontFamily = window.availableFonts[currentFontIndex].value;
-                    console.warn(`Theme font "${theme.fontFamily}" not found in availableFonts. Using default.`);
+                    console.log(`[applyTheme] Set config.fontFamily to: "${config.fontFamily}"`); // Add log
+                } else {
+                    console.warn(`[applyTheme] Theme font "${theme.fontFamily}" not found in availableFonts by name or value. Using default.`); // Updated log
+                    // If theme font not in list, find default or set to 0
+                    const defaultFontIndex = window.availableFonts.findIndex(f => f.value && f.value.includes('Atkinson'));
+                    currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
+                    // Ensure config reflects the default font's value
+                    config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Safeguard
+                    console.warn(`Theme font "${theme.fontFamily}" not found in availableFonts. Using default: "${config.fontFamily}"`);
                 }
-                updateFontDisplay(); // Update font selector UI
+                // Update font selector UI regardless of found/fallback
+                updateFontDisplay();
             } else {
                 // If theme has no font, keep current font setting
                 // Ensure config reflects the current selection
-                config.fontFamily = window.availableFonts[currentFontIndex].value;
+                config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Safeguard
             }
             
             // Apply the theme's visual styles
@@ -1581,7 +1644,28 @@
             const themeBorderColor = theme.borderColor || '#9147ff';
             const themeTextColor = theme.textColor || '#efeff1';
             const themeUsernameColor = theme.usernameColor || '#9147ff';
-            const themeFontFamily = theme.fontFamily || config.fontFamily || "'Atkinson Hyperlegible', sans-serif"; // Use theme font, fallback to config/default
+            // --- Font Family Lookup for Preview --- START
+            let previewFontFamilyCss = "'Atkinson Hyperlegible', sans-serif"; // Default fallback
+            const themeFontSpec = theme.fontFamily; // Name or CSS value from theme
+            if (themeFontSpec) {
+                // Try finding the font in availableFonts by name or value
+                const foundFont = window.availableFonts.find(f => 
+                    (f.name && typeof themeFontSpec === 'string' && f.name.trim().toLowerCase() === themeFontSpec.trim().toLowerCase()) || 
+                    (f.value && f.value === themeFontSpec)
+                );
+                if (foundFont && foundFont.value) {
+                    previewFontFamilyCss = foundFont.value; // Use the correct CSS value
+                    console.log(`[updateThemePreview] Found font CSS for preview: ${previewFontFamilyCss}`);
+                } else {
+                    // If not found, try using config.fontFamily as a fallback before the hardcoded default
+                    previewFontFamilyCss = config.fontFamily || previewFontFamilyCss;
+                    console.warn(`[updateThemePreview] Font '${themeFontSpec}' not found for preview. Using fallback: ${previewFontFamilyCss}`);
+                }
+            } else {
+                // If theme has no font, use current config font
+                previewFontFamilyCss = config.fontFamily || previewFontFamilyCss;
+            }
+            // --- Font Family Lookup for Preview --- END
             const themeBorderRadius = theme.borderRadius || config.borderRadius || '8px'; // Use theme radius, fallback
             const themeBoxShadow = theme.boxShadow || config.boxShadow || 'none'; // Use theme shadow, fallback
             const themeBgImage = theme.backgroundImage; // Can be null/undefined
@@ -1668,7 +1752,7 @@
             themePreview.querySelectorAll('.timestamp').forEach(elem => elem.style.color = "rgba(170, 170, 170, 0.8)"); // Consistent timestamp color
 
             // Font
-            themePreview.style.fontFamily = themeFontFamily;
+            themePreview.style.fontFamily = previewFontFamilyCss; // Apply the looked-up CSS value
             themePreview.style.fontSize = currentFontSize; // Use current font size setting
 
             // --- Apply theme class for potential extra styles (like transparent) ---
@@ -1846,6 +1930,21 @@
                 // Find the full theme object matching the current theme value (used for theme name and potentially image)
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
 
+                // --- Calculate Effective Background Color ---
+                let effectiveBgColor;
+                const currentOpacity = getOpacity(bgOpacityInput, 0.85); // Get current opacity value (0-1)
+                const currentHexColor = bgColorInput?.value || '#121212'; // Get current hex color input value
+                const isTransparentButtonActive = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]')?.classList.contains('active');
+
+                if (isTransparentButtonActive || currentOpacity === 0) {
+                    effectiveBgColor = 'rgba(0, 0, 0, 0)'; // Use fully transparent black
+                } else {
+                    // Use the hexToRgba helper to combine current hex input and opacity slider
+                    effectiveBgColor = hexToRgba(currentHexColor, currentOpacity);
+                }
+                console.log(`[saveConfiguration] Calculated effective BG Color: ${effectiveBgColor}`);
+
+
                 // --- Create new config object from UI values ---
                 // PRIORITIZE UI control values using helpers
                 const newConfig = {
@@ -1853,9 +1952,11 @@
                     fontFamily: currentFontValue, // Read from font carousel state
                     fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
 
-                    // Read directly from UI controls using helpers
-                    bgColor: getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212'),
-                    bgColorOpacity: getOpacity(bgOpacityInput, 0.85),
+                    // Save the calculated RGBA background color
+                    bgColor: effectiveBgColor, 
+                    // REMOVE bgColorOpacity - It's now part of bgColor
+                    // bgColorOpacity: getOpacity(bgOpacityInput, 0.85), 
+
                     borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#9147ff'),
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
@@ -1948,8 +2049,11 @@
                             chatMode: parsedConfig.chatMode || 'window',
                             
                             // Window mode settings
-                            bgColor: parsedConfig.bgColor || '#121212', // Load hex color
-                            bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, // Load opacity
+                            // Load bgColor (could be hex or rgba)
+                            bgColor: parsedConfig.bgColor || 'rgba(18, 18, 18, 0.85)', 
+                            // REMOVE loading of separate bgColorOpacity
+                            // bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, 
+                            
                             // Correctly load bgImage from parsed config, fallback to theme default
                             bgImage: parsedConfig.bgImage !== undefined ? parsedConfig.bgImage : themeBgImage,
                             bgImageOpacity: parsedConfig.bgImageOpacity !== undefined ? parsedConfig.bgImageOpacity : 0.55, // Load image opacity
@@ -2039,8 +2143,10 @@
             // Reset config object to defaults (adjust defaults as needed)
             config = {
                 chatMode: 'window',
-                bgColor: '#121212',
-                bgColorOpacity: 0.85,
+                // Store default background as RGBA
+                bgColor: 'rgba(18, 18, 18, 0.85)', 
+                // REMOVE separate opacity
+                // bgColorOpacity: 0.85, 
                 bgImage: null,
                 bgImageOpacity: 0.55,
                 borderColor: '#9147ff',
@@ -2119,68 +2225,55 @@
          * Called after reverting or applying a theme.
          */
         function updateConfigPanelFromConfig() {
-            console.log("Updating config panel from current config:", config);
-            
-            // Ensure window.availableThemes and window.availableFonts are ready
-            if (!window.availableThemes || !window.availableFonts) {
-                console.warn("Themes or fonts not ready, delaying config panel update.");
-                // Optionally, retry after a short delay or wait for an event
-                // setTimeout(updateConfigPanelFromConfig, 100); 
-                return;
-            }
+            // --- Update Background Color Controls --- START
+            let hexColor = '#121212'; // Default hex
+            let opacityPercent = 85; // Default opacity percentage
 
-            // Update Display Mode radios
-            const chatModeRadios = document.querySelectorAll('input[name="chat-mode"]');
-            chatModeRadios.forEach(radio => {
-                radio.checked = (radio.value === config.chatMode);
-            });
-            updateModeSpecificSettingsVisibility(config.chatMode); // Call the helper here
-            
-            // Update Popup settings (only if in popup mode)
-            const popupDirectionRadios = document.querySelectorAll('input[name="popup-direction"]');
-            popupDirectionRadios.forEach(radio => {
-                radio.checked = (radio.value === config.popup.direction);
-            });
-            if (document.getElementById('popup-duration')) {
-                document.getElementById('popup-duration').value = config.popup.duration;
-                document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
-            }
-            if (document.getElementById('popup-max-messages')) {
-                document.getElementById('popup-max-messages').value = config.popup.maxMessages;
-            }
-            
-            // Update Colors
-            if (bgColorInput && config.bgColor) {
-                // Extract color part from rgba string if necessary
-                let hexColor = config.bgColor;
+            if (config.bgColor && typeof config.bgColor === 'string') {
                 if (config.bgColor.startsWith('rgba')) {
+                    // Try parsing RGBA string
                     try {
-                        // Basic conversion: assumes format rgba(r, g, b, a)
-                        const parts = config.bgColor.match(/\d+/g);
-                        if (parts && parts.length >= 3) {
-                            hexColor = `#${parseInt(parts[0]).toString(16).padStart(2, '0')}${parseInt(parts[1]).toString(16).padStart(2, '0')}${parseInt(parts[2]).toString(16).padStart(2, '0')}`;
+                        const match = config.bgColor.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+                        if (match) {
+                            const [, r, g, b, a] = match;
+                             // Convert RGB to hex
+                             hexColor = `#${parseInt(r).toString(16).padStart(2, '0')}${parseInt(g).toString(16).padStart(2, '0')}${parseInt(b).toString(16).padStart(2, '0')}`;
+                             // Convert alpha (0-1) to percentage
+                             opacityPercent = Math.round(parseFloat(a) * 100);
+                        } else {
+                             console.warn("Could not parse RGBA string:", config.bgColor);
                         }
                     } catch (e) {
-                        console.warn("Could not parse rgba for hex input:", config.bgColor);
-                        hexColor = '#121212'; // Fallback
+                        console.error("Error parsing RGBA for config panel update:", e);
                     }
+                } else if (config.bgColor.startsWith('#')) {
+                    // If it's already hex, use it and assume full opacity
+                    // unless it's transparent black (which shouldn't happen with the new save logic, but handle defensively)
+                    hexColor = config.bgColor;
+                    opacityPercent = (hexColor === '#000000' && config.bgColor === 'rgba(0, 0, 0, 0)') ? 0 : 100; // Check for effective transparency
+                } else if (config.bgColor === 'transparent') {
+                     // Handle 'transparent' keyword (legacy or border case)
+                     hexColor = '#000000';
+                     opacityPercent = 0;
                 }
-                // bgColorInput.value = hexColor;
             }
-            
-            if (bgOpacityInput && bgOpacityValue) {
-                // Read opacity from the config object (0-1 range) and convert to percentage
-                const configOpacityPercent = Math.round((config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85) * 100);
-                bgOpacityInput.value = configOpacityPercent;
-                bgOpacityValue.textContent = `${configOpacityPercent}%`;
-            }
-            
-            // borderColorInput.value = config.borderColor || '#9147ff';
-            // textColorInput.value = config.textColor || '#efeff1';
-            // usernameColorInput.value = config.usernameColor || '#9147ff';
-            highlightActiveColorButtons(); // Highlight buttons based on current config
-            
-            // Update Appearance
+            // Update the UI elements
+            if (bgColorInput) {
+                 bgColorInput.value = hexColor;
+             }
+             if (bgOpacityInput && bgOpacityValue) {
+                 bgOpacityInput.value = opacityPercent;
+                 bgOpacityValue.textContent = `${opacityPercent}%`;
+             }
+             // --- Update Background Color Controls --- END
+
+            // Update Border/Text/Username Color Inputs (Simplified)
+            borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Use black for transparent input
+            textColorInput.value = config.textColor || '#efeff1';
+            usernameColorInput.value = config.usernameColor || '#9147ff';
+            highlightActiveColorButtons(); // Highlight buttons based on config
+
+            // Update Appearance            
             const effectiveBorderRadius = getBorderRadiusValue(config.borderRadius);
             highlightBorderRadiusButton(effectiveBorderRadius);
             
@@ -2335,8 +2428,10 @@
             }
 
             // --- Apply Core CSS Variables ---
-            document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || '#121212');
-            document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
+            document.documentElement.style.setProperty('--chat-bg-color', cfg.bgColor || 'rgba(18, 18, 18, 0.85)'); // Fallback to default rgba
+            // REMOVE the separate opacity setting
+            // document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
+            
             document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
             document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
             document.documentElement.style.setProperty('--username-color', cfg.usernameColor || '#9147ff');
@@ -2355,8 +2450,10 @@
              document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
              // Popup styles (mirror chat styles)
-             document.documentElement.style.setProperty('--popup-bg-color', cfg.bgColor || '#1e1e1e');
-             document.documentElement.style.setProperty('--popup-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
+             document.documentElement.style.setProperty('--popup-bg-color', cfg.bgColor || 'rgba(18, 18, 18, 0.85)'); // Use same value as chat bg
+             // REMOVE the separate popup opacity setting
+             // document.documentElement.style.setProperty('--popup-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
+             
              document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
              document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
              document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
