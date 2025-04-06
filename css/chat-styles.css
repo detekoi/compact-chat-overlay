@@ -999,3 +999,19 @@ body.chat-page:hover #popup-settings-btn {
     font-style: italic;
     color: #bbb;
 }
+
+.username-color-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.username-color-header input[type="checkbox"] {
+    margin: 0;
+}
+
+.username-color-header label {
+    margin: 0;
+    flex-grow: 1;
+}
