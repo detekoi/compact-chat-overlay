@@ -77,6 +77,37 @@
             </div>
         </div>
 
+        <div class="section-divider">AI Theme Generator</div>
+        
+        <div class="config-row">
+            <label for="theme-prompt">Game or Vibe:</label>
+            <input type="text" id="theme-prompt" placeholder="e.g., Minecraft, Cozy Vibes">
+        </div>
+        
+        <div class="config-row">
+            <button id="generate-theme-btn">Generate Theme</button>
+            <div id="theme-loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <div id="loading-status">Generating...</div>
+            </div>
+        </div>
+        
+        <div class="config-row">
+            <label for="generate-bg-image" style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.9em;">
+                <input type="checkbox" id="generate-bg-image" checked>
+                Generate background image
+            </label>
+        </div>
+        
+        <div class="config-row" id="generated-theme-result" style="display: none;">
+            <div>Generated: <span id="generated-theme-name"></span></div>
+        </div>
+        
+        <!-- Generated themes are now integrated directly into the main theme carousel at the top -->
+        <div style="font-size: 12px; margin-top: 10px; color: #888; text-align: center;">
+            Generated themes will appear in your main theme collection above
+        </div>
+        
         <div class="section-divider">Display Mode</div>
         
         <div class="config-row">
@@ -127,38 +158,7 @@
             <label for="popup-max-messages">Max Messages:</label>
             <input type="number" id="popup-max-messages" value="3" min="1" max="10">
         </div>
-        
-        <div class="section-divider">AI Theme Generator</div>
-        
-        <div class="config-row">
-            <label for="theme-prompt">Game or Vibe:</label>
-            <input type="text" id="theme-prompt" placeholder="e.g., Minecraft, Cozy Vibes">
-        </div>
-        
-        <div class="config-row">
-            <button id="generate-theme-btn">Generate Theme</button>
-            <div id="theme-loading-indicator" style="display: none;">
-                <div class="spinner"></div>
-                <div id="loading-status">Generating...</div>
-            </div>
-        </div>
-        
-        <div class="config-row">
-            <label for="generate-bg-image" style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.9em;">
-                <input type="checkbox" id="generate-bg-image" checked>
-                Generate background image
-            </label>
-        </div>
-        
-        <div class="config-row" id="generated-theme-result" style="display: none;">
-            <div>Generated: <span id="generated-theme-name"></span></div>
-        </div>
-        
-        <!-- Generated themes are now integrated directly into the main theme carousel at the top -->
-        <div style="font-size: 12px; margin-top: 10px; color: #888; text-align: center;">
-            Generated themes will appear in your main theme collection above
-        </div>
-        
+
         <div class="section-divider">Colors</div>
         
         <div class="config-row">
