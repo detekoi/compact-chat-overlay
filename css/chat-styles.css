@@ -591,8 +591,8 @@ body.chat-page:hover #popup-settings-btn {
 
 .theme-navigation, .font-navigation {
     display: flex;
-    align-items: center;
     gap: 5px;
+    flex-shrink: 0; /* Prevent navigation from shrinking */
 }
 
 .theme-nav-btn, .font-nav-btn {
@@ -611,13 +611,13 @@ body.chat-page:hover #popup-settings-btn {
 }
 
 .current-theme-display, .current-font-display {
-    font-weight: 500;
-    padding: 5px 10px;
+    flex-grow: 1; /* Allow display to take up space */
     text-align: center;
-    min-width: 100px;
-    font-size: 14px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long names */
+    min-width: 80px; /* Ensure minimum width */
 }
 
 .theme-buttons-container, .font-buttons-container {
