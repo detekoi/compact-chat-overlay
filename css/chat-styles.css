@@ -467,7 +467,10 @@ button:hover {
     width: 100%;
     margin-bottom: 8px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
     pointer-events: none;
     border: 2px solid var(--popup-border-color);
     color: var(--popup-text-color);
@@ -567,6 +570,23 @@ body.chat-page:hover #popup-settings-btn {
 .popup-message.removing {
     opacity: 0;
     /* The transform will transition back to the initial state defined by .from-* */
+}
+
+.popup-message .timestamp {
+    color: var(--timestamp-color);
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.popup-message .username {
+    font-weight: bold;
+    color: var(--username-color);
+}
+
+.popup-message .message {
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
 }
 
 .theme-navigation, .font-navigation {
