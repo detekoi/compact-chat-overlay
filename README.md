@@ -4,13 +4,16 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![Compact Chat Overlay Screenshot](assets/images/screenshots/preview.png)
 
-## ✨ NEW: Custom Generated Themes!
+## ✨ NEW: AI Theme Generation with Background Images!
 
-**Create personalized chat themes with a single prompt!** Simply describe a game, aesthetic, or mood, and the AI will generate a unique chat theme with perfectly matched colors and fonts.
+**Create fully personalized chat themes with matching background images!** Our latest update makes creating unique chat themes even more powerful:
 
-- Type "Minecraft," "Lady Gaga Monster era," or "Cozy forest vibes"
-- Get instant, custom-tailored themes in seconds
-- Perfectly coordinated colors and fonts
+- **AI-Generated Backgrounds**: Optionally get unique background images that perfectly match your theme's aesthetic
+- **Theme Carousel**: Easily browse through all available themes with a visual preview carousel
+- **Enhanced Visual Editor**: Precise controls for opacity, border radius, and box shadows
+- **Expanded Color Presets**: New "Natural", "Cyber", "Pink" and "None" options for easy styling
+
+Simply describe any game, aesthetic, or mood (like "Minecraft," "cyberpunk night city," or "cozy forest vibes"), and the AI will generate a complete theme with perfectly matched colors, fonts, and background image!
 
 ## Try It Now
 
@@ -20,7 +23,8 @@ Create and manage multiple chat scenes for your stream in seconds!
 
 ## Features
 
-- **AI Theme Generator**: Create unique, perfectly coordinated themes with a simple text prompt about any game or aesthetic!
+- **AI Theme Generator**: Create unique, perfectly coordinated themes with background images from a simple text prompt
+- **Theme Carousel**: Visually browse through themes with intuitive navigation controls
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Compact & Clean Interface**: Displays chat messages in a minimalist window that can be added as a browser source.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
@@ -30,9 +34,12 @@ Create and manage multiple chat scenes for your stream in seconds!
 - **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
 - **Font Customization**: Choose from multiple font options including gaming-style pixel fonts, accessible fonts, and variable fonts.
 - **Customizable Appearance**:
-  - Background color & opacity
-  - Border color
-  - Text color
+  - Background color & opacity with precise percentage control
+  - Optional background images that match your theme
+  - Border color with expanded preset options
+  - Text color with new theme-specific options
+  - Border radius presets (None, Subtle, Rounded, Pill)
+  - Box shadow presets (None, Soft, Simple 3D, Intense 3D, Sharp)
   - Font selection and size
   - Window width and height
   - Usernames - use original Twitch colors or pick a custom color
@@ -127,25 +134,53 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 
 ## Settings Options
 
-- **AI Theme Generator**: Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic.
-  - Example prompts: "Minecraft dungeons", "80s synthwave", "pastel kawaii", "dark fantasy RPG"
-  - AI automatically generates coordinated colors and selects a complementary font
-  - Generated themes appear at the top of your themes list for easy access
-- **Display Mode**: Choose between Window mode (traditional chat window) or Popup mode (toast notifications).
-- **Theme Selection**: Choose from Dark (neutral gray border), Light (subtle light border), Natural, Transparent (borderless), Pink, and Cyberpunk themes.
-- **Live Theme Preview**: See a miniature preview of your chat with all settings applied.
-- **Background**: Adjust color and opacity with easy-to-use preset buttons.
-- **Border**: Change the border color using theme-specific presets or choose "None" for borderless display.
-- **Text**: Set the message text color.
-- **Username Colors**: Choose whether to use Twitch's colors or your custom color.
-- **Font**: Select from various fonts including:
-  - Default (system sans-serif)
-  - Atkinson Hyperlegible (accessible font designed for high legibility)
-  - Press Start 2P (pixelated retro gaming font)
-  - Jacquard (medieval-style pixel font)
-  - Medieval (fantasy-style serif font)
-  - Tektur (modern geometric design)
-  - System fonts (Arial, Times, Courier New)
+### Theme Carousel
+Browse through available themes with a visual interface:
+- Use the **◀** and **▶** buttons to cycle through themes
+- See theme names displayed clearly
+- Preview each theme in real-time before applying
+- Quickly find themes with background images that match your stream's style
+
+### AI Theme Generator
+Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic.
+- Example prompts: "Minecraft dungeons", "80s synthwave", "pastel kawaii", "dark fantasy RPG"
+- AI automatically generates coordinated colors, fonts, and background images
+- Background images are optimized for chat overlay usage
+- Generated themes appear at the top of your themes list for easy access
+
+### Display Mode
+Choose between Window mode (traditional chat window) or Popup mode (toast notifications).
+
+### Theme Selection
+Choose from expanded theme options:
+- **Dark**: Classic dark theme with neutral gray border
+- **Light**: Bright theme with subtle light border
+- **Natural**: Earthy, warm tones for cozy streams
+- **Transparent**: Borderless display for minimal interference
+- **Pink**: Vibrant pink accents for a playful look
+- **Cyberpunk**: Bold neon colors with a futuristic feel
+
+### Color Options
+- **Background**: Adjust color with easy presets (Dark, Light, Natural, Pink, Cyber) and precise opacity control (0-100%)
+- **Border**: Change border color using theme-specific presets or choose "None" for borderless display
+- **Text**: Set message text color with expanded preset options
+- **Username Colors**: Choose whether to use Twitch's colors or your custom color with new preset options
+
+### Border & Effect Options
+- **Border Radius**: Choose from None (0px), Subtle (8px), Rounded (16px), or Pill (24px) corner styles
+- **Box Shadow**: Add depth with None, Soft, Simple 3D, Intense 3D, or Sharp shadow presets
+
+### Font Options
+Select from various fonts including:
+- Default (system sans-serif)
+- Atkinson Hyperlegible (accessible font designed for high legibility)
+- Press Start 2P (pixelated retro gaming font)
+- Jacquard (medieval-style pixel font)
+- Medieval (fantasy-style serif font)
+- Tektur (modern geometric design)
+- System fonts (Arial, Times, Courier New)
+
+### Size & Display Options
 - **Font Size**: Adjust the text size with a slider.
 - **Width**: Change the width of the chat window.
 - **Height**: Change the height of the chat window.
@@ -153,12 +188,10 @@ To adjust chat appearance settings (colors, themes, etc.) after adding to OBS:
 - **Show Timestamps**: Toggle message timestamps on/off.
 
 ### Popup Mode Settings
-
 When using Popup mode, additional options become available:
-
-- **Animation Direction**: Choose how messages animate in (From Top, From Bottom, From Left, From Right).
-- **Duration**: Control how long each message stays visible (2-10 seconds).
-- **Max Messages**: Set how many popup messages can be visible simultaneously.
+- **Animation Direction**: Choose how messages animate in (From Top, Bottom, Left, Right)
+- **Duration**: Control how long each message stays visible (2-10 seconds)
+- **Max Messages**: Set how many popup messages can be visible simultaneously
 
 ## Advanced: Manual URL Parameters
 
@@ -177,6 +210,12 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ## Customization Tips
 
+### Theme Carousel Tips
+- Use the live preview to quickly find themes that match your stream's aesthetic
+- Cycle through all available themes including your AI-generated ones with background images
+- Themes you create with the AI generator appear at the top of the carousel for easy access
+- The carousel preserves your custom settings when switching between themes
+
 ### AI Theme Generator Tips
 - **Be specific with your prompts**: The more detailed your description, the better the theme will match your vision.
 - **Game-inspired themes**: Try entering game titles like "Stardew Valley," "Elden Ring," or "Valorant".
@@ -185,14 +224,24 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - **Community themes**: Create themes that match your community's inside jokes or channel memes.
 - **Experiment with variations**: If you like a generated theme but want tweaks, try adding adjectives like "darker," "pastel," or "vibrant" to your prompt.
 
+### Background Image Tips
+- For best results with background images, keep your chat overlay width between 320-400px
+- If you want a more minimal look, you can lower the opacity to make the background image subtle
+- For game-specific themes, try entering the exact game title for a themed background
+- Background images are optimized to not interfere with chat readability
+- Adjust text colors if needed to ensure good contrast with your background image
+
 ### Window Mode Tips
-- Use the **Light** theme for an airy, bright overlay on top of your gameplay or camera.
-- The **Live Preview** in settings helps visualize changes before applying them.
-- For better readability, keep font sizes between 12-16px.
-- Position the chat overlay where it won't overlap with important game elements.
-- Try the **Cyberpunk** theme for a neon-style game streaming aesthetic.
-- For retro games or cozy streams, the **Natural** theme offers earthy, warm tones.
-- For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out.
+- Use the **Background Opacity** slider for precise control over transparency
+- Try the **Border Radius** presets to match your stream's visual style
+- The **Box Shadow** presets can add depth and dimension to your chat overlay
+- Use the **Light** theme for an airy, bright overlay on top of your gameplay or camera
+- The **Live Preview** in settings helps visualize changes before applying them
+- For better readability, keep font sizes between 12-16px
+- Position the chat overlay where it won't overlap with important game elements
+- Try the **Cyberpunk** theme for a neon-style game streaming aesthetic
+- For retro games or cozy streams, the **Natural** theme offers earthy, warm tones
+- For dark gameplay, the **Transparent** theme is unobtrusive and helps chat messages stand out
 
 ### Font Selection Tips
 - For **retro or pixel art games**, try the "Press Start 2P" font.
