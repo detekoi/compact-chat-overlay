@@ -2047,120 +2047,104 @@
         
         // Load saved config on page load
         function loadSavedConfig() {
-            console.log('Loading saved config');
-            try {
-                // NOTE: theme-carousel.js should have already run and loaded generatedThemes into window.availableThemes
-                
-                // Get scene ID from URL parameter, default to 'default' if not specified
-                const sceneId = getUrlParameter('scene') || getUrlParameter('instance') || 'default';
-                
-                // Use scene-specific storage key - CORRECTED KEY
-                const savedConfig = localStorage.getItem(`chatConfig_${sceneId}`); // Use the same key format as saving
-                console.log(`Loading config for scene: ${sceneId}`);
-                
-                if (savedConfig) {
-                    try {
-                        const parsedConfig = JSON.parse(savedConfig);
-                        console.log('Loaded config:', parsedConfig);
-                        console.log('[loadSavedConfig] Parsed config from localStorage:', JSON.stringify(parsedConfig)); // LOG 0 - Added
-                        
-                        // Find the full theme object for the saved theme value
-                        // window.availableThemes includes defaults + saved generated themes
-                        const savedThemeValue = parsedConfig.theme || 'default';
-                        const currentFullTheme = window.availableThemes?.find(t => t.value === savedThemeValue) || window.availableThemes?.[0];
-                        // Correctly define the variable holding the theme's background image URL
-                        const themeBgImage = currentFullTheme?.backgroundImage || null;
-                        
-                        // Create new config object by merging defaults with saved settings
-                        config = {
-                            // Display mode
-                            chatMode: parsedConfig.chatMode || 'window',
-                            
-                            // Window mode settings
-                            // Load bgColor (hex) and opacity (0-1) separately
-                            bgColor: parsedConfig.bgColor || '#121212', // Default hex
-                            bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85, // Default opacity
-                            
-                            // Correctly load bgImage from parsed config, fallback to theme default
-                            bgImage: parsedConfig.bgImage !== undefined ? parsedConfig.bgImage : themeBgImage,
-                            bgImageOpacity: parsedConfig.bgImageOpacity !== undefined ? parsedConfig.bgImageOpacity : 0.55, // Load image opacity
-                            borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
-                            textColor: parsedConfig.textColor || '#efeff1',
-                            usernameColor: parsedConfig.usernameColor || '#9147ff',
-                            fontSize: parsedConfig.fontSize || 14,
-                            fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
-                            chatWidth: parsedConfig.chatWidth || 100,
-                            chatHeight: parsedConfig.chatHeight || 100,
-                            maxMessages: parsedConfig.maxMessages || 50,
-                            showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
-                            overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
-                             // Use the actual CSS value for border radius, converting if necessary
-                             borderRadius: window.getBorderRadiusValue(parsedConfig.borderRadius || '8px'),
-                             boxShadow: parsedConfig.boxShadow || 'soft', // Store preset name
-                            theme: savedThemeValue,
-                            lastChannel: parsedConfig.lastChannel || '',
-                            
-                            // Popup mode settings
-                            popup: {
-                                direction: parsedConfig.popup?.direction || 'from-bottom',
-                                duration: parsedConfig.popup?.duration || 5,
-                                maxMessages: parsedConfig.popup?.maxMessages || 3
-                            }
-                        };
-                        
-                        // --- Apply the loaded configuration visually using the central function ---
-                        console.log("[loadSavedConfig] Applying loaded configuration visually...");
-                        applyConfiguration(config); // <<< CHANGE: Call applyConfiguration here
-                        console.log("[loadSavedConfig] Visual application complete.");
+            const scene = getUrlParameter('scene') || 'default';
+            const storageKey = `chatConfig_${scene}`;
+            const savedConfigString = localStorage.getItem(storageKey);
 
+            if (savedConfigString) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfigString);
+                    console.log('Loaded config:', parsedConfig);
 
-                        // Hide config panel (should already be hidden, but safe)
-                        closeConfigPanel();
-
-                        // Update the panel controls to match loaded state (important for initial load)
-                        updateConfigPanelFromConfig();
-
-                        // Apply initial chat mode (switchChatMode is called within applyConfiguration now)
-                        // switchChatMode(config.chatMode); // <<< CHANGE: Removed, called by applyConfiguration
-                        
-                        // If the channel was previously saved, auto-connect
-                        if (config.lastChannel && channelInput) {
-                            channelInput.value = config.lastChannel;
-                            channel = config.lastChannel;
-                            // Auto-connect after a short delay
-                            setTimeout(() => {
-                                connectToChat();
-                            }, 1000);
-                        } else {
-                             // If no channel saved, ensure connect form is visible IN THE PANEL
-                             // and disconnect button is hidden
-                              if (channelForm) channelForm.style.display = 'flex';
-                              if (disconnectBtn) disconnectBtn.style.display = 'none';
+                    // Normalize chat height before merging into config
+                    if (parsedConfig.chatHeight !== undefined) {
+                        const heightValue = parseInt(parsedConfig.chatHeight, 10);
+                        if (!isNaN(heightValue) && heightValue > 100) {
+                            console.log(`Converting old chat height value (${heightValue}) to 100% for scene '${scene}'`);
+                            parsedConfig.chatHeight = 100;
+                            // Save the normalized config back to localStorage
+                            localStorage.setItem(storageKey, JSON.stringify(parsedConfig));
                         }
-
-                    } catch (e) {
-                        console.error('Error parsing or applying saved config:', e);
-                        // In case of error, fall back to default settings
-                        applyDefaultSettings(); // Apply default styles
-                        updateConfigPanelFromConfig(); // Update panel to show defaults
                     }
-                } else {
-                    // If no saved config, initialize with defaults
-                    applyDefaultSettings(); // Apply default styles
-                    updateConfigPanelFromConfig(); // Update panel to show defaults
+
+                    // Merge saved config into default config
+                    config = { ...config, ...parsedConfig };
+
+                    // Find the full theme object for the saved theme value
+                    const savedThemeValue = parsedConfig.theme || 'default';
+                    const currentFullTheme = window.availableThemes?.find(t => t.value === savedThemeValue) || window.availableThemes?.[0];
+                    const themeBgImage = currentFullTheme?.backgroundImage || null;
+
+                    // Create new config object by merging defaults with saved settings
+                    config = {
+                        // Display mode
+                        chatMode: parsedConfig.chatMode || 'window',
+                        
+                        // Window mode settings
+                        bgColor: parsedConfig.bgColor || '#121212',
+                        bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85,
+                        bgImage: parsedConfig.bgImage !== undefined ? parsedConfig.bgImage : themeBgImage,
+                        bgImageOpacity: parsedConfig.bgImageOpacity !== undefined ? parsedConfig.bgImageOpacity : 0.55,
+                        borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
+                        textColor: parsedConfig.textColor || '#efeff1',
+                        usernameColor: parsedConfig.usernameColor || '#9147ff',
+                        fontSize: parsedConfig.fontSize || 14,
+                        fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
+                        chatWidth: parsedConfig.chatWidth || 100,
+                        chatHeight: parsedConfig.chatHeight || 100, // Will use normalized value from above
+                        maxMessages: parsedConfig.maxMessages || 50,
+                        showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
+                        overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
+                        borderRadius: window.getBorderRadiusValue(parsedConfig.borderRadius || '8px'),
+                        boxShadow: parsedConfig.boxShadow || 'soft',
+                        theme: savedThemeValue,
+                        lastChannel: parsedConfig.lastChannel || '',
+                        
+                        // Popup mode settings
+                        popup: {
+                            direction: parsedConfig.popup?.direction || 'from-bottom',
+                            duration: parsedConfig.popup?.duration || 5,
+                            maxMessages: parsedConfig.popup?.maxMessages || 3
+                        }
+                    };
+
+                    // Apply the loaded configuration
+                    console.log("[loadSavedConfig] Applying loaded configuration visually...");
+                    applyConfiguration(config);
+                    console.log("[loadSavedConfig] Visual application complete.");
+
+                    // Hide config panel
+                    closeConfigPanel();
+
+                    // Update the panel controls to match loaded state
+                    updateConfigPanelFromConfig();
+
+                    // If the channel was previously saved, auto-connect
+                    if (config.lastChannel && channelInput) {
+                        channelInput.value = config.lastChannel;
+                        channel = config.lastChannel;
+                        setTimeout(() => {
+                            connectToChat();
+                        }, 1000);
+                    } else {
+                        if (channelForm) channelForm.style.display = 'flex';
+                        if (disconnectBtn) disconnectBtn.style.display = 'none';
+                    }
+
+                } catch (e) {
+                    console.error('Error parsing or applying saved config:', e);
+                    applyDefaultSettings();
+                    updateConfigPanelFromConfig();
                 }
-                
-                // Add initial system messages only after config is loaded/defaults applied
-                addSystemMessage('Welcome to Twitch Chat Overlay');
-                if (!config.lastChannel) {
-                    addSystemMessage('Enter a channel name to connect');
-                }
-                
-            } catch (error) {
-                console.error('Error in loadSavedConfig outer try:', error);
-                addSystemMessage('Error loading saved settings. Default settings applied.');
-                applyDefaultSettings(); // Apply default styles
-                updateConfigPanelFromConfig(); // Update panel to show defaults
+            } else {
+                applyDefaultSettings();
+                updateConfigPanelFromConfig();
+            }
+
+            // Add initial system messages
+            addSystemMessage('Welcome to Twitch Chat Overlay');
+            if (!config.lastChannel) {
+                addSystemMessage('Enter a channel name to connect');
             }
         }
         
