@@ -98,9 +98,9 @@
     --chat-bg-image: none; /* Default: no background image */
     
     /* Animation colors */
-    --spinner-color: #9147ff;
-    --spinner-accent: #a970ff;
-    
+    --spinner-color: var(--primary-color); /* Primary color for the spinner */
+    --spinner-accent: var(--primary-dark); /* Darker variant of primary color for accent */
+   
     /* Popup Theme (same as chat by default) */
     --popup-bg-color: var(--chat-bg-color, #1e1e1e);
     --popup-bg-opacity: var(--chat-bg-opacity, 0.85);
@@ -113,8 +113,8 @@
     /* Config Panel specific styles - not affected by chat themes */
     --config-bg-color: rgba(35, 35, 35, 0.95);
     --config-text-color: #ffffff;
-    --config-border-color: #9147ff;
-    --config-font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    --config-border-color: #6c757d; /* A neutral gray color */
+    --config-font-family: 'Atkinson Hyperlegible', sans-serif;
     
     /* Base colors for light mode */
     --primary-color: #9147ff;
@@ -188,7 +188,6 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    border-left: 2px solid var(--config-border-color);
     padding-bottom: 70px; /* Add padding to prevent overlap with fixed buttons */
 }
 
@@ -288,8 +287,6 @@ button:hover {
 
 /* Modified Chat Container Styles */
 #chat-container {
-    /* width: var(--chat-width); REMOVED */
-    /* height: var(--chat-height); REMOVED */
     position: absolute; /* Position relative to wrapper */
     inset: 0; /* Fill the wrapper */
     border-radius: inherit; /* Match wrapper radius */
