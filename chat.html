@@ -34,6 +34,20 @@
 
     <div id="config-panel">
         <h3>Chat Settings</h3>
+        
+        <!-- Moved Connection Controls to Top -->
+        <div class="section-divider">Connection</div>
+        <div class="config-row" id="connection-management" style="margin-top: 10px; padding-top: 10px;">
+            <!-- Channel Form (Initially Visible) -->
+            <div id="channel-form" style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                <label for="channel-input" style="flex-shrink: 0;">Channel:</label>
+                <input type="text" id="channel-input" placeholder="Enter Twitch channel" style="flex-grow: 1;">
+                <button id="connect-btn" style="flex-shrink: 0;">Connect</button>
+            </div>
+            <!-- Disconnect Button (Initially Hidden) -->
+            <button id="disconnect-btn" style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
+        </div>
+
         <div class="config-row theme-section">
             <!-- Using aria-labelledby instead of for, since this controls a non-form element -->
             <div class="theme-selector-label" id="theme-selector-label">Theme:</div>
@@ -267,20 +281,6 @@
             <input type="checkbox" id="show-timestamps" checked>
         </div>
         
-        
-        <!-- Moved Connection Controls Here -->
-        <div class="section-divider">Connection</div>
-        <div class="config-row" id="connection-management" style="margin-top: 10px; padding-top: 10px;">
-            <!-- Channel Form (Initially Visible) -->
-            <div id="channel-form" style="display: flex; gap: 10px; align-items: center; width: 100%;">
-                <label for="channel-input" style="flex-shrink: 0;">Channel:</label>
-                <input type="text" id="channel-input" placeholder="Enter Twitch channel" style="flex-grow: 1;">
-                <button id="connect-btn" style="flex-shrink: 0;">Connect</button>
-            </div>
-            <!-- Disconnect Button (Initially Hidden) -->
-            <button id="disconnect-btn" style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
-        </div>
-
         <div style="display: flex; justify-content: space-between; gap: 5px; margin-top: 20px;">
             <button id="save-config">Save Settings</button>
             <button id="cancel-config" style="background-color: #555;">Cancel</button>
