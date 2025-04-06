@@ -763,6 +763,7 @@ body.chat-page:hover #popup-settings-btn {
     border-top-color: var(--spinner-color);
     animation: spin 1s infinite linear;
     margin-right: 8px;
+    flex-shrink: 0;
 }
 
 .spinner.retrying {
