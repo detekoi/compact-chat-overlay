@@ -412,15 +412,6 @@
             // Add the theme using the theme carousel's API
             const currentThemeCarousel = window.themeCarousel; // Get reference *now*
 
-            // --- Ensure the global array is updated BEFORE applying/displaying ---
-            if (!window.availableThemes) { 
-                console.error("window.availableThemes is not defined! Cannot add theme.");
-                return; 
-            }
-            window.availableThemes.push(theme);
-            console.log(`Explicitly pushed ${theme.name} to window.availableThemes. New length: ${window.availableThemes.length}`);
-            // -------------------------------------------------------------------
-
             if (currentThemeCarousel && typeof currentThemeCarousel.addTheme === 'function') {
                  // Let the carousel handle its internal logic (like localStorage)
                  const addedTheme = currentThemeCarousel.addTheme(theme); 
@@ -434,6 +425,11 @@
                  });
                  console.log(`Dispatching theme-generated-and-added event for theme: ${addedTheme.value}`);
                  document.dispatchEvent(applyThemeEvent);
+
+                 // Now update the carousel UI to show the newly added theme (at index 0)
+                 if (typeof window.applyAndScrollToTheme === 'function') {
+                     window.applyAndScrollToTheme(0);
+                 }
 
                  // Dispatch event AFTER applying and updating display
                  const themeProcessedEvent = new CustomEvent('theme-data-processed', {

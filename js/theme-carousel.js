@@ -59,6 +59,8 @@
     // Make updateThemeDetails globally available
     window.updateThemeDetails = updateThemeDetails;
     window.highlightActiveCard = highlightActiveCard;
+    window.applyAndScrollToTheme = applyAndScrollToTheme;
+    window.scrollToThemeCard = scrollToThemeCard;
     
     // Initialize the carousel when DOM is ready
     if (document.readyState === 'loading') {
@@ -331,10 +333,8 @@
                 // Add to the front so it appears at the beginning of the carousel
                 window.availableThemes.unshift(theme);
                 
-                // Set as current theme if we have currentThemeIndex
-                if (typeof window.currentThemeIndex !== 'undefined') {
-                    window.currentThemeIndex = 0;
-                }
+                // Set as current theme index *before* rendering
+                window.currentThemeIndex = 0;
             }
         }
         
@@ -553,14 +553,6 @@
             wrapper.textContent = 'No themes available.';
         }
         
-        // Update the theme details for the current theme
-        if (window.availableThemes && window.availableThemes.length > 0 && window.currentThemeIndex !== undefined) {
-            updateThemeDetails(window.availableThemes[window.currentThemeIndex]);
-        } else if (window.availableThemes && window.availableThemes.length > 0) {
-            // Default to the first theme if no index is set
-            updateThemeDetails(window.availableThemes[0]);
-        }
-        
         console.log("Theme carousel rendered/updated.");
         
         // Highlight the currently active theme after rendering
@@ -693,6 +685,30 @@
             if (!nameElement) console.error('Could not find #selected-theme-name');
             if (!detailsElement) console.error('Could not find .theme-description-details');
             if (!descSpanElement) console.error('Could not find #selected-theme-description within details');
+        }
+    }
+
+    /**
+     * Scrolls the carousel wrapper to bring the card at the specified index into view.
+     * @param {number} index - The index of the card to scroll to.
+     */
+    function scrollToThemeCard(index) {
+        const wrapper = document.querySelector('.theme-cards-wrapper');
+        if (wrapper) {
+            const cards = wrapper.children;
+            if (index >= 0 && index < cards.length && cards[index]) {
+                const card = cards[index];
+                const scrollLeft = card.offsetLeft - (wrapper.offsetWidth - card.offsetWidth) / 2;
+                wrapper.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
+                console.log(`[scrollToThemeCard] Scrolled to card index: ${index}`);
+            } else {
+                console.warn(`[scrollToThemeCard] Invalid index or card not found for index: ${index}`);
+            }
+        } else {
+            console.warn("[scrollToThemeCard] Could not find .theme-cards-wrapper to scroll.");
         }
     }
 

@@ -2257,9 +2257,7 @@
                 const newThemeValue = event.detail.themeValue;
                 console.log(`[Event Listener] Received theme-generated-and-added event for: ${newThemeValue}`);
                 // Apply the theme visuals first
-                applyTheme(newThemeValue);
-                // Then update the carousel display
-                updateThemeDisplay(newThemeValue);
+                // The theme application will now be handled by the applyAndScrollToTheme call in theme-generator.js
             } else {
                 console.warn("[Event Listener] Received theme-generated-and-added event without valid themeValue in detail.");
             }
