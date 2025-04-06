@@ -1225,7 +1225,7 @@
             highlightActiveColorButtons();
             
             // Update the main theme preview to keep everything in sync
-            // updatePreviewFromCurrentSettings(); // REMOVED CALL
+            updateThemePreview(); // Update preview based on config
         }
         
         // Helper function to highlight the active color buttons based on current values
@@ -1446,7 +1446,7 @@
             console.log(`[applyTheme] Using current slider values - BG Opacity: ${currentBgOpacitySliderValue}, Image Opacity: ${currentBgImageOpacitySliderValue}`);
             // --- Read current slider opacities BEFORE applying theme properties --- END
             
-            // Update config object with theme settings
+            // Update config object with theme base settings first
             config.theme = theme.value; // Store the theme value
             config.bgColor = theme.bgColor || '#121212'; // Use theme's base color
             config.borderColor = theme.borderColor || '#9147ff'; // Default to Twitch purple
@@ -1520,8 +1520,8 @@
                 updateConfigPanelFromConfig();
             }
             
-            // Update theme carousel display LAST
-            updateThemePreview(theme); // Update preview with selected theme base styles
+            // Update theme preview and display
+            updateThemePreview();      // Update preview based on config
             updateThemeDisplay(theme.value); // Update the carousel display text/index state
 
             // Store the last successfully applied theme value
@@ -1555,12 +1555,7 @@
             console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
             
             // Update the theme preview to reflect the font change immediately
-            const currentThemeObject = window.availableThemes[currentThemeIndex];
-            if (currentThemeObject) {
-                updateThemePreview(currentThemeObject);
-            } else {
-                console.warn("Could not find current theme object to update preview for font family change.");
-            }
+            updateThemePreview(); // Update preview based on config
         }
         
         // Font selection carousel
@@ -1638,145 +1633,125 @@
         
         // Update theme preview with current theme
         /**
-         * Update theme preview based ONLY on the provided theme object.
-         * @param {object} theme - The theme object to display in the preview.
+         * Update theme preview based on the current values in the global `config` object.
          */
-        function updateThemePreview(theme) {
+        function updateThemePreview() {
             // Get the preview element
             const themePreview = document.getElementById('theme-preview');
-            if (!themePreview || !theme) return; // Exit if no preview element or theme object
 
-            console.log(`[updateThemePreview] Updating preview for theme: ${theme.name} (${theme.value})`); // Log theme being previewed
+            if (!themePreview) return; // Exit if no preview element
 
-            // --- Get properties directly from the theme object ---
-            // Provide defaults for essential properties if missing in the theme object
-            const themeBgColor = theme.bgColor || '#121212';
-            const themeBgOpacity = theme.bgColorOpacity !== undefined ? theme.bgColorOpacity : 0.85; // Use theme opacity
-            const themeBorderColor = theme.borderColor || '#9147ff';
-            const themeTextColor = theme.textColor || '#efeff1';
-            const themeUsernameColor = theme.usernameColor || '#9147ff';
-            // --- Font Family Lookup for Preview --- START
-            let previewFontFamilyCss = "'Atkinson Hyperlegible', sans-serif"; // Default fallback
-            const themeFontSpec = theme.fontFamily; // Name or CSS value from theme
-            if (themeFontSpec) {
-                // Try finding the font in availableFonts by name or value
-                const foundFont = window.availableFonts.find(f => 
-                    (f.name && typeof themeFontSpec === 'string' && f.name.trim().toLowerCase() === themeFontSpec.trim().toLowerCase()) || 
-                    (f.value && f.value === themeFontSpec)
-                );
-                if (foundFont && foundFont.value) {
-                    previewFontFamilyCss = foundFont.value; // Use the correct CSS value
-                    console.log(`[updateThemePreview] Found font CSS for preview: ${previewFontFamilyCss}`);
-                } else {
-                    // If not found, try using config.fontFamily as a fallback before the hardcoded default
-                    previewFontFamilyCss = config.fontFamily || previewFontFamilyCss;
-                    console.warn(`[updateThemePreview] Font '${themeFontSpec}' not found for preview. Using fallback: ${previewFontFamilyCss}`);
-                }
-            } else {
-                // If theme has no font, use current config font
-                previewFontFamilyCss = config.fontFamily || previewFontFamilyCss;
-            }
-            // --- Font Family Lookup for Preview --- END
-            const themeBorderRadius = theme.borderRadius || config.borderRadius || '8px'; // Use theme radius, fallback
-            const themeBoxShadow = theme.boxShadow || config.boxShadow || 'none'; // Use theme shadow, fallback
-            const themeBgImage = theme.backgroundImage; // Can be null/undefined
+            console.log(`[updateThemePreview] Updating preview based on current config object.`);
 
-            // Determine current font size from the slider/config (as this isn't part of the theme object)
-            const currentFontSize = `${config.fontSize || 14}px`;
+            // --- Read properties directly from the global config object --- START
+            const previewBgColorHex = config.bgColor || '#121212';
+            const previewBgOpacity = config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85;
+            const previewBorderColor = config.borderColor === 'transparent' ? 'transparent' : (config.borderColor || '#9147ff');
+            const previewTextColor = config.textColor || '#efeff1';
+            const previewUsernameColor = config.usernameColor || '#9147ff';
+            const previewFontFamilyCss = config.fontFamily || "'Atkinson Hyperlegible', sans-serif";
+            const previewFontSize = `${config.fontSize || 14}px`;
+            const previewBorderRadius = window.getBorderRadiusValue(config.borderRadius || '8px'); // Use helper
+            const previewBoxShadow = window.getBoxShadowValue(config.boxShadow || 'none'); // Use helper
+            const previewBgImage = config.bgImage;
+            const previewBgImageOpacity = config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55;
             const showTimestamps = config.showTimestamps !== undefined ? config.showTimestamps : true;
+            const currentThemeValue = config.theme || 'default'; // Get theme value for class
+            // --- Read properties directly from the global config object --- END
 
             // Update the HTML example
             themePreview.innerHTML = `
                 <div class="preview-chat-message">
                     ${showTimestamps ? '<span class="timestamp">12:34</span> ' : ''}
-                    <span class="preview-username">Username:</span>
+                    <span class="preview-username">Username:</span> 
                     <span class="preview-message">Example chat message</span>
                 </div>
                 <div class="preview-chat-message">
                     ${showTimestamps ? '<span class="timestamp">12:35</span> ' : ''}
-                    <span class="preview-username">AnotherUser:</span>
+                    <span class="preview-username">AnotherUser:</span> 
                     <span class="preview-message">This is how your chat will look</span>
                 </div>
             `;
 
-            // --- Apply Styles Directly to Preview ---
+            // --- Apply Styles Directly to Preview --- 
 
-            // Background Color & Opacity
-            let previewBgColor = themeBgColor;
-            // If the theme background color is hex, convert it to rgba with theme opacity
-            if (themeBgColor.startsWith('#')) {
-                const hexMatch = themeBgColor.match(/#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})/i);
-                if (hexMatch) {
-                    const [, r, g, b] = hexMatch;
-                    previewBgColor = `rgba(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)}, ${themeBgOpacity})`;
-                } else {
-                     previewBgColor = `rgba(18, 18, 18, ${themeBgOpacity})`; // Fallback if hex is invalid
-                }
-            } else if (themeBgColor.startsWith('rgba')) {
-                 // If theme already provides rgba, use it directly (ignoring separate opacity if theme includes it)
-                 previewBgColor = themeBgColor;
-            } else {
-                // Default fallback if color format is unknown
-                previewBgColor = `rgba(18, 18, 18, ${themeBgOpacity})`;
+            // 1. Background Color (Solid Layer) - using config values
+            let previewSolidBgColor = 'rgba(18, 18, 18, 0.85)'; // Default
+            if (previewBgColorHex && previewBgColorHex.startsWith('#')) {
+                previewSolidBgColor = hexToRgba(previewBgColorHex, previewBgOpacity);
+            } else if (previewBgColorHex && previewBgColorHex.startsWith('rgba')) {
+                // If config already stores rgba, use it (rare, but possible)
+                previewSolidBgColor = previewBgColorHex;
             }
-            // Special override for transparent theme
-             if (theme.value === 'transparent-theme') {
-                 previewBgColor = 'rgba(0, 0, 0, 0)';
-             }
-            themePreview.style.backgroundColor = previewBgColor;
-            console.log(`[updateThemePreview] Applied background: ${previewBgColor}`);
+            // Handle transparent theme specifically for the solid color layer
+            if (currentThemeValue === 'transparent-theme') {
+                previewSolidBgColor = 'rgba(0, 0, 0, 0)'; // Make solid layer transparent too
+            } else {
+                // Use the calculated solid color
+            }
+            themePreview.style.backgroundColor = previewSolidBgColor;
+            console.log(`[updateThemePreview] Applied solid background color: ${previewSolidBgColor}`);
+
+            // 2. Background Image (via CSS Variables for the ::before pseudo-element)
+            const previewBgImageUrl = (previewBgImage && previewBgImage !== 'none') ? `url("${previewBgImage}")` : 'none';
+            themePreview.style.setProperty('--preview-bg-image', previewBgImageUrl);
+            themePreview.style.setProperty('--preview-bg-image-opacity', previewBgImageOpacity);
+            console.log(`[updateThemePreview] Set preview CSS vars: --preview-bg-image: ${previewBgImageUrl}, --preview-bg-image-opacity: ${previewBgImageOpacity}`);
 
             // Border
-            if (themeBorderColor === 'transparent') {
+            if (previewBorderColor === 'transparent') {
                 themePreview.style.border = 'none'; // Use 'none' for transparent
             } else {
-                themePreview.style.border = `2px solid ${themeBorderColor}`; // Use theme border color
+                themePreview.style.border = `2px solid ${previewBorderColor}`; // Use config border color
             }
-             console.log(`[updateThemePreview] Applied border: ${themePreview.style.border}`);
+            console.log(`[updateThemePreview] Applied border: ${themePreview.style.border}`);
 
             // Border Radius
-            const borderRadiusCss = window.getBorderRadiusValue(themeBorderRadius); // Convert preset name if necessary
-            themePreview.style.borderRadius = borderRadiusCss;
-             console.log(`[updateThemePreview] Applied border-radius: ${borderRadiusCss}`);
+            themePreview.style.borderRadius = previewBorderRadius;
+            console.log(`[updateThemePreview] Applied border-radius: ${previewBorderRadius}`);
 
             // Box Shadow
-            const boxShadowCss = window.getBoxShadowValue(themeBoxShadow); // Convert preset name if necessary
-            themePreview.style.boxShadow = boxShadowCss;
-             console.log(`[updateThemePreview] Applied box-shadow: ${boxShadowCss}`);
+            themePreview.style.boxShadow = previewBoxShadow;
+            console.log(`[updateThemePreview] Applied box-shadow: ${previewBoxShadow}`);
 
             // Text Colors
-            themePreview.style.color = themeTextColor; // General text color
-            themePreview.querySelectorAll('.preview-username').forEach(elem => elem.style.color = themeUsernameColor);
-            themePreview.querySelectorAll('.preview-message').forEach(elem => elem.style.color = themeTextColor);
-            themePreview.querySelectorAll('.timestamp').forEach(elem => elem.style.color = "rgba(170, 170, 170, 0.8)"); // Consistent timestamp color
+            themePreview.style.color = previewTextColor; // General text color
+            themePreview.querySelectorAll('.preview-username').forEach(elem => elem.style.color = previewUsernameColor);
+            themePreview.querySelectorAll('.preview-message').forEach(elem => elem.style.color = previewTextColor);
+            themePreview.querySelectorAll('.timestamp').forEach(elem => elem.style.color = "rgba(170, 170, 170, 0.8)");
 
             // Font
-            themePreview.style.fontFamily = previewFontFamilyCss; // Apply the looked-up CSS value
-            themePreview.style.fontSize = currentFontSize; // Use current font size setting
+            themePreview.style.fontFamily = previewFontFamilyCss;
+            themePreview.style.fontSize = previewFontSize;
 
-            // --- Apply theme class for potential extra styles (like transparent) ---
-            // First remove all potential theme classes
+            // --- Apply theme class for potential extra styles (like transparent) --- START
             const classList = themePreview.classList;
-            for (let i = classList.length - 1; i >= 0; i--) {
-                const className = classList[i];
-                // Keep 'theme-preview' but remove others ending in '-theme'
-                if (className.endsWith('-theme')) {
+            // Remove all existing theme classes except 'theme-preview'
+            classList.forEach(className => {
+                if (className.endsWith('-theme') || className.startsWith('generated-')) {
                     classList.remove(className);
                 }
+            });
+            // Add the current theme class based on config.theme
+            if (currentThemeValue && currentThemeValue !== 'default') {
+                themePreview.classList.add(currentThemeValue); // e.g., 'transparent-theme', 'generated-xyz-theme'
             }
-            // Add the specific theme class if it's not default
-            if (theme.value && theme.value !== 'default') {
-                themePreview.classList.add(theme.value); // e.g., 'transparent-theme', 'generated-xyz-theme'
-            }
+            // --- Apply theme class for potential extra styles (like transparent) --- END
         }
-        
+
+        // Update the preview whenever colors or settings change
+        updateColorPreviews();
+
         // Username color override toggle
         overrideUsernameColorsInput.addEventListener('change', () => {
-            if (overrideUsernameColorsInput.checked) {
+            const isChecked = overrideUsernameColorsInput.checked;
+            config.overrideUsernameColors = isChecked; // Update config
+            if (isChecked) {
                 document.documentElement.classList.add('override-username-colors');
             } else {
                 document.documentElement.classList.remove('override-username-colors');
             }
+            updateThemePreview(); // Update preview
         });
         
         // Chat mode radio buttons
@@ -1826,13 +1801,10 @@
                                 case 'from-top':
                                 case 'from-left':
                                 case 'from-right':
-                                    position.top = '10px';
-                                    position.bottom = 'auto';
-                                    break;
+                                    position.top = '10px'; position.bottom = 'auto'; break;
                                 case 'from-bottom':
                                 default:
-                                    position.bottom = '10px';
-                                    position.top = 'auto';
+                                    position.bottom = '10px'; position.top = 'auto';
                             }
                             
                             // Clear the style completely first
@@ -2152,7 +2124,7 @@
              document.documentElement.style.setProperty('--chat-border-radius', cssValue);
              config.borderRadius = cssValue; 
              highlightBorderRadiusButton(cssValue); // Now DEFINITELY defined
-             // updatePreviewFromCurrentSettings(); // REMOVED CALL
+             updateThemePreview(); // Update preview based on config
         }
         
         /**
@@ -2164,8 +2136,8 @@
              if (!cssValue) return;
              document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
              config.boxShadow = preset; // Store the preset name in config
-             highlightBoxShadowButton(preset); // Highlight based on preset name
-             // updatePreviewFromCurrentSettings(); // REMOVED CALL
+             highlightBoxShadowButton(preset); 
+             updateThemePreview(); // Update preview based on config
         }
 
         // Add listeners to preset buttons
@@ -2277,7 +2249,7 @@
             }
             // updateThemeDisplay(); // Update carousel UI - REMOVED RECURSIVE CALL
             updateThemeDisplay(); // <<< ADD THIS LINE to update the display text
-            updateThemePreview(window.availableThemes[currentThemeIndex]); // Update preview
+            updateThemePreview(); // Update preview
 
             // Update Connection status
             channelInput.value = config.lastChannel || '';
