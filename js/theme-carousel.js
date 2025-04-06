@@ -525,65 +525,35 @@
      * Renders the theme cards into the carousel container.
      */
     function renderCarousel() {
-        // Find the container in chat.html where the theme previews should go.
-        // Use the class '.theme-carousel-container' now instead of ID '#theme-buttons'
-        const carouselContainer = document.querySelector('.theme-carousel-container');
-        // const currentThemeDisplay = document.getElementById('current-theme'); // Removed - display is now cards
-        // const themeNavButtons = document.querySelector('#theme-buttons .theme-navigation'); // Removed - buttons should be direct children
-
-        if (!carouselContainer) {
-            console.error('Theme carousel container (.theme-carousel-container) not found in chat.html.');
-            return;
-        }
-
-        // --- Get references to the actual nav buttons ---
-        // These should exist outside the container that gets cleared
-        const prevBtnElement = document.getElementById('prev-theme');
-        const nextBtnElement = document.getElementById('next-theme');
-
-        // Clear existing content *inside* the container, but preserve the container itself
-        carouselContainer.innerHTML = '';
-
-        // Re-add previous button if it exists
-        if (prevBtnElement) {
-            carouselContainer.appendChild(prevBtnElement);
-        }
-
-        // Create a new div to hold the cards themselves for scrolling/styling
-        const cardsWrapper = document.createElement('div');
-        cardsWrapper.className = 'theme-cards-wrapper'; // Add a class for styling
-        carouselContainer.appendChild(cardsWrapper); // Add wrapper after prev button
-
-        // Re-add next button if it exists
-        if (nextBtnElement) {
-            carouselContainer.appendChild(nextBtnElement); // Add next button after wrapper
-        }
-
-        // --- Populate the cardsWrapper ---
-        if (window.availableThemes && window.availableThemes.length > 0) {
-            window.availableThemes.forEach(theme => {
-                const card = createThemeCard(theme);
-                cardsWrapper.appendChild(card);
-            });
-        } else {
-            cardsWrapper.textContent = 'No themes available.';
+        const container = document.querySelector('.theme-carousel-container');
+        if (!container) return;
+        
+        // Create wrapper for theme cards if it doesn't exist
+        let wrapper = container.querySelector('.theme-cards-wrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'theme-cards-wrapper';
+            container.appendChild(wrapper);
         }
         
-        // Update the simple text display (if it still exists/is needed elsewhere)
-        if (typeof window.currentThemeIndex !== 'undefined' && window.availableThemes.length > 0) {
-             // Use currentThemeIndex if available, otherwise default to 0
-            const currentIdx = window.currentThemeIndex;
-            const currentTheme = window.availableThemes[currentIdx];
-            if (currentTheme) {
-                // Update the current theme display
-                const currentThemeDisplay = document.querySelector('.theme-carousel-container .current-theme');
-                if (currentThemeDisplay) {
-                    currentThemeDisplay.textContent = currentTheme.name;
-                }
-            } else {
-                 currentThemeDisplay.textContent = 'N/A'; // Handle case where index is invalid
-            }
+        // Clear existing cards
+        wrapper.innerHTML = '';
+        
+        // Add theme cards
+        if (window.availableThemes && window.availableThemes.length > 0) {
+            window.availableThemes.forEach((theme, index) => {
+                const card = createThemeCard(theme, index);
+                wrapper.appendChild(card);
+            });
+        } else {
+            wrapper.textContent = 'No themes available.';
         }
+        
+        // Update the theme details for the current theme
+        if (window.availableThemes && window.availableThemes.length > 0 && window.currentThemeIndex !== undefined) {
+            updateThemeDetails(window.availableThemes[window.currentThemeIndex]);
+        }
+        
         console.log("Theme carousel rendered/updated.");
         
         // Highlight the currently active theme after rendering
@@ -593,53 +563,26 @@
     /**
      * Creates a theme card element for the carousel
      * @param {Object} theme - The theme object to create a card for
+     * @param {number} index - The index of the theme in window.availableThemes
      * @returns {HTMLElement} The created theme card element
      */
-    function createThemeCard(theme) {
+    function createThemeCard(theme, index) {
         const card = document.createElement('div');
         card.className = 'theme-card';
-        card.dataset.themeValue = theme.value;
-
-        // --- Create text container and content ---
-        const textContainer = document.createElement('div');
-        textContainer.className = 'theme-card-text';
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'theme-name'; // Add class for styling
-        nameSpan.textContent = theme.name;
-        textContainer.appendChild(nameSpan);
-
-        // --- Ensure description exists before creating span ---
-        if (theme.description) {
-            const descriptionSpan = document.createElement('span');
-            descriptionSpan.className = 'theme-description'; // Add class for styling
-            descriptionSpan.textContent = theme.description;
-            textContainer.appendChild(descriptionSpan);
-        } else {
-            console.warn(`Theme '${theme.name}' is missing a description.`);
-            // Optionally add an empty span or placeholder text
-            // const descriptionSpan = document.createElement('span');
-            // descriptionSpan.className = 'theme-description';
-            // descriptionSpan.textContent = 'No description available.';
-            // textContainer.appendChild(descriptionSpan);
+        card.dataset.themeValue = theme.value; // Add theme value as data attribute
+        card.style.backgroundColor = theme.bgColor || '#121212';
+        card.style.color = theme.textColor || '#efeff1';
+        
+        // Set active state if this is the current theme
+        if (index === window.currentThemeIndex) {
+            card.classList.add('active');
         }
-
-        card.appendChild(textContainer);
-
-        // --- REMOVED event listeners for prevThemeBtn/nextThemeBtn ---
-        // These are now added ONCE in the init function
-
+        
+        // Add click handler
         card.addEventListener('click', () => {
-            // Find index and apply theme using the main chat.js functions
-            const themeIndex = window.availableThemes.findIndex(t => t.value === theme.value);
-            if (themeIndex !== -1) { // Removed checks for window functions, assume they exist
-                window.currentThemeIndex = themeIndex; // Update internal index
-                applyAndScrollToTheme(themeIndex); // Use the combined function
-            } else {
-                console.warn(`Could not apply theme from carousel click: ${theme.name}`);
-            }
+            applyAndScrollToTheme(index);
         });
-
+        
         return card;
     }
 
@@ -655,40 +598,41 @@
         
         const theme = window.availableThemes[index];
         if (!theme) {
-             console.error("Could not find theme at index:", index);
+            console.error("Could not find theme at index:", index);
             return;
         }
+        
+        // Update current theme index
+        window.currentThemeIndex = index;
         
         // Apply the theme visuals using chat.js function
         if (typeof window.applyTheme === 'function') {
             window.applyTheme(theme.value);
         } else {
-             console.warn("window.applyTheme function not found.");
+            console.warn("window.applyTheme function not found.");
         }
         
-        // Update the theme display state in chat.js
-        if (typeof window.updateThemeDisplay === 'function') {
-            window.updateThemeDisplay(theme.value);
-        } else {
-            console.warn("window.updateThemeDisplay function not found.");
-        }
+        // Update theme details
+        updateThemeDetails(theme);
+        
+        // Update active state on cards
+        const cards = document.querySelectorAll('.theme-card');
+        cards.forEach((card, i) => {
+            card.classList.toggle('active', i === index);
+        });
         
         // Scroll the card into view
-        const cardsWrapper = document.querySelector('.theme-cards-wrapper');
-        const cardElement = cardsWrapper?.querySelector(`.theme-card[data-theme-value="${theme.value}"]`);
-        
-        if (cardElement && cardsWrapper) {
-            // Calculate scroll position to center the card if possible
-            const scrollLeft = cardElement.offsetLeft - (cardsWrapper.offsetWidth / 2) + (cardElement.offsetWidth / 2);
-            cardsWrapper.scrollTo({
-                left: scrollLeft,
-                behavior: 'smooth'
-            });
-            
-            // Optionally highlight the active card
-            highlightActiveCard(theme.value);
-        } else {
-            console.warn("Could not find card element or wrapper to scroll to.");
+        const wrapper = document.querySelector('.theme-cards-wrapper');
+        if (wrapper) {
+            const cards = wrapper.children;
+            if (cards[index]) {
+                const card = cards[index];
+                const scrollLeft = card.offsetLeft - (wrapper.offsetWidth - card.offsetWidth) / 2;
+                wrapper.scrollTo({
+                    left: scrollLeft,
+                    behavior: 'smooth'
+                });
+            }
         }
     }
     
@@ -708,6 +652,16 @@
                 card.classList.remove('active');
             }
         });
+    }
+
+    function updateThemeDetails(theme) {
+        const nameElement = document.getElementById('selected-theme-name');
+        const descElement = document.getElementById('selected-theme-description');
+        
+        if (nameElement && descElement) {
+            nameElement.textContent = theme.name || 'Unnamed Theme';
+            descElement.textContent = theme.description || 'No description available';
+        }
     }
 
     // Return the carousel API for modules that load this script directly

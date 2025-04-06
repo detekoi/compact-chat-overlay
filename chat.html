@@ -51,14 +51,18 @@
         <div class="config-row theme-section">
             <!-- Using aria-labelledby instead of for, since this controls a non-form element -->
             <div class="theme-selector-label" id="theme-selector-label">Theme:</div>
-            <!-- Updated container to hold cards and navigation -->
-            <div id="theme-buttons" class="theme-carousel-container" role="group" aria-labelledby="theme-selector-label">
+            <!-- Theme cards container -->
+            <div class="theme-carousel-container" role="group" aria-labelledby="theme-selector-label">
                 <!-- theme-cards-wrapper will be inserted here by JS -->
-                <!-- Navigation buttons remain -->
-                <div class="theme-navigation">
-                    <button type="button" id="prev-theme" class="theme-nav-btn">◀</button>
-                    <button type="button" id="next-theme" class="theme-nav-btn">▶</button>
+            </div>
+            <!-- Info and navigation container below carousel -->
+            <div id="theme-info-and-nav">
+                <button type="button" id="prev-theme" class="theme-nav-btn">◀</button>
+                <div id="theme-details">
+                    <span id="selected-theme-name">Theme Name</span>
+                    <span id="selected-theme-description">Theme description goes here.</span>
                 </div>
+                <button type="button" id="next-theme" class="theme-nav-btn">▶</button>
             </div>
         </div>
         

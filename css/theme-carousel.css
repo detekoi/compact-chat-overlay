@@ -49,39 +49,26 @@
 
 /* Main container for the theme carousel (replacing theme-buttons-container if needed) */
 .theme-carousel-container {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    width: 100%; /* Ensure it takes full width */
+    width: 100%;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
 }
 
 /* Wrapper for the scrollable theme cards */
 .theme-cards-wrapper {
     display: flex;
-    overflow-x: auto; /* Enable horizontal scrolling */
-    overflow-y: hidden; /* Hide vertical scrollbar */
-    flex-grow: 1; /* Allow wrapper to take available space */
-    padding: 5px 0; /* Add some vertical padding */
-    gap: 8px; /* Reduced space between cards */
-    scroll-behavior: smooth; /* Smooth scrolling for prev/next */
-    scrollbar-width: thin; /* Thin scrollbar for Firefox */
-    scrollbar-color: #9147ff #333; /* Scrollbar colors for Firefox */
+    gap: 10px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 5px;
+    /* Hide scrollbar but keep functionality */
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
 }
 
-/* Styling for Webkit scrollbars (Chrome, Safari) */
 .theme-cards-wrapper::-webkit-scrollbar {
-    height: 6px; /* Height of horizontal scrollbar */
-}
-
-.theme-cards-wrapper::-webkit-scrollbar-track {
-    background: #333;
-    border-radius: 3px;
-}
-
-.theme-cards-wrapper::-webkit-scrollbar-thumb {
-    background-color: #9147ff;
-    border-radius: 3px;
-    border: 1px solid #333;
+    display: none; /* Chrome, Safari and Opera */
 }
 
 /* Navigation buttons positioning (might need adjustments based on layout) */
@@ -93,39 +80,34 @@
 }
 
 .theme-nav-btn {
-    background-color: #444;
-    border: 1px solid #666;
-    color: #eee;
-    padding: 5px 8px;
-    border-radius: 4px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 18px;
     cursor: pointer;
-    font-size: 14px;
-    line-height: 1;
+    padding: 5px 10px;
+    transition: opacity 0.2s;
 }
 
 .theme-nav-btn:hover {
-    background-color: #555;
+    opacity: 0.7;
+}
+
+.theme-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
 /* Generated themes are now integrated into the main theme carousel */
 
 .theme-card {
-    flex: 0 0 150px; /* Reduced width */
-    height: 90px; /* Reduced height */
-    border-radius: 6px; /* Slightly smaller radius */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Softer shadow */
-    display: flex;
-    flex-direction: column; /* Stack text vertically */
-    align-items: center; /* Center content horizontally */
-    justify-content: center; /* Center content vertically */
-    text-align: center;
+    flex: 0 0 150px;
+    height: 90px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 8px;
     cursor: pointer;
-    padding: 5px; /* Reduced padding */
-    overflow: hidden; /* Hide overflow */
-    position: relative;
-    background-size: cover; /* Cover the card with image */
-    background-position: center;
-    transition: none; /* Removed transform transition */
+    transition: background-color 0.2s;
 }
 
 .theme-card:hover {
@@ -181,6 +163,41 @@
 /* Style for active theme card */
 .theme-card.active {
     outline: 2px solid #9147ff;
-    outline-offset: -2px; /* Offset outline inwards */
-    box-shadow: 0 4px 10px rgba(145, 71, 255, 0.4); /* Add a glow effect */
+    box-shadow: 0 0 8px rgba(145, 71, 255, 0.5);
+}
+
+#theme-info-and-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 0 10px;
+}
+
+#theme-details {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0; /* Enable text truncation */
+}
+
+#selected-theme-name {
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#selected-theme-description {
+    font-size: 12px;
+    color: #888;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
 }
