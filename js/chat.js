@@ -1711,16 +1711,17 @@
             console.log(`[updateThemePreview] Applied background: ${previewBgColor}`);
 
             // Background Image
-            if (themeBgImage && themeBgImage !== 'none') {
-                themePreview.style.backgroundImage = `url("${themeBgImage}")`;
-                themePreview.style.backgroundRepeat = 'repeat'; // Or based on theme? Default repeat.
-                themePreview.style.backgroundSize = 'auto'; // Or based on theme? Default auto.
-                // Note: Image opacity isn't typically applied directly to the preview background-image,
-                // but relies on the main CSS var '--chat-bg-image-opacity' affecting the actual chat.
-            } else {
-                themePreview.style.backgroundImage = 'none';
-            }
-            console.log(`[updateThemePreview] Applied background image: ${themePreview.style.backgroundImage}`);
+            // REMOVED: Inline background image styling for preview
+            // if (themeBgImage && themeBgImage !== 'none') {
+            //     themePreview.style.backgroundImage = `url("${themeBgImage}")`;
+            //     themePreview.style.backgroundRepeat = 'repeat'; // Or based on theme? Default repeat.
+            //     themePreview.style.backgroundSize = 'auto'; // Or based on theme? Default auto.
+            //     // Note: Image opacity isn't typically applied directly to the preview background-image,
+            //     // but relies on the main CSS var '--chat-bg-image-opacity' affecting the actual chat.
+            // } else {
+            //     themePreview.style.backgroundImage = 'none';
+            // }
+            console.log(`[updateThemePreview] Removed inline background image styling. Relying on CSS variables and theme class.`); // Updated log
 
             // Border
             if (themeBorderColor === 'transparent') {
@@ -2427,13 +2428,19 @@
             // Special handling for fully transparent theme
             let finalRgbaColor;
             if (cfg.theme === 'transparent-theme') {
-                finalRgbaColor = 'rgba(0, 0, 0, 0)'; // Force fully transparent
-                console.log('[applyConfiguration] Applying transparent theme background.');
-            } else {
-                // Combine base color and opacity into RGBA
+                finalRgbaColor = 'rgba(0, 0, 0, 0)';
+            } else if (baseBgColor && baseBgColor.startsWith('rgba')) {
+                // If the base color is already rgba, use it directly (it includes opacity)
+                finalRgbaColor = baseBgColor;
+            } else if (baseBgColor && baseBgColor.startsWith('#')) {
+                // If it's hex, convert using the separate opacity value
                 finalRgbaColor = hexToRgba(baseBgColor, bgOpacity);
-                console.log(`[applyConfiguration] Applying background: ${finalRgbaColor}`);
+            } else {
+                // Fallback if format is unknown or invalid
+                console.warn(`[applyConfiguration] Unknown bgColor format: ${baseBgColor}. Falling back.`);
+                finalRgbaColor = hexToRgba('#121212', bgOpacity); // Fallback to default dark + opacity
             }
+            console.log(`[applyConfiguration] Applying background: ${finalRgbaColor}`);
   
               // --- Apply Core CSS Variables ---
               // Set the combined RGBA value for the background color variable
