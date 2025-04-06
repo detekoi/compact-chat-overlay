@@ -1484,19 +1484,41 @@
             applyConfiguration(config);
             
             // --- Update UI controls AFTER applying theme --- START
+            // Update color inputs and sliders
+            if (bgColorInput) {
+                bgColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.bgColor; // Use black for transparent input
+            }
             if (bgOpacityInput && bgOpacityValue) {
                  const opacityPercent = Math.round(config.bgColorOpacity * 100);
                  bgOpacityInput.value = opacityPercent;
                  bgOpacityValue.textContent = `${opacityPercent}%`;
                  console.log(`[applyTheme] Updated BG opacity slider to: ${opacityPercent}%`);
             }
-             if (bgImageOpacityInput && bgImageOpacityValue) {
-                  const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
-                  bgImageOpacityInput.value = imageOpacityPercent;
-                  bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
-                  console.log(`[applyTheme] Updated Image opacity slider to: ${imageOpacityPercent}%`);
-             }
-             highlightActiveColorButtons();
+            if (borderColorInput) {
+                // Handle transparent border for the input
+                borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; 
+            }
+            if (textColorInput) {
+                textColorInput.value = config.textColor;
+            }
+            if (usernameColorInput) {
+                usernameColorInput.value = config.usernameColor;
+            }
+            if (bgImageOpacityInput && bgImageOpacityValue) {
+                 const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
+                 bgImageOpacityInput.value = imageOpacityPercent;
+                 bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
+                 console.log(`[applyTheme] Updated Image opacity slider to: ${imageOpacityPercent}%`);
+            }
+            
+            // Update preset button highlights
+            const effectiveBorderRadius = getBorderRadiusValue(config.borderRadius);
+            highlightBorderRadiusButton(effectiveBorderRadius);
+            const effectiveBoxShadow = getBoxShadowValue(config.boxShadow);
+            highlightBoxShadowButton(config.boxShadow); // Use original preset name for highlighting
+            
+            // Update color button highlights
+            highlightActiveColorButtons();
             // --- Update UI controls AFTER applying theme --- END
 
             updateThemePreview();
