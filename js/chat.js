@@ -289,9 +289,15 @@
          */
         function highlightBoxShadowButton(presetName) {
              if (boxShadowPresets) {
+                // Normalize the input preset name to match the data-value format (lowercase, no spaces)
+                const normalizedPreset = typeof presetName === 'string' 
+                    ? presetName.toLowerCase().replace(/\\s+/g, '') 
+                    : 'none'; // Default to 'none' if input is invalid
+
                 const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    if (btn.dataset.value === presetName) {
+                    // Compare button's data-value with the normalized preset name
+                    if (btn.dataset.value === normalizedPreset) { 
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');
