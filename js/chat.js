@@ -1442,9 +1442,56 @@
             // --- REMOVED reading current slider opacities --- 
             // Logic that read bgOpacityInput.value and bgImageOpacityInput.value here is GONE.
 
+            // --- NEW: Parse theme background color and opacity --- START
+            let themeBgHex = '#121212'; // Default hex
+            let themeBgOpacity = 0.85; // Default opacity
+
+            if (theme.bgColor && typeof theme.bgColor === 'string') {
+                const bgColorLower = theme.bgColor.trim().toLowerCase();
+                if (bgColorLower.startsWith('rgba')) {
+                    try {
+                        // Extract values from rgba string, e.g., "rgba(153, 217, 234, 0.75)"
+                        const parts = bgColorLower.substring(bgColorLower.indexOf('(') + 1, bgColorLower.indexOf(')')).split(',');
+                        if (parts.length === 4) {
+                            const r = parseInt(parts[0].trim(), 10);
+                            const g = parseInt(parts[1].trim(), 10);
+                            const b = parseInt(parts[2].trim(), 10);
+                            const a = parseFloat(parts[3].trim());
+
+                            // Convert rgb to hex
+                            themeBgHex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).padStart(6, '0')}`;
+                            themeBgOpacity = !isNaN(a) ? Math.max(0, Math.min(1, a)) : 0.85; // Use parsed opacity
+                            console.log(`[applyTheme] Parsed rgba: Hex=${themeBgHex}, Opacity=${themeBgOpacity}`);
+                        } else {
+                             console.warn(`[applyTheme] Could not parse rgba: ${theme.bgColor}. Using defaults.`);
+                        }
+                    } catch (e) {
+                        console.error(`[applyTheme] Error parsing rgba string "${theme.bgColor}":`, e);
+                    }
+                } else if (bgColorLower.startsWith('#')) {
+                    // It's a hex color, use theme's opacity if defined, else default
+                    themeBgHex = theme.bgColor;
+                    themeBgOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null)
+                                        ? theme.bgColorOpacity
+                                        : 0.85;
+                    console.log(`[applyTheme] Using hex ${themeBgHex} with opacity ${themeBgOpacity}`);
+                } else {
+                     console.warn(`[applyTheme] Unknown bgColor format: ${theme.bgColor}. Using defaults.`);
+                }
+            } else {
+                // No bg color defined in theme, use defaults
+                 themeBgOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null)
+                                     ? theme.bgColorOpacity
+                                     : 0.85;
+                 console.log(`[applyTheme] No theme bgColor defined. Using default hex ${themeBgHex} with opacity ${themeBgOpacity}`);
+            }
+            // --- NEW: Parse theme background color and opacity --- END
+
+
             // Update config object with theme base settings first
             config.theme = theme.value;
-            config.bgColor = theme.bgColor || '#121212'; 
+            config.bgColor = themeBgHex; // Store HEX color
+            config.bgColorOpacity = themeBgOpacity; // Store PARSED or THEME opacity
             config.borderColor = theme.borderColor === 'transparent' ? 'transparent' : (theme.borderColor || '#9147ff');
             config.textColor = theme.textColor || '#efeff1';
             config.usernameColor = theme.usernameColor || '#9147ff';
@@ -1453,13 +1500,13 @@
             config.bgImage = theme.backgroundImage || null; 
 
             // *** CORRECT: USE THEME'S DEFINED OPACITY ***
-            config.bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) 
-                                    ? theme.bgColorOpacity 
-                                    : 0.85; 
+            // config.bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) // <<< REMOVED THIS BLOCK - Handled above
+            //                                 ? theme.bgColorOpacity 
+            //                                 : 0.85; 
             config.bgImageOpacity = (theme.bgImageOpacity !== undefined && theme.bgImageOpacity !== null)
                                     ? theme.bgImageOpacity
                                     : 0.55; 
-            console.log(`[applyTheme] Using theme opacities - BG: ${config.bgColorOpacity}, Image: ${config.bgImageOpacity}`); // Add this log back
+            // console.log(`[applyTheme] Using theme opacities - BG: ${config.bgColorOpacity}, Image: ${config.bgImageOpacity}`); // Log moved/changed
 
             // Update font family from theme
             if (theme.fontFamily) {
@@ -1778,44 +1825,61 @@
                     return value || defaultValue;
                 };
                 
-                // Helper to get color (keep existing)
-                const getColor = (inputElement, buttonSelector, defaultColor, isHexOnly = false) => {
-                     // REMOVED: Check for !inputElement - handled by callers potentially
-                    
-                    // Find the active button first
-                    const activeButton = document.querySelector(`${buttonSelector}.active`);
-                    
-                    if (activeButton) {
-                        const activeColor = activeButton.dataset.color;
-                        // Special handling for background transparent button
-                        if (buttonSelector.includes('[data-target="bg"]') && activeColor === 'transparent') {
-                             // If bg transparent button is active, opacity slider dictates actual value
-                             const opacity = getOpacity(bgOpacityInput, 0); // Get current opacity
-                             if (opacity === 0) {
-                                 return '#000000'; // Represents transparent via 0 opacity on black
-                             } else {
-                                 // If opacity > 0 but transparent button is somehow active, revert to input
-                                 return inputElement?.value || defaultColor;
-                             }
-                        }
-                        // Special handling for border transparent button
-                        if (buttonSelector.includes('[data-target="border"]') && activeColor === 'transparent') {
-                            return 'transparent'; // Keep 'transparent' string for border CSS
-                        }
-                        // Return the button's color if not a special case
-                        return activeColor;
-                    }
-                    
-                    // For background color, always return the hex input value
-                    if (isHexOnly) {
-                        return inputElement?.value || defaultColor;
-                    }
-                    
-                    // If no button is active, fallback to input value (for custom colors) or default
-                    // Ensure inputElement exists before accessing its value
-                    return inputElement?.value || defaultColor; 
-                };
-                 
+                // Helper to get color (keep existing) - REVISED AGAIN FOR BACKGROUND
+                const getColor = (inputElement, buttonSelector, defaultColor) => {
+                     const targetType = buttonSelector.includes('data-target="bg"') ? 'bg' :
+                                        buttonSelector.includes('data-target="border"') ? 'border' :
+                                        buttonSelector.includes('data-target="text"') ? 'text' : 'username';
+
+                     const activeButton = document.querySelector(`${buttonSelector}.active`);
+                     const activeColor = activeButton?.dataset.color;
+
+                     // --- Background Color Logic --- START
+                     if (targetType === 'bg') {
+                         // Always read the hex value directly from the input field first.
+                         // This input field should be updated correctly by applyTheme/updateConfigPanel.
+                         const hexFromInput = inputElement?.value;
+
+                         // Check the transparent button state specifically in conjunction with opacity
+                         const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
+                         const isTransparentActive = bgTransparentButton?.classList.contains('active');
+                         const currentOpacity = getOpacity(bgOpacityInput, -1); // Get opacity, -1 if slider missing
+
+                         // If transparent button is active AND opacity is truly 0, save as black hex.
+                         if (isTransparentActive && currentOpacity === 0) {
+                              console.log("[getColor/bg] Saving black hex due to active transparent button and 0 opacity.");
+                              return '#000000';
+                         }
+
+                         // Otherwise (normal colors or transparent button active but opacity > 0),
+                         // trust the hex value that's currently in the input field.
+                         if (hexFromInput) {
+                            // console.log(`[getColor/bg] Using hex from input: ${hexFromInput}`);
+                            return hexFromInput;
+                         }
+
+                         // Fallback if input is somehow empty (shouldn't normally happen)
+                         console.warn("[getColor/bg] Background color input was empty, falling back to default.");
+                         return defaultColor;
+                     }
+                     // --- Background Color Logic --- END
+
+                     // --- Other Color Types (Border, Text, Username) --- START
+                     // For other types, the previous logic (active button or input fallback) is fine.
+                     if (activeButton) {
+                         // Handle transparent border button
+                         if (targetType === 'border' && activeColor === 'transparent') {
+                             return 'transparent'; // Keep 'transparent' string
+                         }
+                         // Return the button's color if active
+                         return activeColor;
+                     }
+
+                     // If NO button is active for border/text/username, use the input value or default
+                     return inputElement?.value || defaultColor;
+                     // --- Other Color Types (Border, Text, Username) --- END
+                 };
+
                  // Helper to get opacity (0-1 range) from the slider
                   const getOpacity = (element, defaultValue) => {
                       if (!element) return defaultValue;
@@ -1828,6 +1892,8 @@
                 const currentFontValue = window.availableFonts[currentFontIndex]?.value || config.fontFamily;
                 const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
+                const currentBgColorHex = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212', true); // Gets HEX
+                const currentBgOpacity = getOpacity(bgOpacityInput, 0.85); // Gets OPACITY 0-1
 
                 // Find the full theme object matching the current theme value (used for theme name and potentially image)
                 const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
@@ -1840,8 +1906,8 @@
                     fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
 
                     // Save background color (hex) and opacity (0-1) separately
-                    bgColor: getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212', true), // Get hex only
-                    bgColorOpacity: getOpacity(bgOpacityInput, 0.85),
+                    bgColor: currentBgColorHex, // Save the HEX value from UI/helper
+                    bgColorOpacity: currentBgOpacity, // Save the OPACITY value from UI/helper
 
                     borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#444444'), // Default dark grey
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
@@ -1883,7 +1949,7 @@
                 console.log("[saveConfiguration] Visual application complete.");
 
                 // === CRITICAL LOGGING: Check values JUST BEFORE saving ===
-                console.log(`[saveConfiguration] >> Preparing to save - bgColor: ${newConfig.bgColor}, bgColorOpacity: ${newConfig.bgColorOpacity}`);
+                console.log(`[saveConfiguration] >> Preparing to save - bgColor (hex): ${newConfig.bgColor}, bgColorOpacity (0-1): ${newConfig.bgColorOpacity}`);
 
                 const scene = getUrlParameter('scene') || 'default';
                 localStorage.setItem(`chatConfig_${scene}`, JSON.stringify(config));
@@ -2095,15 +2161,15 @@
                 : '#121212';      // Fallback to default dark
             
             // Convert opacity (0-1) to percentage for UI
-            let opacityPercent = (config.bgColorOpacity !== undefined && typeof config.bgColorOpacity === 'number') // Changed to let
+            const opacityPercent = (config.bgColorOpacity !== undefined && typeof config.bgColorOpacity === 'number') // Changed to let
                  ? Math.round(config.bgColorOpacity * 100)  // Convert stored opacity to percentage
                  : 85;                                      // Fallback to default 85%
              
-            // Special handling for transparent theme - always use 0 opacity
-            if (config.theme === 'transparent-theme') {
-                // Force opacity to 0 for transparent theme
-                opacityPercent = 0;
-            }
+            // Special handling for transparent theme - already handled by applyTheme setting config correctly
+            // if (config.theme === 'transparent-theme') { // <<< REMOVED this special case
+            //     // Force opacity to 0 for transparent theme
+            //     opacityPercent = 0;
+            // }
 
             // Update the UI elements
             if (bgColorInput) bgColorInput.value = hexColor;
@@ -2329,24 +2395,18 @@
             }
 
             // --- Get base color and opacity separately --- // NEW BLOCK
-            const baseBgColor = cfg.bgColor || '#121212';
-            const bgOpacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85;
-            // Special handling for fully transparent theme
+            const baseBgColor = cfg.bgColor || '#121212'; // Should always be hex now
+            const bgOpacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85; // Should be 0-1 float
+            
+            // Generate the final rgba color string using the hex and opacity
             let finalRgbaColor;
-            if (cfg.theme === 'transparent-theme') {
-                finalRgbaColor = 'rgba(0, 0, 0, 0)';
-            } else if (baseBgColor && baseBgColor.startsWith('rgba')) {
-                // If the base color is already rgba, use it directly (it includes opacity)
-                finalRgbaColor = baseBgColor;
-            } else if (baseBgColor && baseBgColor.startsWith('#')) {
-                // If it's hex, convert using the separate opacity value
+            try {
                 finalRgbaColor = hexToRgba(baseBgColor, bgOpacity);
-            } else {
-                // Fallback if format is unknown or invalid
-                console.warn(`[applyConfiguration] Unknown bgColor format: ${baseBgColor}. Falling back.`);
-                finalRgbaColor = hexToRgba('#121212', bgOpacity); // Fallback to default dark + opacity
+            } catch (e) {
+                 console.error(`[applyConfiguration] Error converting hex ${baseBgColor} with opacity ${bgOpacity}:`, e);
+                 finalRgbaColor = `rgba(18, 18, 18, ${bgOpacity.toFixed(2)})`; // Fallback to default dark + opacity
             }
-            console.log(`[applyConfiguration] Applying background: ${finalRgbaColor}`);
+            console.log(`[applyConfiguration] Applying background: ${finalRgbaColor} (from hex: ${baseBgColor}, opacity: ${bgOpacity})`);
   
               // --- Apply Core CSS Variables ---
               // Set the combined RGBA value for the background color variable
