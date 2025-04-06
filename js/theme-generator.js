@@ -14,7 +14,6 @@
     const generatedThemeName = document.getElementById('generated-theme-name');
     const loadingStatus = document.getElementById('loading-status');
     const generateImageCheckbox = document.getElementById('generate-bg-image');
-    const descriptionTooltip = document.getElementById('generated-theme-description-tooltip');
 
     // Constants
     const MAX_RETRIES = 3;
@@ -86,10 +85,6 @@
         // Show loading indicator, hide tooltip
         themeLoadingIndicator.style.display = 'flex';
         generatedThemeResult.style.display = 'none';
-        if (descriptionTooltip) { 
-            descriptionTooltip.style.display = 'none';
-            descriptionTooltip.title = '';
-        }
         generateThemeBtn.disabled = true;
         loadingStatus.textContent = 'Generating... (Attempt 1)';
 
@@ -167,18 +162,6 @@
                         generatedThemeName.textContent = themeData.theme_name || 'Generated Theme';
                         generatedThemeResult.style.display = 'block';
                     }
-                    
-                    // --- Tooltip Update Logic ---
-                    console.log(`[theme-generator] Inside setTimeout: descriptionTooltip element found: ${!!descriptionTooltip}. Description present: ${!!themeData.description}`);
-                    if (descriptionTooltip && themeData.description) {
-                        descriptionTooltip.title = themeData.description;
-                        descriptionTooltip.style.display = 'inline'; // Show the info icon
-                        console.log(`[theme-generator] Inside setTimeout: Tooltip updated. Title: "${descriptionTooltip.title}", Display: "${descriptionTooltip.style.display}"`);
-                    } else if (descriptionTooltip) {
-                        descriptionTooltip.style.display = 'none'; // Ensure hidden if no description
-                        console.log('[theme-generator] Inside setTimeout: Tooltip hidden (no description).');
-                    }
-                    // --- End Tooltip Update Logic ---
                     
                     // Optionally clear prompt
                     // themePromptInput.value = '';
@@ -458,8 +441,6 @@
                  });
                  document.dispatchEvent(themeProcessedEvent);
                  console.log("Dispatched theme-data-processed event");
-
-                 // --- Tooltip Update Moved to Timeout --- 
 
             } else {
                 console.error('Theme carousel API (window.themeCarousel.addTheme) not found or invalid. Cannot add generated theme.');

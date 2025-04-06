@@ -47,4 +47,140 @@
     outline-offset: -2px;
 }
 
+/* Main container for the theme carousel (replacing theme-buttons-container if needed) */
+.theme-carousel-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%; /* Ensure it takes full width */
+}
+
+/* Wrapper for the scrollable theme cards */
+.theme-cards-wrapper {
+    display: flex;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden; /* Hide vertical scrollbar */
+    flex-grow: 1; /* Allow wrapper to take available space */
+    padding: 5px 0; /* Add some vertical padding */
+    gap: 8px; /* Reduced space between cards */
+    scroll-behavior: smooth; /* Smooth scrolling for prev/next */
+    scrollbar-width: thin; /* Thin scrollbar for Firefox */
+    scrollbar-color: #9147ff #333; /* Scrollbar colors for Firefox */
+}
+
+/* Styling for Webkit scrollbars (Chrome, Safari) */
+.theme-cards-wrapper::-webkit-scrollbar {
+    height: 6px; /* Height of horizontal scrollbar */
+}
+
+.theme-cards-wrapper::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 3px;
+}
+
+.theme-cards-wrapper::-webkit-scrollbar-thumb {
+    background-color: #9147ff;
+    border-radius: 3px;
+    border: 1px solid #333;
+}
+
+/* Navigation buttons positioning (might need adjustments based on layout) */
+.theme-navigation {
+    display: flex;
+    flex-direction: column; /* Stack vertically if needed */
+    gap: 5px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+}
+
+.theme-nav-btn {
+    background-color: #444;
+    border: 1px solid #666;
+    color: #eee;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.theme-nav-btn:hover {
+    background-color: #555;
+}
+
 /* Generated themes are now integrated into the main theme carousel */
+
+.theme-card {
+    flex: 0 0 150px; /* Reduced width */
+    height: 90px; /* Reduced height */
+    border-radius: 6px; /* Slightly smaller radius */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Softer shadow */
+    display: flex;
+    flex-direction: column; /* Stack text vertically */
+    align-items: center; /* Center content horizontally */
+    justify-content: center; /* Center content vertically */
+    text-align: center;
+    cursor: pointer;
+    padding: 5px; /* Reduced padding */
+    overflow: hidden; /* Hide overflow */
+    position: relative;
+    background-size: cover; /* Cover the card with image */
+    background-position: center;
+    transition: none; /* Removed transform transition */
+}
+
+.theme-card:hover {
+    transform: none; /* Removed hover effect */
+    /* Optionally add a subtle border or background change on hover if desired */
+    /* box-shadow: 0 3px 7px rgba(0, 0, 0, 0.2); */ 
+}
+
+.theme-card-text {
+    position: relative; /* Keep text above background layers */
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay */
+    padding: 4px 6px; /* Reduced padding */
+    border-radius: 3px; /* Slightly smaller radius */
+    width: 95%; /* Allow slightly more width */
+    max-height: 90%; /* Ensure text fits */
+    overflow: hidden; /* Hide overflowing text */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.theme-name {
+    font-weight: bold;
+    font-size: 0.9em; /* Slightly smaller name */
+    color: #fff;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+    margin-bottom: 3px; /* Reduced space */
+    display: block; /* Ensure it takes its own line */
+    white-space: nowrap; /* Prevent name wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ellipsis if name too long */
+    max-width: 100%;
+}
+
+.theme-description {
+    font-size: 0.75em; /* Smaller description */
+    color: #ccc; /* Lighter gray */
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit description to 2 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2; /* Reduced line height */
+    max-height: calc(1.2em * 2); /* Calculate max height based on line clamp and line height */
+}
+
+/* Style for the theme card's background color pseudo-element */
+.theme-card::before {
+}
+
+/* Style for active theme card */
+.theme-card.active {
+    outline: 2px solid #9147ff;
+    outline-offset: -2px; /* Offset outline inwards */
+    box-shadow: 0 4px 10px rgba(145, 71, 255, 0.4); /* Add a glow effect */
+}

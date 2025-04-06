@@ -69,12 +69,102 @@
     function init() {
         // Define the default themes here, creating window.availableThemes
          window.availableThemes = [
-             { name: 'Default', value: 'default', bgColor: '#121212', bgColorOpacity: 0.85, borderColor: '#9147ff', textColor: '#efeff1', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
-             { name: 'Transparent', value: 'transparent-theme', bgColor: '#000000', bgColorOpacity: 0, borderColor: 'transparent', textColor: '#ffffff', usernameColor: '#9147ff', backgroundImage: null, borderRadius: '0px', boxShadow: 'none' },
-             { name: 'Light', value: 'light-theme', bgColor: '#ffffff', bgColorOpacity: 0.9, borderColor: '#9147ff', textColor: '#0e0e10', usernameColor: '#9147ff', borderRadius: '8px', boxShadow: 'soft', fontFamily: "'Atkinson Hyperlegible', sans-serif" },
-             { name: 'Natural', value: 'natural-theme', bgColor: '#3d2b1f', bgColorOpacity: 0.85, borderColor: '#d4ad76', textColor: '#eee2d3', usernameColor: '#98bf64', borderRadius: '16px', boxShadow: 'simple3d', fontFamily: "'EB Garamond', serif" },
-             { name: 'Cyberpunk', value: 'cyberpunk-theme', bgColor: '#0d0c19', bgColorOpacity: 0.85, borderColor: '#f637ec', textColor: '#9effff', usernameColor: '#f637ec', borderRadius: '0px', boxShadow: 'sharp', fontFamily: "'Tektur', sans-serif" },
-             { name: 'Pink', value: 'pink-theme', bgColor: '#ffdeec', bgColorOpacity: 0.85, borderColor: '#ff6bcb', textColor: '#8e2651', usernameColor: '#b81670', borderRadius: '24px', boxShadow: 'intense3d', fontFamily: "'Atkinson Hyperlegible', sans-serif" }
+             {
+                 name: 'Default Dark',
+                 value: 'default',
+                 bgColor: '#121212',
+                 bgColorOpacity: 0.85,
+                 borderColor: '#9147ff',
+                 textColor: '#efeff1',
+                 usernameColor: '#9147ff',
+                 fontFamily: "'Atkinson Hyperlegible', sans-serif",
+                 borderRadius: 'Subtle',
+                 borderRadiusValue: '8px',
+                 boxShadow: 'Soft',
+                 boxShadowValue: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                 backgroundImage: null,
+                 description: 'Classic Twitch purple accents on a dark background. Balanced and readable.'
+             },
+             {
+                 name: 'Default Light',
+                 value: 'light-theme',
+                 bgColor: '#ffffff',
+                 bgColorOpacity: 0.9,
+                 borderColor: '#cccccc',
+                 textColor: '#1a1a1a',
+                 usernameColor: '#9147ff',
+                 fontFamily: "'Atkinson Hyperlegible', sans-serif",
+                 borderRadius: 'Subtle',
+                 borderRadiusValue: '8px',
+                 boxShadow: 'Soft',
+                 boxShadowValue: 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                 backgroundImage: null,
+                 description: 'A clean, bright theme with dark text on a light background.'
+             },
+             {
+                 name: 'Natural',
+                 value: 'natural-theme',
+                 bgColor: '#f5f2e6',
+                 bgColorOpacity: 0.9,
+                 borderColor: '#7e6852',
+                 textColor: '#4e3629',
+                 usernameColor: '#508d69',
+                 fontFamily: "'EB Garamond', serif",
+                 borderRadius: 'Rounded',
+                 borderRadiusValue: '16px',
+                 boxShadow: 'Simple 3D',
+                 boxShadowValue: 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                 backgroundImage: null,
+                 description: 'Earthy tones with wood-like borders and a classic serif font.'
+             },
+             {
+                 name: 'Transparent Dark',
+                 value: 'transparent-theme',
+                 bgColor: 'rgba(0, 0, 0, 0)',
+                 bgColorOpacity: 0,
+                 borderColor: 'transparent',
+                 textColor: '#efeff1',
+                 usernameColor: '#00ffea',
+                 fontFamily: "'Atkinson Hyperlegible', sans-serif",
+                 borderRadius: 'Subtle',
+                 borderRadiusValue: '8px',
+                 boxShadow: 'none',
+                 boxShadowValue: 'none',
+                 backgroundImage: null,
+                 description: 'Minimalist dark theme with no background or border, only text.'
+             },
+             {
+                 name: 'Sakura Pink',
+                 value: 'pink-theme',
+                 bgColor: '#ffdeec',
+                 bgColorOpacity: 0.8,
+                 borderColor: '#ff6bcb',
+                 textColor: '#8e2651',
+                 usernameColor: '#b81670',
+                 fontFamily: "'Atkinson Hyperlegible', sans-serif",
+                 borderRadius: 'Rounded',
+                 borderRadiusValue: '16px',
+                 boxShadow: 'Soft',
+                 boxShadowValue: 'rgba(255, 107, 203, 0.2) 0px 2px 8px 0px',
+                 backgroundImage: null,
+                 description: 'Soft pink background with darker pink/berry text and accents.'
+             },
+             {
+                 name: 'Cyberpunk Night',
+                 value: 'cyberpunk-theme',
+                 bgColor: '#0c0c28',
+                 bgColorOpacity: 0.85,
+                 borderColor: '#00ffb3',
+                 textColor: '#00ffea',
+                 usernameColor: '#ff2e97',
+                 fontFamily: "'Tektur', sans-serif",
+                 borderRadius: 'Sharp',
+                 borderRadiusValue: '0px',
+                 boxShadow: 'Sharp',
+                 boxShadowValue: '8px 8px 0px 0px rgba(0, 255, 179, 0.7)',
+                 backgroundImage: null,
+                 description: 'Neon on dark blue. Tech font, sharp edges, and vibrant accents.'
+             }
         ];
         console.log('Default themes initialized in theme-carousel.js');
 
@@ -91,6 +181,48 @@
         
         // Also expose key functions globally for other modules to use
         window.addThemeToCarousel = addThemeToCarousel;
+        
+        // --- Get DOM elements for navigation buttons ---
+        const prevThemeBtn = document.getElementById('prev-theme');
+        const nextThemeBtn = document.getElementById('next-theme');
+
+        // --- Add event listeners ONCE during init ---
+        if (prevThemeBtn) {
+            prevThemeBtn.addEventListener('click', () => {
+                // Ensure window.availableThemes is populated and currentThemeIndex is valid
+                if (window.availableThemes && window.availableThemes.length > 0) {
+                    let currentThemeIndex = window.currentThemeIndex !== undefined ? window.currentThemeIndex : 0;
+                    currentThemeIndex = (currentThemeIndex - 1 + window.availableThemes.length) % window.availableThemes.length;
+                    window.currentThemeIndex = currentThemeIndex; // Update global index
+                    applyAndScrollToTheme(currentThemeIndex);
+                } else {
+                    console.warn("Cannot navigate previous theme: availableThemes not ready.");
+                }
+            });
+            prevThemeBtn.dataset.listenerAttached = 'true'; // Mark as attached
+        } else {
+            console.warn("Previous theme button (#prev-theme) not found during init.");
+        }
+
+        if (nextThemeBtn) {
+            nextThemeBtn.addEventListener('click', () => {
+                 // Ensure window.availableThemes is populated and currentThemeIndex is valid
+                 if (window.availableThemes && window.availableThemes.length > 0) {
+                    let currentThemeIndex = window.currentThemeIndex !== undefined ? window.currentThemeIndex : 0;
+                    currentThemeIndex = (currentThemeIndex + 1) % window.availableThemes.length;
+                    window.currentThemeIndex = currentThemeIndex; // Update global index
+                    applyAndScrollToTheme(currentThemeIndex);
+                 } else {
+                    console.warn("Cannot navigate next theme: availableThemes not ready.");
+                 }
+            });
+            nextThemeBtn.dataset.listenerAttached = 'true'; // Mark as attached
+        } else {
+            console.warn("Next theme button (#next-theme) not found during init.");
+        }
+
+        // Render the initial carousel state
+        renderCarousel();
         
         console.log('Theme carousel initialized');
 
@@ -208,6 +340,9 @@
         });
         document.dispatchEvent(themeAddedEvent);
         
+        // Refresh the visual carousel display
+        renderCarousel();
+        
         return theme;
     }
     
@@ -229,7 +364,6 @@
                     window.currentThemeIndex = themeIndex;
                     if (typeof window.updateThemeDisplay === 'function') {
                         window.updateThemeDisplay();
-                        return;
                     }
                 }
             } else {
@@ -387,6 +521,195 @@
         }
     }
     
+    /**
+     * Renders the theme cards into the carousel container.
+     */
+    function renderCarousel() {
+        // Find the container in chat.html where the theme previews should go.
+        // Use the class '.theme-carousel-container' now instead of ID '#theme-buttons'
+        const carouselContainer = document.querySelector('.theme-carousel-container');
+        // const currentThemeDisplay = document.getElementById('current-theme'); // Removed - display is now cards
+        // const themeNavButtons = document.querySelector('#theme-buttons .theme-navigation'); // Removed - buttons should be direct children
+
+        if (!carouselContainer) {
+            console.error('Theme carousel container (.theme-carousel-container) not found in chat.html.');
+            return;
+        }
+
+        // --- Get references to the actual nav buttons ---
+        // These should exist outside the container that gets cleared
+        const prevBtnElement = document.getElementById('prev-theme');
+        const nextBtnElement = document.getElementById('next-theme');
+
+        // Clear existing content *inside* the container, but preserve the container itself
+        carouselContainer.innerHTML = '';
+
+        // Re-add previous button if it exists
+        if (prevBtnElement) {
+            carouselContainer.appendChild(prevBtnElement);
+        }
+
+        // Create a new div to hold the cards themselves for scrolling/styling
+        const cardsWrapper = document.createElement('div');
+        cardsWrapper.className = 'theme-cards-wrapper'; // Add a class for styling
+        carouselContainer.appendChild(cardsWrapper); // Add wrapper after prev button
+
+        // Re-add next button if it exists
+        if (nextBtnElement) {
+            carouselContainer.appendChild(nextBtnElement); // Add next button after wrapper
+        }
+
+        // --- Populate the cardsWrapper ---
+        if (window.availableThemes && window.availableThemes.length > 0) {
+            window.availableThemes.forEach(theme => {
+                const card = createThemeCard(theme);
+                cardsWrapper.appendChild(card);
+            });
+        } else {
+            cardsWrapper.textContent = 'No themes available.';
+        }
+        
+        // Update the simple text display (if it still exists/is needed elsewhere)
+        if (typeof window.currentThemeIndex !== 'undefined' && window.availableThemes.length > 0) {
+             // Use currentThemeIndex if available, otherwise default to 0
+            const currentIdx = window.currentThemeIndex;
+            const currentTheme = window.availableThemes[currentIdx];
+            if (currentTheme) {
+                // Update the current theme display
+                const currentThemeDisplay = document.querySelector('.theme-carousel-container .current-theme');
+                if (currentThemeDisplay) {
+                    currentThemeDisplay.textContent = currentTheme.name;
+                }
+            } else {
+                 currentThemeDisplay.textContent = 'N/A'; // Handle case where index is invalid
+            }
+        }
+        console.log("Theme carousel rendered/updated.");
+        
+        // Highlight the currently active theme after rendering
+        highlightActiveCard(window.availableThemes[typeof window.currentThemeIndex !== 'undefined' ? window.currentThemeIndex : 0]?.value || 'default');
+    }
+
+    /**
+     * Creates a theme card element for the carousel
+     * @param {Object} theme - The theme object to create a card for
+     * @returns {HTMLElement} The created theme card element
+     */
+    function createThemeCard(theme) {
+        const card = document.createElement('div');
+        card.className = 'theme-card';
+        card.dataset.themeValue = theme.value;
+
+        // --- Create text container and content ---
+        const textContainer = document.createElement('div');
+        textContainer.className = 'theme-card-text';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'theme-name'; // Add class for styling
+        nameSpan.textContent = theme.name;
+        textContainer.appendChild(nameSpan);
+
+        // --- Ensure description exists before creating span ---
+        if (theme.description) {
+            const descriptionSpan = document.createElement('span');
+            descriptionSpan.className = 'theme-description'; // Add class for styling
+            descriptionSpan.textContent = theme.description;
+            textContainer.appendChild(descriptionSpan);
+        } else {
+            console.warn(`Theme '${theme.name}' is missing a description.`);
+            // Optionally add an empty span or placeholder text
+            // const descriptionSpan = document.createElement('span');
+            // descriptionSpan.className = 'theme-description';
+            // descriptionSpan.textContent = 'No description available.';
+            // textContainer.appendChild(descriptionSpan);
+        }
+
+        card.appendChild(textContainer);
+
+        // --- REMOVED event listeners for prevThemeBtn/nextThemeBtn ---
+        // These are now added ONCE in the init function
+
+        card.addEventListener('click', () => {
+            // Find index and apply theme using the main chat.js functions
+            const themeIndex = window.availableThemes.findIndex(t => t.value === theme.value);
+            if (themeIndex !== -1) { // Removed checks for window functions, assume they exist
+                window.currentThemeIndex = themeIndex; // Update internal index
+                applyAndScrollToTheme(themeIndex); // Use the combined function
+            } else {
+                console.warn(`Could not apply theme from carousel click: ${theme.name}`);
+            }
+        });
+
+        return card;
+    }
+
+    /**
+     * Applies the theme at the given index and scrolls the carousel to it.
+     * @param {number} index - The index of the theme in window.availableThemes.
+     */
+    function applyAndScrollToTheme(index) {
+        if (index < 0 || index >= window.availableThemes.length) {
+            console.error("Invalid theme index for apply/scroll:", index);
+            return;
+        }
+        
+        const theme = window.availableThemes[index];
+        if (!theme) {
+             console.error("Could not find theme at index:", index);
+            return;
+        }
+        
+        // Apply the theme visuals using chat.js function
+        if (typeof window.applyTheme === 'function') {
+            window.applyTheme(theme.value);
+        } else {
+             console.warn("window.applyTheme function not found.");
+        }
+        
+        // Update the theme display state in chat.js
+        if (typeof window.updateThemeDisplay === 'function') {
+            window.updateThemeDisplay(theme.value);
+        } else {
+            console.warn("window.updateThemeDisplay function not found.");
+        }
+        
+        // Scroll the card into view
+        const cardsWrapper = document.querySelector('.theme-cards-wrapper');
+        const cardElement = cardsWrapper?.querySelector(`.theme-card[data-theme-value="${theme.value}"]`);
+        
+        if (cardElement && cardsWrapper) {
+            // Calculate scroll position to center the card if possible
+            const scrollLeft = cardElement.offsetLeft - (cardsWrapper.offsetWidth / 2) + (cardElement.offsetWidth / 2);
+            cardsWrapper.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth'
+            });
+            
+            // Optionally highlight the active card
+            highlightActiveCard(theme.value);
+        } else {
+            console.warn("Could not find card element or wrapper to scroll to.");
+        }
+    }
+    
+    /**
+     * Highlights the active theme card in the carousel.
+     * @param {string} themeValue - The value of the theme to highlight.
+     */
+    function highlightActiveCard(themeValue) {
+        const cardsWrapper = document.querySelector('.theme-cards-wrapper');
+        if (!cardsWrapper) return;
+        
+        const allCards = cardsWrapper.querySelectorAll('.theme-card');
+        allCards.forEach(card => {
+            if (card.dataset.themeValue === themeValue) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
+
     // Return the carousel API for modules that load this script directly
     return carouselAPI;
 })();

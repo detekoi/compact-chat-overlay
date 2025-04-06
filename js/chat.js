@@ -225,7 +225,8 @@
                 'None': '0px', 'none': '0px',
                 'Subtle': '8px', 'subtle': '8px',
                 'Rounded': '16px', 'rounded': '16px',
-                'Pill': '24px', 'pill': '24px'
+                'Pill': '24px', 'pill': '24px',
+                'Sharp': '0px', 'sharp': '0px' // Added Sharp preset
             };
             
             if (borderRadiusMap[value]) {
@@ -1623,14 +1624,15 @@
              }
 
             // Update ONLY the display text and the tracked value used for saving
-            currentThemeDisplay.textContent = theme.name;
+            // currentThemeDisplay.textContent = theme.name; // REMOVED - Element no longer exists
             lastAppliedThemeValue = theme.value; 
-            console.log(`[updateThemeDisplay] Updated display to: ${theme.name} (Index: ${currentThemeIndex}, Value: ${theme.value})`);
+            console.log(`[updateThemeDisplay] Updated internal state for: ${theme.name} (Index: ${currentThemeIndex}, Value: ${theme.value})`);
 
             // REMOVED call to applyTheme(theme.value); 
         }
         window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
-        
+        window.applyTheme = applyTheme; // EXPOSE globally
+
         // Update theme preview with current theme
         /**
          * Update theme preview based on the current values in the global `config` object.
