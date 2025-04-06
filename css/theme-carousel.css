@@ -57,6 +57,11 @@
 
 /* Wrapper for the scrollable theme cards */
 .theme-cards-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     gap: 10px;
     overflow-x: auto;
@@ -65,6 +70,7 @@
     /* Hide scrollbar but keep functionality */
     scrollbar-width: none;  /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
+    opacity: 0; /* Hide wrapper itself */
 }
 
 .theme-cards-wrapper::-webkit-scrollbar {

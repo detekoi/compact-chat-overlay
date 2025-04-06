@@ -573,6 +573,16 @@
         card.style.backgroundColor = theme.bgColor || '#121212';
         card.style.color = theme.textColor || '#efeff1';
         
+        // Add theme text for better accessibility and card content visibility
+        const textDiv = document.createElement('div');
+        textDiv.className = 'theme-card-text';
+        
+        // Add name element
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'theme-name';
+        nameSpan.textContent = theme.name || 'Unnamed Theme';
+        textDiv.appendChild(nameSpan);
+        
         // Set active state if this is the current theme
         if (index === window.currentThemeIndex) {
             card.classList.add('active');
@@ -583,6 +593,7 @@
             applyAndScrollToTheme(index);
         });
         
+        card.appendChild(textDiv);
         return card;
     }
 
