@@ -92,7 +92,7 @@
     --font-size: 14px;
     --font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     --chat-width: 100%;
-    --chat-height: 600px;
+    --chat-height: 100%; /* Updated default to percentage */
     --chat-border-radius: 8px;
     --override-username-colors: 0; /* 0 = use Twitch colors, 1 = override */
     --chat-bg-image: none; /* Default: no background image */

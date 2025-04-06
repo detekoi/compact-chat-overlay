@@ -60,7 +60,7 @@
             fontSize: 14,
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
             chatWidth: 100,
-            chatHeight: 600,
+            chatHeight: 100, // Default to 100%
             maxMessages: 50,
             showTimestamps: true,
             overrideUsernameColors: false,
@@ -1085,9 +1085,9 @@
         // Chat height slider
         chatHeightInput.addEventListener('input', () => {
             const value = chatHeightInput.value;
-            chatHeightValue.textContent = `${value}px`;
+            chatHeightValue.textContent = `${value}%`; // Use %
             
-            document.documentElement.style.setProperty('--chat-height', `${value}px`);
+            document.documentElement.style.setProperty('--chat-height', `${value}%`); // Use %
         });
         
         // Open settings panel function
@@ -2012,7 +2012,7 @@
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
                     chatWidth: getValue(chatWidthInput, 100, true),
-                    chatHeight: getValue(chatHeightInput, 600, true),
+                    chatHeight: getValue(chatHeightInput, 100, true),
                     maxMessages: getValue(maxMessagesInput, 50, true),
                     showTimestamps: getValue(showTimestampsInput, true, false, true),
                     popup: {
@@ -2090,7 +2090,7 @@
                             fontSize: parsedConfig.fontSize || 14,
                             fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
                             chatWidth: parsedConfig.chatWidth || 100,
-                            chatHeight: parsedConfig.chatHeight || 600,
+                            chatHeight: parsedConfig.chatHeight || 100,
                             maxMessages: parsedConfig.maxMessages || 50,
                             showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
                             overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
@@ -2181,7 +2181,7 @@
                 fontSize: 14,
                 fontFamily: "'Atkinson Hyperlegible', sans-serif", // <<< CHANGE DEFAULT
                 chatWidth: 100,
-                chatHeight: 600,
+                chatHeight: 100, // Default 100% height
                 maxMessages: 50,
                 showTimestamps: true,
                 overrideUsernameColors: false,
@@ -2326,7 +2326,7 @@
             chatWidthInput.value = config.chatWidth;
             chatWidthValue.textContent = `${config.chatWidth}%`;
             chatHeightInput.value = config.chatHeight;
-            chatHeightValue.textContent = `${config.chatHeight}px`;
+            chatHeightValue.textContent = `${config.chatHeight}%`;
             maxMessagesInput.value = config.maxMessages;
             showTimestampsInput.checked = config.showTimestamps;
             
@@ -2507,7 +2507,7 @@
             document.documentElement.style.setProperty('--font-size', `${cfg.fontSize || 14}px`);
             document.documentElement.style.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
             document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 100}%`);
-            document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 600}px`);
+            document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 100}%`);
             document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
             document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
             // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
