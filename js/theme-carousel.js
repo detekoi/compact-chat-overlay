@@ -58,6 +58,7 @@
     
     // Make updateThemeDetails globally available
     window.updateThemeDetails = updateThemeDetails;
+    window.highlightActiveCard = highlightActiveCard;
     
     // Initialize the carousel when DOM is ready
     if (document.readyState === 'loading') {

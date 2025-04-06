@@ -20,7 +20,16 @@
          * @returns {string} The rgba color string (e.g., "rgba(255, 0, 0, 0.5)").
          */
         function hexToRgba(hex, opacity) {
-            if (!hex || typeof hex !== 'string') return `rgba(0, 0, 0, ${opacity})`; // Default black if hex invalid
+            // <<< ADD CHECK: If input is already rgba, return it >>>
+            if (typeof hex === 'string' && hex.trim().toLowerCase().startsWith('rgba')) {
+                console.warn(`[hexToRgba] Received rgba value "${hex}" instead of hex. Returning directly.`);
+                return hex; // Input is already rgba
+            }
+
+            if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) { // Also check for # prefix
+                console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
+                return `rgba(0, 0, 0, ${opacity})`; // Default black if hex invalid
+            }
 
             let r = 0, g = 0, b = 0;
             // 3 digit hex
@@ -131,9 +140,9 @@
         const currentFontDisplay = document.getElementById('current-font');
         
         // Theme carousel
-        const prevThemeBtn = document.getElementById('prev-theme');
-        const nextThemeBtn = document.getElementById('next-theme');
-        const currentThemeDisplay = document.getElementById('current-theme');
+        // const prevThemeBtn = document.getElementById('prev-theme'); // REMOVED
+        // const nextThemeBtn = document.getElementById('next-theme'); // REMOVED
+        // const currentThemeDisplay = document.getElementById('current-theme'); // REMOVED
         const themePreview = document.getElementById('theme-preview');
         
         // Connection Management Elements (inside config panel)
@@ -153,8 +162,8 @@
         // const availableFonts = [ ... ]; // REMOVED local definition
         
         // Theme selection (populated by theme-carousel.js)
-        let currentThemeIndex = 0;
-        let lastAppliedThemeValue = 'default'; // NEW variable to track applied theme
+        // let currentThemeIndex = 0; // REMOVED
+        let lastAppliedThemeValue = 'default'; // Keep for saving state
         // availableThemes is now managed globally, initialized by theme-carousel.js
         // const availableThemes = [ ... ]; // Removed initial definition
         
@@ -1491,7 +1500,6 @@
             // --- Update UI controls AFTER applying theme --- END
 
             updateThemePreview();
-            updateThemeDisplay(theme.value);
 
             lastAppliedThemeValue = theme.value;
             
@@ -1523,87 +1531,32 @@
             console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
             
             // Update the theme preview to reflect the font change immediately
-            updateThemePreview(); // Update preview based on config
+            updateThemePreview(); // <<< ADD THIS CALL
         }
         
         // Font selection carousel
-        if (prevFontBtn && !prevFontBtn.dataset.listenerAttached) { 
-        prevFontBtn.addEventListener('click', () => {
-            currentFontIndex = (currentFontIndex - 1 + window.availableFonts.length) % window.availableFonts.length;
-            updateFontDisplay();
-        });
+        if (prevFontBtn && !prevFontBtn.dataset.listenerAttached) {
+            prevFontBtn.addEventListener('click', () => {
+                currentFontIndex = (currentFontIndex - 1 + window.availableFonts.length) % window.availableFonts.length;
+                updateFontDisplay();
+            });
             prevFontBtn.dataset.listenerAttached = 'true';
         }
         
-        if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) { 
-        nextFontBtn.addEventListener('click', () => {
-            currentFontIndex = (currentFontIndex + 1) % window.availableFonts.length;
-            updateFontDisplay();
-        });
+        if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) {
+            nextFontBtn.addEventListener('click', () => {
+                currentFontIndex = (currentFontIndex + 1) % window.availableFonts.length;
+                updateFontDisplay();
+            });
             nextFontBtn.dataset.listenerAttached = 'true';
         }
         
         // Setting theme listeners only once
-        if (prevThemeBtn && !prevThemeBtn.dataset.listenerAttached) { 
-            prevThemeBtn.addEventListener('click', () => {
-                currentThemeIndex = (currentThemeIndex - 1 + window.availableThemes.length) % window.availableThemes.length;
-                const newThemeValue = window.availableThemes[currentThemeIndex].value;
-                applyTheme(newThemeValue); // Apply the new theme visuals
-                updateThemeDisplay();      // Update the carousel display text/index state
-            });
-            prevThemeBtn.dataset.listenerAttached = 'true';
-        }
-        
-        if (nextThemeBtn && !nextThemeBtn.dataset.listenerAttached) { 
-            nextThemeBtn.addEventListener('click', () => {
-                currentThemeIndex = (currentThemeIndex + 1) % window.availableThemes.length;
-                const newThemeValue = window.availableThemes[currentThemeIndex].value;
-                applyTheme(newThemeValue); // Apply the new theme visuals
-                updateThemeDisplay();      // Update the carousel display text/index state
-            });
-            nextThemeBtn.dataset.listenerAttached = 'true';
-        }
-        
-        // Initialize theme display - ONLY updates the carousel text and internal index
-        function updateThemeDisplay(themeValue = null) { 
-            // If a themeValue is provided, find its index and update currentThemeIndex
-            if (themeValue) {
-                const newIndex = window.availableThemes.findIndex(t => t.value === themeValue);
-                if (newIndex !== -1) {
-                    console.log(`[updateThemeDisplay] Received themeValue '${themeValue}', updating currentThemeIndex from ${currentThemeIndex} to ${newIndex}`);
-                    currentThemeIndex = newIndex;
-                } else {
-                    console.warn(`[updateThemeDisplay] Received themeValue '${themeValue}' but could not find it in availableThemes.`);
-                    // Keep currentThemeIndex as is if not found
-                }
-            }
+        // REMOVED THEME LISTENERS - Handled by theme-carousel.js
 
-            // Ensure currentThemeIndex is valid before proceeding
-            if (currentThemeIndex < 0 || currentThemeIndex >= window.availableThemes.length) {
-                 console.error(`[updateThemeDisplay] Invalid currentThemeIndex: ${currentThemeIndex}. Resetting to 0.`);
-                 currentThemeIndex = 0; // Reset to default index if invalid
-            }
+        // REMOVED updateThemeDisplay FUNCTION
 
-            const theme = window.availableThemes[currentThemeIndex];
-             if (!theme) {
-                 console.error(`[updateThemeDisplay] Could not get theme at index ${currentThemeIndex}. Available themes count: ${window.availableThemes.length}`);
-                 return; 
-             }
-
-            // Update ONLY the display text and the tracked value used for saving
-            // currentThemeDisplay.textContent = theme.name; // REMOVED - Element no longer exists
-            lastAppliedThemeValue = theme.value; 
-            console.log(`[updateThemeDisplay] Updated internal state for: ${theme.name} (Index: ${currentThemeIndex}, Value: ${theme.value})`);
-            
-            // Update theme details display in the UI
-            if (typeof window.updateThemeDetails === 'function') {
-                window.updateThemeDetails(theme);
-            }
-
-            // REMOVED call to applyTheme(theme.value); 
-        }
-        window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
-        window.applyTheme = applyTheme; // EXPOSE globally
+        window.applyTheme = applyTheme; // Keep applyTheme exposed globally
 
         /**
          * Update the theme preview based on the currently selected theme in the carousel.
@@ -1617,7 +1570,6 @@
 
             if (!theme) {
                 console.warn("No theme selected or available for preview update.");
-                // Optional: Clear the preview or set default state
                 themePreview.innerHTML = '<span style="color: #888;">Select a theme</span>';
                 themePreview.style = ''; // Clear inline styles
                 return;
@@ -1631,25 +1583,24 @@
             const borderColor = theme.borderColor || '#444444';
             const textColor = theme.textColor || '#efeff1';
             const usernameColor = theme.usernameColor || '#9147ff';
-            const timestampColor = theme.timestampColor || '#adadb8'; // Use theme timestamp color or default
-            const fontFamily = theme.fontFamily || "'Atkinson Hyperlegible', sans-serif";
-            const borderRadius = getBorderRadiusValue(theme.borderRadius || theme.borderRadiusValue || '8px'); // Use helper
-            const boxShadow = getBoxShadowValue(theme.boxShadow || theme.boxShadowValue || 'none'); // Use helper
+            const timestampColor = theme.timestampColor || '#adadb8';
+            // *** CORRECT: Use the theme's full font-family value ***
+            const fontFamily = theme.fontFamily || "'Atkinson Hyperlegible', sans-serif"; 
+            const borderRadius = getBorderRadiusValue(theme.borderRadius || theme.borderRadiusValue || '8px');
+            const boxShadow = getBoxShadowValue(theme.boxShadow || theme.boxShadowValue || 'none');
             const bgImage = theme.backgroundImage || 'none';
             const bgImageOpacity = theme.bgImageOpacity ?? 0.55;
             
             // --- Calculate background color with opacity ---
             let finalBgColor;
-            // Handle explicitly transparent themes
             if (bgColor === 'transparent' || bgColorOpacity === 0) {
                 finalBgColor = 'transparent';
             } else {
-                // Use hexToRgba for solid colors with opacity
                  try {
                      finalBgColor = hexToRgba(bgColor, bgColorOpacity);
                  } catch (e) {
                      console.error(`Error converting hex ${bgColor} for preview:`, e);
-                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`; // Fallback
+                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`;
                  }
             }
 
@@ -1659,14 +1610,16 @@
             themePreview.style.setProperty('--preview-text-color', textColor);
             themePreview.style.setProperty('--preview-username-color', usernameColor);
             themePreview.style.setProperty('--preview-timestamp-color', timestampColor);
-            themePreview.style.setProperty('--preview-font-family', fontFamily);
+            // *** CORRECT: Set the full font-family value ***
+            themePreview.style.setProperty('--preview-font-family', fontFamily); 
+            // <<< ADD THIS LINE to directly apply the font >>>
+            themePreview.style.fontFamily = fontFamily; 
             themePreview.style.setProperty('--preview-border-radius', borderRadius);
             themePreview.style.setProperty('--preview-box-shadow', boxShadow);
             themePreview.style.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
             themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
             // --- Update the preview content ---
-            // Use the preview-specific variables now set
             const previewHtml = `
                 <div class="preview-chat-message">
                     <span class="timestamp">12:34</span>
@@ -1686,8 +1639,6 @@
         window.updateThemePreview = updateThemePreview;
 
         // Ensure updateThemePreview is called when the theme selection changes
-        // This might already be handled in theme-carousel.js applyAndScrollToTheme, 
-        // but we can add an event listener as a fallback or for direct updates.
         document.addEventListener('theme-changed', () => updateThemePreview());
         document.addEventListener('theme-carousel-ready', () => updateThemePreview()); // Call on initial load
 
@@ -2200,7 +2151,14 @@
                 console.warn(`Theme from config ("${config.theme}") not found, defaulting.`);
             }
             // updateThemeDisplay(); // Update carousel UI - REMOVED RECURSIVE CALL
-            updateThemeDisplay(); // <<< ADD THIS LINE to update the display text
+            // updateThemeDisplay(); // <<< ADD THIS LINE to update the display text // <<< REMOVE THIS OLD COMMENT
+            // <<< REPLACE updateThemeDisplay() call with these two lines: >>>
+            if (typeof window.updateThemeDetails === 'function') {
+                window.updateThemeDetails(window.availableThemes[currentThemeIndex]);
+            }
+            if (typeof window.highlightActiveCard === 'function') {
+                window.highlightActiveCard(window.availableThemes[currentThemeIndex]?.value);
+            }
             updateThemePreview(); // Update preview
 
             // Update Connection status
