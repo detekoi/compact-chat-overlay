@@ -2336,8 +2336,9 @@
                 console.warn(`Theme from config ("${config.theme}") not found, defaulting.`);
             }
             // updateThemeDisplay(); // Update carousel UI - REMOVED RECURSIVE CALL
+            updateThemeDisplay(); // <<< ADD THIS LINE to update the display text
             updateThemePreview(window.availableThemes[currentThemeIndex]); // Update preview
-            
+
             // Update Connection status
             channelInput.value = config.lastChannel || '';
             // updateConnectionUI(socket && socket.readyState === WebSocket.OPEN);
