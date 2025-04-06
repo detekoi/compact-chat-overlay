@@ -56,6 +56,9 @@
         applyTheme: applyThemeFromCarousel
     };
     
+    // Make updateThemeDetails globally available
+    window.updateThemeDetails = updateThemeDetails;
+    
     // Initialize the carousel when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -552,6 +555,9 @@
         // Update the theme details for the current theme
         if (window.availableThemes && window.availableThemes.length > 0 && window.currentThemeIndex !== undefined) {
             updateThemeDetails(window.availableThemes[window.currentThemeIndex]);
+        } else if (window.availableThemes && window.availableThemes.length > 0) {
+            // Default to the first theme if no index is set
+            updateThemeDetails(window.availableThemes[0]);
         }
         
         console.log("Theme carousel rendered/updated.");

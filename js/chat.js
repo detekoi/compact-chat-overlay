@@ -1627,6 +1627,11 @@
             // currentThemeDisplay.textContent = theme.name; // REMOVED - Element no longer exists
             lastAppliedThemeValue = theme.value; 
             console.log(`[updateThemeDisplay] Updated internal state for: ${theme.name} (Index: ${currentThemeIndex}, Value: ${theme.value})`);
+            
+            // Update theme details display in the UI
+            if (typeof window.updateThemeDetails === 'function') {
+                window.updateThemeDetails(theme);
+            }
 
             // REMOVED call to applyTheme(theme.value); 
         }
