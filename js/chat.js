@@ -1408,127 +1408,94 @@
         function applyTheme(themeName) {
             console.log(`Applying theme: ${themeName}`);
             
-            // Ensure window.availableThemes is available
             if (!window.availableThemes || window.availableThemes.length === 0) {
                 console.error('Available themes not initialized yet.');
                 return;
             }
             
-            // Find the theme object by name or value
             const theme = window.availableThemes.find(t => t.value === themeName || t.name === themeName);
             
             if (!theme) {
                 console.warn(`Theme "${themeName}" not found. Applying default.`);
-                // Fallback to default theme if not found
                 const defaultTheme = window.availableThemes.find(t => t.value === 'default');
-                if (defaultTheme) {
-                    applyTheme(defaultTheme.value); // Recursively call with default theme
-                }
+                if (defaultTheme) applyTheme(defaultTheme.value);
                 return;
             }
             
             console.log('Theme object found:', theme);
 
-            // --- Read current slider opacities BEFORE applying theme properties --- START
-            let currentBgOpacitySliderValue = 0.85; // Default
-            if (bgOpacityInput) {
-                const parsed = parseFloat(bgOpacityInput.value);
-                if (!isNaN(parsed)) {
-                    currentBgOpacitySliderValue = parsed / 100.0;
-                }
-            }
-            let currentBgImageOpacitySliderValue = 0.55; // Default
-            if (bgImageOpacityInput) {
-                const parsed = parseFloat(bgImageOpacityInput.value);
-                if (!isNaN(parsed)) {
-                    currentBgImageOpacitySliderValue = parsed / 100.0;
-                }
-            }
-            console.log(`[applyTheme] Using current slider values - BG Opacity: ${currentBgOpacitySliderValue}, Image Opacity: ${currentBgImageOpacitySliderValue}`);
-            // --- Read current slider opacities BEFORE applying theme properties --- END
-            
+            // --- REMOVED reading current slider opacities --- 
+            // Logic that read bgOpacityInput.value and bgImageOpacityInput.value here is GONE.
+
             // Update config object with theme base settings first
-            config.theme = theme.value; // Store the theme value
-            config.bgColor = theme.bgColor || '#121212'; // Use theme's base color
-            config.borderColor = theme.borderColor || '#9147ff'; // Default to Twitch purple
-            config.textColor = theme.textColor || '#efeff1'; // Default to light text
-            config.usernameColor = theme.usernameColor || '#9147ff'; // Default to Twitch purple
-            config.borderRadius = theme.borderRadius || '8px'; // Default to subtle
-            config.boxShadow = theme.boxShadow || 'none'; // Default to none
-            config.bgImage = theme.backgroundImage; // NEW: Store theme's background image in config
+            config.theme = theme.value;
+            config.bgColor = theme.bgColor || '#121212'; 
+            config.borderColor = theme.borderColor === 'transparent' ? 'transparent' : (theme.borderColor || '#9147ff');
+            config.textColor = theme.textColor || '#efeff1';
+            config.usernameColor = theme.usernameColor || '#9147ff';
+            config.borderRadius = theme.borderRadius || theme.borderRadiusValue || '8px';
+            config.boxShadow = theme.boxShadow || theme.boxShadowValue || 'none';
+            config.bgImage = theme.backgroundImage || null; 
 
-            // *** USE CURRENT SLIDER VALUES FOR OPACITY ***
-            config.bgColorOpacity = currentBgOpacitySliderValue;
-            config.bgImageOpacity = currentBgImageOpacitySliderValue;
+            // *** CORRECT: USE THEME'S DEFINED OPACITY ***
+            config.bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) 
+                                    ? theme.bgColorOpacity 
+                                    : 0.85; 
+            config.bgImageOpacity = (theme.bgImageOpacity !== undefined && theme.bgImageOpacity !== null)
+                                    ? theme.bgImageOpacity
+                                    : 0.55; 
+            console.log(`[applyTheme] Using theme opacities - BG: ${config.bgColorOpacity}, Image: ${config.bgImageOpacity}`); // Add this log back
 
-            // REMOVED: Logic that read theme.bgColorOpacity and updated sliders based on it
-
-            // NEW: Update font family from theme
+            // Update font family from theme
             if (theme.fontFamily) {
-                console.log(`[applyTheme] Theme specifies font: "${theme.fontFamily}" (Type: ${typeof theme.fontFamily})`); // Re-add type log
-                // Try finding the font by name OR value
                 let fontIndex = window.availableFonts.findIndex(f => {
                    const themeFontTrimmedLower = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim().toLowerCase() : '';
                    const fontNameTrimmedLower = f.name ? f.name.trim().toLowerCase() : null;
                    const fontValueTrimmed = f.value ? f.value.trim() : null;
                    const originalThemeFontTrimmed = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
-                   
-                   // Log the comparison values FOR EACH font being checked
-                   console.log(`[applyTheme findIndex] Comparing theme='${themeFontTrimmedLower}' with fontName='${fontNameTrimmedLower}', fontValue='${fontValueTrimmed}'`);
- 
-                   const nameMatch = fontNameTrimmedLower !== null && (fontNameTrimmedLower === themeFontTrimmedLower);
-                   // Compare original trimmed theme value against trimmed font value
-                   const valueMatch = fontValueTrimmed !== null && (fontValueTrimmed === originalThemeFontTrimmed); 
-                   
-                   // Log if match found for this font item
-                   if (nameMatch || valueMatch) {
-                       console.log(`[applyTheme findIndex] Match FOUND: nameMatch=${nameMatch}, valueMatch=${valueMatch}`);
-                   }
- 
-                   return nameMatch || valueMatch;
+                   return (fontNameTrimmedLower !== null && fontNameTrimmedLower === themeFontTrimmedLower) || 
+                          (fontValueTrimmed !== null && fontValueTrimmed === originalThemeFontTrimmed);
                 });
 
                 if (fontIndex !== -1) {
-                    console.log(`[applyTheme] Found matching font at index ${fontIndex}: Name="${window.availableFonts[fontIndex].name}", Value="${window.availableFonts[fontIndex].value}"`); // Add log
                     currentFontIndex = fontIndex;
-                    // Set config.fontFamily to the ACTUAL CSS value from the found font
                     config.fontFamily = window.availableFonts[currentFontIndex].value;
-                    console.log(`[applyTheme] Set config.fontFamily to: "${config.fontFamily}"`); // Add log
                 } else {
-                    console.warn(`[applyTheme] Theme font "${theme.fontFamily}" not found in availableFonts by name or value. Using default.`); // Updated log
-                    // If theme font not in list, find default or set to 0
+                    console.warn(`[applyTheme] Theme font "${theme.fontFamily}" not found. Using default.`); 
                     const defaultFontIndex = window.availableFonts.findIndex(f => f.value && f.value.includes('Atkinson'));
                     currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
-                    // Ensure config reflects the default font's value
-                    config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Safeguard
-                    console.warn(`Theme font "${theme.fontFamily}" not found in availableFonts. Using default: "${config.fontFamily}"`);
+                    config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; 
                 }
-                // Update font selector UI regardless of found/fallback
-                updateFontDisplay(); // This already sets the CSS variable
+                updateFontDisplay();
             } else {
-                // If theme has no font, keep current font setting
-                // Ensure config reflects the current selection
-                config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Safeguard
+                config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; 
             }
             
             // Apply the configuration visually using the updated config object
-            // This call will now respect the slider opacities stored in 'config'
             applyConfiguration(config);
             
-            // Update config panel display to reflect theme changes (if open)
-            // This will ensure sliders show the values that were just applied
-            if (configPanel.style.display === 'block') {
-                updateConfigPanelFromConfig();
+            // --- Update UI controls AFTER applying theme --- START
+            if (bgOpacityInput && bgOpacityValue) {
+                 const opacityPercent = Math.round(config.bgColorOpacity * 100);
+                 bgOpacityInput.value = opacityPercent;
+                 bgOpacityValue.textContent = `${opacityPercent}%`;
+                 console.log(`[applyTheme] Updated BG opacity slider to: ${opacityPercent}%`);
             }
-            
-            // Update theme preview and display
-            updateThemePreview();      // Update preview based on config
-            updateThemeDisplay(theme.value); // Update the carousel display text/index state
+             if (bgImageOpacityInput && bgImageOpacityValue) {
+                  const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
+                  bgImageOpacityInput.value = imageOpacityPercent;
+                  bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
+                  console.log(`[applyTheme] Updated Image opacity slider to: ${imageOpacityPercent}%`);
+             }
+             highlightActiveColorButtons();
+            // --- Update UI controls AFTER applying theme --- END
 
-            // Store the last successfully applied theme value
+            updateThemePreview();
+            updateThemeDisplay(theme.value);
+
             lastAppliedThemeValue = theme.value;
             
-            console.log(`Theme "${theme.name}" applied successfully, respecting current slider opacities.`);
+            console.log(`Theme "${theme.name}" applied successfully.`); // Adjusted log message
         }
         
         // Initialize font selection
@@ -1638,113 +1605,91 @@
         window.updateThemeDisplay = updateThemeDisplay; // EXPOSE globally
         window.applyTheme = applyTheme; // EXPOSE globally
 
-        // Update theme preview with current theme
         /**
-         * Update theme preview based on the current values in the global `config` object.
+         * Update the theme preview based on the currently selected theme in the carousel.
          */
         function updateThemePreview() {
-            // Get the preview element
-            const themePreview = document.getElementById('theme-preview');
+            if (!themePreview || !window.availableThemes || window.availableThemes.length === 0) return;
+            
+            // Get the currently selected theme from the carousel
+            const selectedThemeIndex = window.currentThemeIndex !== undefined ? window.currentThemeIndex : 0;
+            const theme = window.availableThemes[selectedThemeIndex];
 
-            if (!themePreview) return; // Exit if no preview element
+            if (!theme) {
+                console.warn("No theme selected or available for preview update.");
+                // Optional: Clear the preview or set default state
+                themePreview.innerHTML = '<span style="color: #888;">Select a theme</span>';
+                themePreview.style = ''; // Clear inline styles
+                return;
+            }
 
-            console.log(`[updateThemePreview] Updating preview based on current config object.`);
+            console.log(`Updating theme preview for: ${theme.name}`);
 
-            // --- Read properties directly from the global config object --- START
-            const previewBgColorHex = config.bgColor || '#121212';
-            const previewBgOpacity = config.bgColorOpacity !== undefined ? config.bgColorOpacity : 0.85;
-            const previewBorderColor = config.borderColor === 'transparent' ? 'transparent' : (config.borderColor || '#9147ff');
-            const previewTextColor = config.textColor || '#efeff1';
-            const previewUsernameColor = config.usernameColor || '#9147ff';
-            const previewFontFamilyCss = config.fontFamily || "'Atkinson Hyperlegible', sans-serif";
-            const previewFontSize = `${config.fontSize || 14}px`;
-            const previewBorderRadius = window.getBorderRadiusValue(config.borderRadius || '8px'); // Use helper
-            const previewBoxShadow = window.getBoxShadowValue(config.boxShadow || 'none'); // Use helper
-            const previewBgImage = config.bgImage;
-            const previewBgImageOpacity = config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55;
-            const showTimestamps = config.showTimestamps !== undefined ? config.showTimestamps : true;
-            const currentThemeValue = config.theme || 'default'; // Get theme value for class
-            // --- Read properties directly from the global config object --- END
+            // --- Get theme properties with defaults ---
+            const bgColor = theme.bgColor || '#1e1e1e';
+            const bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) ? theme.bgColorOpacity : 0.85;
+            const borderColor = theme.borderColor || '#444444';
+            const textColor = theme.textColor || '#efeff1';
+            const usernameColor = theme.usernameColor || '#9147ff';
+            const timestampColor = theme.timestampColor || '#adadb8'; // Use theme timestamp color or default
+            const fontFamily = theme.fontFamily || "'Atkinson Hyperlegible', sans-serif";
+            const borderRadius = getBorderRadiusValue(theme.borderRadius || theme.borderRadiusValue || '8px'); // Use helper
+            const boxShadow = getBoxShadowValue(theme.boxShadow || theme.boxShadowValue || 'none'); // Use helper
+            const bgImage = theme.backgroundImage || 'none';
+            const bgImageOpacity = theme.bgImageOpacity ?? 0.55;
+            
+            // --- Calculate background color with opacity ---
+            let finalBgColor;
+            // Handle explicitly transparent themes
+            if (bgColor === 'transparent' || bgColorOpacity === 0) {
+                finalBgColor = 'transparent';
+            } else {
+                // Use hexToRgba for solid colors with opacity
+                 try {
+                     finalBgColor = hexToRgba(bgColor, bgColorOpacity);
+                 } catch (e) {
+                     console.error(`Error converting hex ${bgColor} for preview:`, e);
+                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`; // Fallback
+                 }
+            }
 
-            // Update the HTML example
-            themePreview.innerHTML = `
+            // --- Set preview-specific CSS variables directly on the element ---
+            themePreview.style.setProperty('--preview-bg-color', finalBgColor);
+            themePreview.style.setProperty('--preview-border-color', borderColor);
+            themePreview.style.setProperty('--preview-text-color', textColor);
+            themePreview.style.setProperty('--preview-username-color', usernameColor);
+            themePreview.style.setProperty('--preview-timestamp-color', timestampColor);
+            themePreview.style.setProperty('--preview-font-family', fontFamily);
+            themePreview.style.setProperty('--preview-border-radius', borderRadius);
+            themePreview.style.setProperty('--preview-box-shadow', boxShadow);
+            themePreview.style.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
+            themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
+
+            // --- Update the preview content ---
+            // Use the preview-specific variables now set
+            const previewHtml = `
                 <div class="preview-chat-message">
-                    ${showTimestamps ? '<span class="timestamp">12:34</span> ' : ''}
-                    <span class="preview-username">Username:</span> 
-                    <span class="preview-message">Example chat message</span>
+                    <span class="timestamp">12:34</span>
+                    <span class="username" style="color: var(--preview-username-color);">Username:</span>
+                    <span>Example chat message</span>
                 </div>
                 <div class="preview-chat-message">
-                    ${showTimestamps ? '<span class="timestamp">12:35</span> ' : ''}
-                    <span class="preview-username">AnotherUser:</span> 
-                    <span class="preview-message">This is how your chat will look</span>
+                    <span class="timestamp">12:35</span>
+                    <span class="username" style="color: var(--preview-username-color);">AnotherUser:</span>
+                    <span>This is how your chat will look</span>
                 </div>
             `;
-
-            // --- Apply Styles Directly to Preview --- 
-
-            // 1. Background Color (Solid Layer) - using config values
-            let previewSolidBgColor = 'rgba(18, 18, 18, 0.85)'; // Default
-            if (previewBgColorHex && previewBgColorHex.startsWith('#')) {
-                previewSolidBgColor = hexToRgba(previewBgColorHex, previewBgOpacity);
-            } else if (previewBgColorHex && previewBgColorHex.startsWith('rgba')) {
-                // If config already stores rgba, use it (rare, but possible)
-                previewSolidBgColor = previewBgColorHex;
-            }
-            // Handle transparent theme specifically for the solid color layer
-            if (currentThemeValue === 'transparent-theme') {
-                previewSolidBgColor = 'rgba(0, 0, 0, 0)'; // Make solid layer transparent too
-            } else {
-                // Use the calculated solid color
-            }
-            themePreview.style.backgroundColor = previewSolidBgColor;
-            console.log(`[updateThemePreview] Applied solid background color: ${previewSolidBgColor}`);
-
-            // 2. Background Image (via CSS Variables for the ::before pseudo-element)
-            const previewBgImageUrl = (previewBgImage && previewBgImage !== 'none') ? `url("${previewBgImage}")` : 'none';
-            themePreview.style.setProperty('--preview-bg-image', previewBgImageUrl);
-            themePreview.style.setProperty('--preview-bg-image-opacity', previewBgImageOpacity);
-            console.log(`[updateThemePreview] Set preview CSS vars: --preview-bg-image: ${previewBgImageUrl}, --preview-bg-image-opacity: ${previewBgImageOpacity}`);
-
-            // Border
-            if (previewBorderColor === 'transparent') {
-                themePreview.style.border = 'none'; // Use 'none' for transparent
-            } else {
-                themePreview.style.border = `2px solid ${previewBorderColor}`; // Use config border color
-            }
-            console.log(`[updateThemePreview] Applied border: ${themePreview.style.border}`);
-
-            // Border Radius
-            themePreview.style.borderRadius = previewBorderRadius;
-            console.log(`[updateThemePreview] Applied border-radius: ${previewBorderRadius}`);
-
-            // Box Shadow
-            themePreview.style.boxShadow = previewBoxShadow;
-            console.log(`[updateThemePreview] Applied box-shadow: ${previewBoxShadow}`);
-
-            // Text Colors
-            themePreview.style.color = previewTextColor; // General text color
-            themePreview.querySelectorAll('.preview-username').forEach(elem => elem.style.color = previewUsernameColor);
-            themePreview.querySelectorAll('.preview-message').forEach(elem => elem.style.color = previewTextColor);
-            themePreview.querySelectorAll('.timestamp').forEach(elem => elem.style.color = "rgba(170, 170, 170, 0.8)");
-
-            // Font
-            themePreview.style.fontFamily = previewFontFamilyCss;
-            themePreview.style.fontSize = previewFontSize;
-
-            // --- Apply theme class for potential extra styles (like transparent) --- START
-            const classList = themePreview.classList;
-            // Remove all existing theme classes except 'theme-preview'
-            classList.forEach(className => {
-                if (className.endsWith('-theme') || className.startsWith('generated-')) {
-                    classList.remove(className);
-                }
-            });
-            // Add the current theme class based on config.theme
-            if (currentThemeValue && currentThemeValue !== 'default') {
-                themePreview.classList.add(currentThemeValue); // e.g., 'transparent-theme', 'generated-xyz-theme'
-            }
-            // --- Apply theme class for potential extra styles (like transparent) --- END
+            themePreview.innerHTML = previewHtml;
         }
+
+        // Make updateThemePreview globally available if needed by other modules
+        window.updateThemePreview = updateThemePreview;
+
+        // Ensure updateThemePreview is called when the theme selection changes
+        // This might already be handled in theme-carousel.js applyAndScrollToTheme, 
+        // but we can add an event listener as a fallback or for direct updates.
+        document.addEventListener('theme-changed', () => updateThemePreview());
+        document.addEventListener('theme-carousel-ready', () => updateThemePreview()); // Call on initial load
 
         // Update the preview whenever colors or settings change
         updateColorPreviews();

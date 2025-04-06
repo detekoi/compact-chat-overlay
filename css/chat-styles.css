@@ -662,58 +662,55 @@ body.chat-page:hover #popup-settings-btn {
     padding: 10px;
     overflow: hidden;
     position: relative;
-    background-size: cover;
-    background-position: center;
-    min-height: 60px;
+    background-color: var(--preview-bg-color, rgba(30, 30, 30, 0.85)); /* Use dedicated variable */
+    /* background-size: cover; Should apply to image pseudo-element */
+    /* background-position: center; Should apply to image pseudo-element */
+    height: 120px; /* Set fixed height */
+    box-sizing: border-box; /* Ensure padding is included in height */
+    border-radius: var(--preview-border-radius, 8px); /* Use preview-specific radius */
+    border: 2px solid var(--preview-border-color, #444); /* Use preview-specific border */
+    box-shadow: var(--preview-box-shadow, none); /* Use preview-specific shadow */
+    color: var(--preview-text-color, #efeff1); /* Use preview-specific text color */
+    font-family: var(--preview-font-family, sans-serif); /* Use preview-specific font */
+    font-size: 12px; /* Slightly smaller font for preview */
+    line-height: 1.3;
 }
 
-.theme-preview::before {
+.theme-preview::before { /* For Background IMAGE */
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background-image: var(--preview-bg-image, none);
-    background-size: cover;
-    background-position: center;
-    opacity: var(--preview-bg-image-opacity, 1);
-    z-index: -1;
-    border-radius: inherit;
+    background-size: cover; /* Apply size here */
+    background-position: center; /* Apply position here */
+    background-repeat: no-repeat; /* Ensure no repeat */
+    opacity: var(--preview-bg-image-opacity, 0.55); /* Adjusted default */
+    z-index: 0; /* Behind content */
+    border-radius: inherit; /* Inherit radius from parent */
+    pointer-events: none;
 }
+
+/* REMOVED problematic .theme-preview::after rule */
 
 .preview-chat-message {
     margin-bottom: 4px;
     line-height: 1.3;
     word-wrap: break-word;
+    position: relative; /* Ensure text is above background pseudo-element */
+    z-index: 1;
 }
 
-.theme-preview::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: var(--chat-bg-image, none);
-    background-repeat: repeat;
-    background-size: 320px;
-    opacity: var(--chat-bg-image-opacity, 0.55);
-    border-radius: calc(var(--chat-border-radius) - 2px);
-    z-index: -1;
-    pointer-events: none;
-}
-
-.preview-message {
-    margin-bottom: 5px;
-    word-wrap: break-word;
-}
-
-.preview-message .timestamp {
-    color: var(--timestamp-color);
+/* Renamed from .preview-message to avoid confusion */
+.preview-chat-message .timestamp {
+    color: var(--preview-timestamp-color, #adadb8); /* Use preview variable */
     font-size: 0.85em;
     margin-right: 5px;
+    opacity: 0.8;
 }
 
-.preview-message .username {
-    color: var(--username-color);
+/* Renamed from .preview-message to avoid confusion */
+.preview-chat-message .username {
+    color: var(--preview-username-color, #9147ff); /* Use preview variable */
     font-weight: bold;
     margin-right: 5px;
 }
@@ -804,9 +801,9 @@ body.chat-page:hover #popup-settings-btn {
 }
 
 .theme-preview-container {
-    margin-top: 10px;
-    width: 100%;
-    overflow: hidden;
+    /* Ensure consistent spacing */
+    margin-top: 5px; /* Reduced from 10px */
+    margin-bottom: 5px; /* Added some bottom margin */
 }
 
 .generated-themes-carousel {

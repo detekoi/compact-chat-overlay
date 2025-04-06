@@ -50,7 +50,6 @@
 /* Main container for the theme carousel (replacing theme-buttons-container if needed) */
 .theme-carousel-container {
     width: 100%;
-    margin-bottom: 10px;
     position: relative;
     overflow: hidden;
 }
