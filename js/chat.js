@@ -1416,10 +1416,28 @@
             }
             
             console.log('Theme object found:', theme);
+
+            // --- Read current slider opacities BEFORE applying theme properties --- START
+            let currentBgOpacitySliderValue = 0.85; // Default
+            if (bgOpacityInput) {
+                const parsed = parseFloat(bgOpacityInput.value);
+                if (!isNaN(parsed)) {
+                    currentBgOpacitySliderValue = parsed / 100.0;
+                }
+            }
+            let currentBgImageOpacitySliderValue = 0.55; // Default
+            if (bgImageOpacityInput) {
+                const parsed = parseFloat(bgImageOpacityInput.value);
+                if (!isNaN(parsed)) {
+                    currentBgImageOpacitySliderValue = parsed / 100.0;
+                }
+            }
+            console.log(`[applyTheme] Using current slider values - BG Opacity: ${currentBgOpacitySliderValue}, Image Opacity: ${currentBgImageOpacitySliderValue}`);
+            // --- Read current slider opacities BEFORE applying theme properties --- END
             
             // Update config object with theme settings
             config.theme = theme.value; // Store the theme value
-            config.bgColor = theme.bgColor || '#121212'; // Default to dark if missing
+            config.bgColor = theme.bgColor || '#121212'; // Use theme's base color
             config.borderColor = theme.borderColor || '#9147ff'; // Default to Twitch purple
             config.textColor = theme.textColor || '#efeff1'; // Default to light text
             config.usernameColor = theme.usernameColor || '#9147ff'; // Default to Twitch purple
@@ -1427,21 +1445,12 @@
             config.boxShadow = theme.boxShadow || 'none'; // Default to none
             config.bgImage = theme.backgroundImage; // NEW: Store theme's background image in config
 
-            // Handle background color AND opacity from theme
-            config.bgColor = theme.bgColor || '#121212'; // Store hex
-            let themeOpacityValue = 0.85; // Default opacity
-            if (typeof theme.bgColorOpacity !== 'undefined') {
-                themeOpacityValue = theme.bgColorOpacity; // Use the theme's opacity (0-1 range)
-                
-                // Update the slider value and display
-                const opacityPercent = Math.round(themeOpacityValue * 100);
-                if (bgOpacityInput) bgOpacityInput.value = opacityPercent;
-                if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
-            }
-            
-            // Store opacity (0-1) in the config object
-            config.bgColorOpacity = themeOpacityValue;
-            
+            // *** USE CURRENT SLIDER VALUES FOR OPACITY ***
+            config.bgColorOpacity = currentBgOpacitySliderValue;
+            config.bgImageOpacity = currentBgImageOpacitySliderValue;
+
+            // REMOVED: Logic that read theme.bgColorOpacity and updated sliders based on it
+
             // NEW: Update font family from theme
             if (theme.fontFamily) {
                 console.log(`[applyTheme] Theme specifies font: "${theme.fontFamily}" (Type: ${typeof theme.fontFamily})`); // Re-add type log
@@ -1483,89 +1492,31 @@
                     console.warn(`Theme font "${theme.fontFamily}" not found in availableFonts. Using default: "${config.fontFamily}"`);
                 }
                 // Update font selector UI regardless of found/fallback
-                updateFontDisplay();
+                updateFontDisplay(); // This already sets the CSS variable
             } else {
                 // If theme has no font, keep current font setting
                 // Ensure config reflects the current selection
                 config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Safeguard
             }
             
-            // Apply the theme's visual styles
-            // --> NEW: Update input values FIRST <--
-            if (bgColorInput) bgColorInput.value = config.bgColor;
-            if (borderColorInput) {
-                // Don't set input to 'transparent' directly
-                borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor;
-            }
-            if (textColorInput) textColorInput.value = config.textColor;
-            if (usernameColorInput) usernameColorInput.value = config.usernameColor;
-
-            if (theme.value === 'transparent-theme') {
-                // Force specific settings for transparent theme
-                console.log("Applying forced transparent theme styles");
-                config.bgColor = '#000000';
-                config.bgColorOpacity = 0;
-                config.borderColor = 'transparent';
-
-                // Remove background image for transparent theme
-                config.bgImage = null;
-                config.bgImageOpacity = 0;
-
-                // Apply all settings using central function
-                applyConfiguration(config);
-
-            } else {
-                // Apply styles normally for other themes
-                document.documentElement.style.setProperty('--chat-bg-color', config.bgColor);
-                document.documentElement.style.setProperty('--chat-border-color', config.borderColor);
-                document.documentElement.style.setProperty('--chat-text-color', config.textColor);
-                document.documentElement.style.setProperty('--username-color', config.usernameColor);
-                document.documentElement.style.setProperty('--chat-bg-opacity', config.bgColorOpacity);
-                document.documentElement.style.setProperty('--popup-bg-color', config.bgColor);
-                document.documentElement.style.setProperty('--popup-border-color', config.borderColor);
-                document.documentElement.style.setProperty('--popup-text-color', config.textColor);
-                document.documentElement.style.setProperty('--popup-username-color', config.usernameColor);
-                document.documentElement.style.setProperty('--popup-bg-opacity', config.bgColorOpacity);
-
-                // NEW: Apply background image for non-transparent themes
-                const themeBgImageURL = theme.backgroundImage && theme.backgroundImage !== 'none' ? `url("${theme.backgroundImage}")` : 'none';
-                // Use the current opacity slider value from config for consistency
-                const themeBgImageOpacity = config.bgImageOpacity !== undefined ? config.bgImageOpacity : 0.55; 
-
-                // Store background image settings in config
-                config.bgImage = theme.backgroundImage;
-                config.bgImageOpacity = themeBgImageOpacity;
-
-                // Update opacity slider from config (already done earlier, but safe to repeat)
-                const opacityPercent = Math.round(config.bgColorOpacity * 100);
-                if (bgOpacityInput) bgOpacityInput.value = opacityPercent;
-                if (bgOpacityValue) bgOpacityValue.textContent = `${opacityPercent}%`;
-
-                // Apply all settings using central function
-                applyConfiguration(config);
-            }
-
-            // Apply font family
-            document.documentElement.style.setProperty('--font-family', config.fontFamily);
-            
-            // Apply border radius (using preset name or value)
-            applyBorderRadius(config.borderRadius);
-            
-            // Apply box shadow (using preset name or value)
-            applyBoxShadow(config.boxShadow);
+            // Apply the configuration visually using the updated config object
+            // This call will now respect the slider opacities stored in 'config'
+            applyConfiguration(config);
             
             // Update config panel display to reflect theme changes (if open)
+            // This will ensure sliders show the values that were just applied
             if (configPanel.style.display === 'block') {
                 updateConfigPanelFromConfig();
             }
             
-            // Update theme carousel display
-            updateThemePreview(theme); // Update preview with selected theme
-            
+            // Update theme carousel display LAST
+            updateThemePreview(theme); // Update preview with selected theme base styles
+            updateThemeDisplay(theme.value); // Update the carousel display text/index state
+
             // Store the last successfully applied theme value
             lastAppliedThemeValue = theme.value;
             
-            console.log(`Theme "${theme.name}" applied successfully.`);
+            console.log(`Theme "${theme.name}" applied successfully, respecting current slider opacities.`);
         }
         
         // Initialize font selection
@@ -2474,102 +2425,106 @@
             const baseBgColor = cfg.bgColor || '#121212';
             const bgOpacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85;
             // Special handling for fully transparent theme
-            const finalBgColor = cfg.theme === 'transparent-theme' ? 'transparent' : baseBgColor;
-            const finalBgOpacity = cfg.theme === 'transparent-theme' ? 0 : bgOpacity;
-            console.log(`[applyConfiguration] Setting base color: ${finalBgColor}, opacity: ${finalBgOpacity}`);
-
-            // --- Apply Core CSS Variables ---
-            // document.documentElement.style.setProperty('--chat-bg-color', bgColorRgba); // OLD
-            document.documentElement.style.setProperty('--chat-bg-color', finalBgColor); // NEW - Set base color
-            // REMOVE the separate opacity setting // OLD COMMENT
-            document.documentElement.style.setProperty('--chat-bg-opacity', finalBgOpacity); // NEW - Set opacity variable
-
-            document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
-            document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
-            document.documentElement.style.setProperty('--username-color', cfg.usernameColor || '#9147ff');
-            document.documentElement.style.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8'); // Add if you have this var
-            document.documentElement.style.setProperty('--font-size', `${cfg.fontSize || 14}px`);
-            document.documentElement.style.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
-            document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 100}%`);
-            document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 100}%`);
-            document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
-            document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
-            // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
-
-             // Background Image
-             const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
-             document.documentElement.style.setProperty('--chat-bg-image', bgImageURL);
-             document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
-
-             // Popup styles (mirror chat styles)
-             // document.documentElement.style.setProperty('--popup-bg-color', bgColorRgba); // OLD
-             document.documentElement.style.setProperty('--popup-bg-color', finalBgColor); // NEW - Use same base color for popup
-             // REMOVE the separate popup opacity setting // OLD COMMENT
-             document.documentElement.style.setProperty('--popup-bg-opacity', finalBgOpacity); // NEW - Use same opacity for popup
-
-             document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
-             document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
-             document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
-             document.documentElement.style.setProperty('--popup-bg-image', bgImageURL);
-             document.documentElement.style.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
-
-            // --- Apply Theme Class & Override Class ---
-            // Remove all potential theme classes first
-            document.documentElement.classList.remove(
-                'light-theme', 
-                'natural-theme', 
-                'transparent-theme', 
-                'pink-theme', 
-                'cyberpunk-theme'
-                // Add any other theme-specific classes here dynamically later if needed
-                // Or better, rely purely on CSS variables set below
-            );
-            // Dynamically remove potential generated theme classes as well
-            const classList = document.documentElement.classList;
-            for (let i = classList.length - 1; i >= 0; i--) {
-                const className = classList[i];
-                if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
-                    classList.remove(className);
-                }
-            }
-
-            // Apply the theme class regardless of whether it's predefined or generated
-            if (cfg.theme && cfg.theme !== 'default') {
-                document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
-            }
-
-            // Special class for override? (If CSS uses it)
-            if (cfg.overrideUsernameColors) {
-                 document.documentElement.classList.add('override-username-colors');
+            let finalRgbaColor;
+            if (cfg.theme === 'transparent-theme') {
+                finalRgbaColor = 'rgba(0, 0, 0, 0)'; // Force fully transparent
+                console.log('[applyConfiguration] Applying transparent theme background.');
             } else {
-                 document.documentElement.classList.remove('override-username-colors');
+                // Combine base color and opacity into RGBA
+                finalRgbaColor = hexToRgba(baseBgColor, bgOpacity);
+                console.log(`[applyConfiguration] Applying background: ${finalRgbaColor}`);
             }
+  
+              // --- Apply Core CSS Variables ---
+              // Set the combined RGBA value for the background color variable
+              document.documentElement.style.setProperty('--chat-bg-color', finalRgbaColor);
+              // REMOVE setting --chat-bg-opacity
+  
+              document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
+              document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
+              document.documentElement.style.setProperty('--username-color', cfg.usernameColor || '#9147ff');
+              document.documentElement.style.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8'); // Add if you have this var
+              document.documentElement.style.setProperty('--font-size', `${cfg.fontSize || 14}px`);
+              document.documentElement.style.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
+              document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 100}%`);
+              document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 100}%`);
+              document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
+              document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
+              // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
 
-            // --- Update UI State ---
-            // Apply timestamp visibility class (if CSS uses it)
-            if (cfg.showTimestamps) {
-                document.documentElement.classList.remove('hide-timestamps');
-            } else {
-                document.documentElement.classList.add('hide-timestamps');
-            }
-            // Maybe force redraw of existing messages if needed? (Less critical now)
+               // Background Image (Opacity is handled separately)
+               const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
+               document.documentElement.style.setProperty('--chat-bg-image', bgImageURL);
+               document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
-            // Update chat mode display (Handles showing/hiding containers)
-            console.log("[applyConfiguration] Switching chat mode based on config...");
-            switchChatMode(cfg.chatMode || 'window', false); // Pass false to prevent adding messages
-            console.log("[applyConfiguration] Mode switch complete.");
+               // Popup styles (mirror chat styles)
+               // Set the combined RGBA value for the popup background color variable
+               document.documentElement.style.setProperty('--popup-bg-color', finalRgbaColor);
+               // REMOVE setting --popup-bg-opacity
 
-            // Ensure visual previews reflect the applied config
-            updateColorPreviews(); // Update color button highlights
-            // updatePreviewFromCurrentSettings(); // REMOVED CALL
-            // Ensure theme preview updates based on the applied config's theme
-            const appliedThemeObj = window.availableThemes.find(t => t.value === cfg.theme) || window.availableThemes[0];
-            if (appliedThemeObj) {
-                updateThemePreview(appliedThemeObj);
-            }
+               document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
+               document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
+               document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
+               document.documentElement.style.setProperty('--popup-bg-image', bgImageURL);
+               document.documentElement.style.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
-            console.log("Configuration applied.");
-        }
+              // --- Apply Theme Class & Override Class ---
+              // Remove all potential theme classes first
+              document.documentElement.classList.remove(
+                  'light-theme', 
+                  'natural-theme', 
+                  'transparent-theme', 
+                  'pink-theme', 
+                  'cyberpunk-theme'
+                  // Add any other theme-specific classes here dynamically later if needed
+                  // Or better, rely purely on CSS variables set below
+              );
+              // Dynamically remove potential generated theme classes as well
+              const classList = document.documentElement.classList;
+              for (let i = classList.length - 1; i >= 0; i--) {
+                  const className = classList[i];
+                  if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
+                      classList.remove(className);
+                  }
+              }
+
+              // Apply the theme class regardless of whether it's predefined or generated
+              if (cfg.theme && cfg.theme !== 'default') {
+                  document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
+              }
+
+              // Special class for override? (If CSS uses it)
+              if (cfg.overrideUsernameColors) {
+                   document.documentElement.classList.add('override-username-colors');
+              } else {
+                   document.documentElement.classList.remove('override-username-colors');
+              }
+
+              // --- Update UI State ---
+              // Apply timestamp visibility class (if CSS uses it)
+              if (cfg.showTimestamps) {
+                  document.documentElement.classList.remove('hide-timestamps');
+              } else {
+                  document.documentElement.classList.add('hide-timestamps');
+              }
+              // Maybe force redraw of existing messages if needed? (Less critical now)
+
+              // Update chat mode display (Handles showing/hiding containers)
+              console.log("[applyConfiguration] Switching chat mode based on config...");
+              switchChatMode(cfg.chatMode || 'window', false); // Pass false to prevent adding messages
+              console.log("[applyConfiguration] Mode switch complete.");
+
+              // Ensure visual previews reflect the applied config
+              updateColorPreviews(); // Update color button highlights
+              // updatePreviewFromCurrentSettings(); // REMOVED CALL
+              // Ensure theme preview updates based on the applied config's theme
+              const appliedThemeObj = window.availableThemes.find(t => t.value === cfg.theme) || window.availableThemes[0];
+              if (appliedThemeObj) {
+                  updateThemePreview(appliedThemeObj);
+              }
+
+              console.log("Configuration applied.");
+          }
 
     } // End of initApp
 })(); // Ensure closing IIFE is correct
