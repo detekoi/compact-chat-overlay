@@ -206,3 +206,70 @@
     overflow: hidden;
     line-height: 1.3;
 }
+
+/* Styling for the new details/summary structure */
+.theme-description-details { /* Style the <details> element */
+    margin-top: 4px; 
+    font-size: 12px;
+    color: #888;
+    line-height: 1.3;
+    max-width: 100%;
+    position: relative; /* Needed if summary arrow is absolutely positioned */
+}
+
+.theme-description-details > summary { /* Style the <summary> element */
+    cursor: pointer;
+    display: inline-block; 
+    outline: none; 
+    position: relative; 
+    padding-right: 15px; /* Space for arrow */
+    color: #aaa; /* Slightly lighter color for summary text */
+    font-style: italic;
+}
+
+/* Hide default marker */
+.theme-description-details > summary::marker, 
+.theme-description-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Custom arrow for the summary */
+.theme-description-details > summary::after {
+    content: '▼'; 
+    font-size: 0.8em;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s ease-in-out;
+}
+
+.theme-description-details[open] > summary::after {
+    transform: translateY(-50%) rotate(180deg); /* Point up when open */
+}
+
+/* Style the description span *inside* the details */
+.theme-description-details #selected-theme-description {
+    display: block; /* Make it block to apply margin/padding */
+    margin-top: 5px;
+    padding-left: 10px;
+    border-left: 2px solid #555;
+    max-height: 100px; /* Limit height */
+    overflow-y: auto; /* Allow scrolling */
+    scrollbar-width: thin; 
+    color: #bbb; /* Restore slightly brighter color for full text */
+}
+
+/* Optional: Style scrollbar for the span */
+.theme-description-details #selected-theme-description::-webkit-scrollbar {
+    width: 5px;
+}
+
+.theme-description-details #selected-theme-description::-webkit-scrollbar-track {
+    background: #2a2a2a;
+}
+
+.theme-description-details #selected-theme-description::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 3px;
+}

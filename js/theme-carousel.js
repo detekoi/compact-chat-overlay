@@ -673,11 +673,25 @@
 
     function updateThemeDetails(theme) {
         const nameElement = document.getElementById('selected-theme-name');
-        const descElement = document.getElementById('selected-theme-description');
+        // Find the details element itself
+        const detailsElement = document.querySelector('.theme-description-details'); 
+        // Find the description span *inside* the details element
+        const descSpanElement = detailsElement ? detailsElement.querySelector('#selected-theme-description') : null;
         
-        if (nameElement && descElement) {
+        if (nameElement && detailsElement && descSpanElement) {
+            const fullDescription = theme.description || 'No description available';
+            
             nameElement.textContent = theme.name || 'Unnamed Theme';
-            descElement.textContent = theme.description || 'No description available';
+            // Set the full description in the span
+            descSpanElement.textContent = fullDescription;
+            
+            // Close the details element when the theme changes
+            detailsElement.removeAttribute('open');
+        } else {
+            // Log an error if elements aren't found
+            if (!nameElement) console.error('Could not find #selected-theme-name');
+            if (!detailsElement) console.error('Could not find .theme-description-details');
+            if (!descSpanElement) console.error('Could not find #selected-theme-description within details');
         }
     }
 
