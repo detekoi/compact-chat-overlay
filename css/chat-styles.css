@@ -264,7 +264,7 @@ button:hover {
     
     /* Apply backgrounds directly here */
     /* Background color with opacity */
-    background-color: color-mix(in srgb, var(--chat-bg-color, #1e1e1e) calc(var(--chat-bg-opacity, 0.85) * 100%), transparent);
+    background-color: var(--chat-bg-color); /* Directly use the variable with RGBA */
     /* Background image with opacity - using a pseudo-element is still best for layering opacity */
     /* background-image: var(--chat-bg-image, none); <-- Let's use ::before/::after on the wrapper */
     /* background-repeat: repeat; */
