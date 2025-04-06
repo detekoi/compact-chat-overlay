@@ -182,8 +182,11 @@
                     // If it's a preset name, convert to CSS value
                     if (borderRadiusMap[borderRadius]) {
                         const cssValue = borderRadiusMap[borderRadius];
-                        console.log(`Converting border radius "${borderRadius}" to "${cssValue}"`);
-                        document.documentElement.style.setProperty('--chat-border-radius', cssValue);
+                        // *** Add check: Only set if value is different ***
+                        if (borderRadius !== cssValue) {
+                            console.log(`Converting border radius "${borderRadius}" to "${cssValue}"`);
+                            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
+                        }
                     }
                 }
                 
@@ -197,11 +200,16 @@
                         'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)', 'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
                     };
                     
-                    // If it's a preset name, convert to CSS value
+                    // If it's a preset name (key exists in map)
                     if (boxShadowMap[boxShadow]) {
                         const cssValue = boxShadowMap[boxShadow];
-                        console.log(`Converting box shadow "${boxShadow}" to "${cssValue}"`);
-                        document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
+                        // *** Add check: Only setProperty if the current value is not already the target CSS value ***
+                        if (boxShadow !== cssValue) {
+                            console.log(`Converting box shadow "${boxShadow}" to "${cssValue}"`);
+                            document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
+                        } 
+                        // Optional: Log that it's already correct - uncomment below for debugging
+                        // else { console.log(`Box shadow variable "--chat-box-shadow" already has correct CSS value: "${boxShadow}"`); }
                     }
                 }
             }
@@ -1307,8 +1315,8 @@
                     document.body.classList.remove('window-mode');
 
                     // Show popup settings button
-                    const popupSettingsBtn = document.getElementById('popup-settings-btn');
-                    if (popupSettingsBtn) popupSettingsBtn.style.opacity = '0.7';
+                    // const popupSettingsBtn = document.getElementById('popup-settings-btn');
+                    // if (popupSettingsBtn) popupSettingsBtn.style.opacity = '0.7'; // REMOVED - CSS handles this now
 
                 } else { // Window mode
                     popupContainer.style.display = 'none'; // Hide popup area

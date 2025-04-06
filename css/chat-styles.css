@@ -529,13 +529,15 @@ button:hover {
     align-items: center;
     justify-content: center;
     margin: 0;
-    opacity: 0.5;
+    opacity: 0;
     transition: all 0.3s ease;
 }
 
-#popup-settings-btn:hover {
-    background-color: rgba(0, 0, 0, 0.5);
+/* Add rule to show popup settings button when hovering anywhere on the body */
+body.chat-page:hover #popup-settings-btn {
     opacity: 1;
+    /* Add a small background change on hover for better feedback */
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Set INITIAL transform based on direction */
