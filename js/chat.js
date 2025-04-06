@@ -939,6 +939,9 @@
             if (bgOpacityValue) {
                 bgOpacityValue.textContent = `${Math.round(opacity * 100)}%`;
             }
+
+            // <<< ADD THIS LINE >>>
+            updateThemePreview(); // Update preview on bg color/opacity change
         }
 
         // Add event listeners to update the background color when either input changes
@@ -960,6 +963,9 @@
             if (bgImageOpacityValue) {
                 bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
             }
+            
+            // <<< ADD THIS LINE >>>
+            updateThemePreview(); // Update preview on bg image opacity change
         }
         
         if (bgImageOpacityInput) {
@@ -1582,41 +1588,43 @@
 
         /**
          * Update the theme preview based on the currently selected theme in the carousel.
+         * NOW: Reads directly from config panel inputs for live updates.
          */
         function updateThemePreview() {
-            if (!themePreview || !window.availableThemes || window.availableThemes.length === 0) return;
+            // No longer reads from theme object, reads from controls
+            if (!themePreview) return;
             
-            // Get the currently selected theme from the carousel
-            const selectedThemeIndex = window.currentThemeIndex !== undefined ? window.currentThemeIndex : 0;
-            const theme = window.availableThemes[selectedThemeIndex];
+            console.log(`Updating theme preview based on config panel inputs...`);
 
-            if (!theme) {
-                console.warn("No theme selected or available for preview update.");
-                themePreview.innerHTML = '<span style="color: #888;">Select a theme</span>';
-                themePreview.style = ''; // Clear inline styles
-                return;
-            }
-
-            console.log(`Updating theme preview for: ${theme.name}`);
-
-            // --- Get theme properties with defaults ---
-            const bgColor = theme.bgColor || '#1e1e1e';
-            const bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) ? theme.bgColorOpacity : 0.85;
-            const borderColor = theme.borderColor || '#444444';
-            const textColor = theme.textColor || '#efeff1';
-            const usernameColor = theme.usernameColor || '#9147ff';
-            const timestampColor = theme.timestampColor || '#adadb8';
-            // *** CORRECT: Use the theme's full font-family value ***
-            const fontFamily = theme.fontFamily || "'Atkinson Hyperlegible', sans-serif"; 
-            const borderRadius = getBorderRadiusValue(theme.borderRadius || theme.borderRadiusValue || '8px');
-            const boxShadow = getBoxShadowValue(theme.boxShadow || theme.boxShadowValue || 'none');
-            const bgImage = theme.backgroundImage || 'none';
-            const bgImageOpacity = theme.bgImageOpacity ?? 0.55;
+            // --- Get current values from config panel controls --- 
+            const bgColor = bgColorInput.value || '#1e1e1e';
+            const bgColorOpacity = (bgOpacityInput ? parseInt(bgOpacityInput.value) : 85) / 100.0;
+            const borderColor = borderColorInput.value || '#444444'; // Might need handling for 'transparent' button state
+            const textColor = textColorInput.value || '#efeff1';
+            const usernameColor = usernameColorInput.value || '#9147ff';
+            const timestampColor = config.timestampColor || '#adadb8'; // Use config value, as there's no input
+            const fontFamily = window.availableFonts[currentFontIndex]?.value || config.fontFamily || "'Atkinson Hyperlegible', sans-serif";
+            const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
+            const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : getBorderRadiusValue(config.borderRadius || '8px');
+            const borderRadius = getBorderRadiusValue(borderRadiusValue); // Ensure CSS value
+            const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
+            const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : (config.boxShadow || 'none');
+            const boxShadow = getBoxShadowValue(boxShadowValue); // Ensure CSS value
+            const bgImage = config.bgImage || 'none'; // Get from config as there's no direct UI input yet
+            const bgImageOpacity = (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) : 55) / 100.0;
             
-            // --- Calculate background color with opacity ---
+            // Handle transparent border specifically
+            const borderTransparentButton = document.querySelector('.color-btn[data-target="border"][data-color="transparent"]');
+            const finalBorderColor = (borderTransparentButton && borderTransparentButton.classList.contains('active')) 
+                                     ? 'transparent' 
+                                     : borderColor;
+
+            // --- Calculate background color with opacity --- 
             let finalBgColor;
-            if (bgColor === 'transparent' || bgColorOpacity === 0) {
-                finalBgColor = 'transparent';
+            // Handle case where transparent bg button is active
+            const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
+            if (bgTransparentButton && bgTransparentButton.classList.contains('active')) {
+                 finalBgColor = 'transparent';
             } else {
                  try {
                      finalBgColor = hexToRgba(bgColor, bgColorOpacity);
@@ -1626,22 +1634,20 @@
                  }
             }
 
-            // --- Set preview-specific CSS variables directly on the element ---
+            // --- Set preview-specific CSS variables directly on the element --- 
             themePreview.style.setProperty('--preview-bg-color', finalBgColor);
-            themePreview.style.setProperty('--preview-border-color', borderColor);
+            themePreview.style.setProperty('--preview-border-color', finalBorderColor); // Use finalBorderColor
             themePreview.style.setProperty('--preview-text-color', textColor);
             themePreview.style.setProperty('--preview-username-color', usernameColor);
             themePreview.style.setProperty('--preview-timestamp-color', timestampColor);
-            // *** CORRECT: Set the full font-family value ***
             themePreview.style.setProperty('--preview-font-family', fontFamily); 
-            // <<< ADD THIS LINE to directly apply the font >>>
-            themePreview.style.fontFamily = fontFamily; 
+            themePreview.style.fontFamily = fontFamily; // Also set directly
             themePreview.style.setProperty('--preview-border-radius', borderRadius);
             themePreview.style.setProperty('--preview-box-shadow', boxShadow);
             themePreview.style.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
             themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
-            // --- Update the preview content ---
+            // --- Update the preview content (structure remains the same) --- 
             const previewHtml = `
                 <div class="preview-chat-message">
                     <span class="timestamp">12:34</span>
