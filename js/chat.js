@@ -2479,25 +2479,20 @@
                 console.log(`[applyConfiguration] Updated lastAppliedThemeValue to: ${lastAppliedThemeValue}`);
             }
 
-            // --- Generate RGBA from hex color and opacity ---
-            let bgColorRgba;
-            if (cfg.theme === 'transparent-theme') {
-                // Force fully transparent for transparent theme
-                bgColorRgba = 'rgba(0, 0, 0, 0)';
-                console.log('[applyConfiguration] Using forced transparent rgba for transparent theme');
-            } else {
-                // Combine hex and opacity into rgba
-                const hexColor = cfg.bgColor || '#121212';
-                const opacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85;
-                bgColorRgba = hexToRgba(hexColor, opacity);
-                console.log(`[applyConfiguration] Combined ${hexColor} with opacity ${opacity} to: ${bgColorRgba}`);
-            }
+            // --- Get base color and opacity separately --- // NEW BLOCK
+            const baseBgColor = cfg.bgColor || '#121212';
+            const bgOpacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85;
+            // Special handling for fully transparent theme
+            const finalBgColor = cfg.theme === 'transparent-theme' ? 'transparent' : baseBgColor;
+            const finalBgOpacity = cfg.theme === 'transparent-theme' ? 0 : bgOpacity;
+            console.log(`[applyConfiguration] Setting base color: ${finalBgColor}, opacity: ${finalBgOpacity}`);
 
             // --- Apply Core CSS Variables ---
-            document.documentElement.style.setProperty('--chat-bg-color', bgColorRgba);
-            // REMOVE the separate opacity setting
-            // document.documentElement.style.setProperty('--chat-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
-            
+            // document.documentElement.style.setProperty('--chat-bg-color', bgColorRgba); // OLD
+            document.documentElement.style.setProperty('--chat-bg-color', finalBgColor); // NEW - Set base color
+            // REMOVE the separate opacity setting // OLD COMMENT
+            document.documentElement.style.setProperty('--chat-bg-opacity', finalBgOpacity); // NEW - Set opacity variable
+
             document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
             document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
             document.documentElement.style.setProperty('--username-color', cfg.usernameColor || '#9147ff');
@@ -2516,10 +2511,11 @@
              document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
              // Popup styles (mirror chat styles)
-             document.documentElement.style.setProperty('--popup-bg-color', bgColorRgba); // Use same rgba for popup
-             // REMOVE the separate popup opacity setting
-             // document.documentElement.style.setProperty('--popup-bg-opacity', cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85);
-             
+             // document.documentElement.style.setProperty('--popup-bg-color', bgColorRgba); // OLD
+             document.documentElement.style.setProperty('--popup-bg-color', finalBgColor); // NEW - Use same base color for popup
+             // REMOVE the separate popup opacity setting // OLD COMMENT
+             document.documentElement.style.setProperty('--popup-bg-opacity', finalBgOpacity); // NEW - Use same opacity for popup
+
              document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
              document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
              document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
