@@ -1070,8 +1070,19 @@
             const value = fontSizeSlider.value;
             fontSizeValue.textContent = `${value}px`;
             
+            // Set CSS variable for live update of main chat
             document.documentElement.style.setProperty('--font-size', `${value}px`);
-            updatePreviewFromCurrentSettings();
+            
+            // Update config immediately so preview gets the right size
+            config.fontSize = parseInt(value, 10);
+
+            // Update the preview immediately
+            const currentThemeObject = window.availableThemes[currentThemeIndex];
+            if (currentThemeObject) {
+                updateThemePreview(currentThemeObject);
+            } else {
+                console.warn("Could not find current theme object to update preview for font size change.");
+            }
         });
         
         // Chat width slider
@@ -1543,8 +1554,13 @@
             
             console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
             
-            // Update the theme preview to reflect the font change
-            // updatePreviewFromCurrentSettings(); // REMOVED CALL
+            // Update the theme preview to reflect the font change immediately
+            const currentThemeObject = window.availableThemes[currentThemeIndex];
+            if (currentThemeObject) {
+                updateThemePreview(currentThemeObject);
+            } else {
+                console.warn("Could not find current theme object to update preview for font family change.");
+            }
         }
         
         // Font selection carousel
@@ -1710,19 +1726,6 @@
             themePreview.style.backgroundColor = previewBgColor;
             console.log(`[updateThemePreview] Applied background: ${previewBgColor}`);
 
-            // Background Image
-            // REMOVED: Inline background image styling for preview
-            // if (themeBgImage && themeBgImage !== 'none') {
-            //     themePreview.style.backgroundImage = `url("${themeBgImage}")`;
-            //     themePreview.style.backgroundRepeat = 'repeat'; // Or based on theme? Default repeat.
-            //     themePreview.style.backgroundSize = 'auto'; // Or based on theme? Default auto.
-            //     // Note: Image opacity isn't typically applied directly to the preview background-image,
-            //     // but relies on the main CSS var '--chat-bg-image-opacity' affecting the actual chat.
-            // } else {
-            //     themePreview.style.backgroundImage = 'none';
-            // }
-            console.log(`[updateThemePreview] Removed inline background image styling. Relying on CSS variables and theme class.`); // Updated log
-
             // Border
             if (themeBorderColor === 'transparent') {
                 themePreview.style.border = 'none'; // Use 'none' for transparent
@@ -1766,11 +1769,6 @@
                 themePreview.classList.add(theme.value); // e.g., 'transparent-theme', 'generated-xyz-theme'
             }
         }
-        
-        // Update the preview whenever colors or settings change
-        // function updatePreviewFromCurrentSettings() { // REMOVED FUNCTION
-        //    updateThemePreview(window.availableThemes[currentThemeIndex], true);
-        // }
         
         // Username color override toggle
         overrideUsernameColorsInput.addEventListener('change', () => {
