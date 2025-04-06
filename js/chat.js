@@ -143,11 +143,10 @@
         // const prevThemeBtn = document.getElementById('prev-theme'); // REMOVED
         // const nextThemeBtn = document.getElementById('next-theme'); // REMOVED
         // const currentThemeDisplay = document.getElementById('current-theme'); // REMOVED
-        const themePreview = document.getElementById('theme-preview');
+        const themePreview = document.getElementById('theme-preview'); // Ensure themePreview is defined
         
         // Connection Management Elements (inside config panel)
         const channelForm = document.getElementById('channel-form'); // Now refers to the one in the panel
-        // channelInput and connectBtn are already defined and target the elements now in the panel
         
         // Connection and chat state
         let socket = null;
@@ -2441,6 +2440,11 @@
                document.documentElement.style.setProperty('--popup-bg-image', bgImageURL);
                document.documentElement.style.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
 
+              // --- Apply Font Size to Theme Preview Directly --- NEW
+              if (themePreview) {
+                themePreview.style.fontSize = `${cfg.fontSize || 14}px`;
+              }
+
               // --- Apply Theme Class & Override Class ---
               // Remove all potential theme classes first
               document.documentElement.classList.remove(
@@ -2498,6 +2502,22 @@
 
               console.log("Configuration applied.");
           }
+
+        // Event listeners for config panel inputs
+        if (fontSizeSlider) {
+            fontSizeSlider.addEventListener('input', (e) => {
+                const newSize = e.target.value;
+                if (fontSizeValue) {
+                    fontSizeValue.textContent = `${newSize}px`;
+                }
+                document.documentElement.style.setProperty('--chat-font-size', `${newSize}px`);
+                
+                // Apply font size to theme preview as well
+                if (themePreview) {
+                    themePreview.style.fontSize = `${newSize}px`; 
+                }
+            });
+        }
 
     } // End of initApp
 })(); // Ensure closing IIFE is correct
