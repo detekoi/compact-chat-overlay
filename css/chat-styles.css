@@ -972,3 +972,33 @@ body.chat-page:hover #popup-settings-btn {
     box-sizing: border-box;
     width: 100%;
 }
+
+/* Tooltip Styling for Theme Description */
+.info-tooltip {
+    display: none; /* Hidden by default */
+    margin-left: 5px;
+    cursor: help;
+    font-style: normal;
+    font-weight: bold;
+    color: #aaa;
+    border: 1px solid #aaa;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    line-height: 14px; /* Adjust for vertical centering */
+    text-align: center;
+    font-size: 12px;
+    vertical-align: middle;
+}
+
+.info-tooltip:hover {
+    color: #eee;
+    border-color: #eee;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure the checkbox row looks okay */
+#config-panel .config-row label[for="generate-bg-image"] {
+    font-style: italic;
+    color: #bbb;
+}

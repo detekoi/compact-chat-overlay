@@ -8,11 +8,13 @@
 (function() {
     // DOM elements related to AI theme generation
     const themePromptInput = document.getElementById('theme-prompt');
-    const generateThemeBtn = document.getElementById('generate-theme-btn');
+    let generateThemeBtn = document.getElementById('generate-theme-btn');
     const themeLoadingIndicator = document.getElementById('theme-loading-indicator');
     const generatedThemeResult = document.getElementById('generated-theme-result');
     const generatedThemeName = document.getElementById('generated-theme-name');
     const loadingStatus = document.getElementById('loading-status');
+    const generateImageCheckbox = document.getElementById('generate-bg-image');
+    const descriptionTooltip = document.getElementById('generated-theme-description-tooltip');
 
     // Constants
     const MAX_RETRIES = 3;
@@ -27,10 +29,22 @@
 
         // --- Now add event listeners ---
         if (generateThemeBtn) {
+            // --- Force Re-attachment --- 
+            // Clone the button to remove all existing listeners
+            const oldBtn = generateThemeBtn;
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            // Update our reference to the new button
+            generateThemeBtn = newBtn; // IMPORTANT: Update the reference
+            console.log('[theme-generator] Cloned generate button to remove old listeners.');
+            // --- End Force Re-attachment ---
+            
             generateThemeBtn.addEventListener('click', () => {
+                console.log('[theme-generator] Generate Theme button clicked. Checking prompt...'); // Log listener firing
                 if (themePromptInput) {
                     const prompt = themePromptInput.value.trim();
                     if (prompt) {
+                        console.log('[theme-generator] Prompt found. Calling generateThemeWithRetry...');
                         generateThemeWithRetry(prompt);
                     } else {
                         alert('Please enter a game or vibe for the theme.');
@@ -59,15 +73,23 @@
      * @param {string} prompt - The user's prompt for the theme.
      */
     async function generateThemeWithRetry(prompt) {
-        console.log(`Attempting to generate theme via proxy for prompt: "${prompt}"`);
-        if (!themeLoadingIndicator || !generateThemeBtn || !loadingStatus) {
+        console.log(`Attempting to generate theme via proxy for prompt: \"${prompt}\"`);
+        if (!themeLoadingIndicator || !generateThemeBtn || !loadingStatus || !generateImageCheckbox) {
             console.error('Required UI elements for loading state not found.');
             return;
         }
         
-        // Show loading indicator
+        // Get checkbox state
+        const generateImage = generateImageCheckbox.checked;
+        console.log(`[theme-generator] Generate background image checkbox checked: ${generateImage}`);
+        
+        // Show loading indicator, hide tooltip
         themeLoadingIndicator.style.display = 'flex';
         generatedThemeResult.style.display = 'none';
+        if (descriptionTooltip) { 
+            descriptionTooltip.style.display = 'none';
+            descriptionTooltip.title = '';
+        }
         generateThemeBtn.disabled = true;
         loadingStatus.textContent = 'Generating... (Attempt 1)';
 
@@ -77,8 +99,8 @@
 
         while (currentAttempt <= MAX_RETRIES) {
             try {
-                // Call proxy
-                const proxyResponse = await generateThemeViaProxy(prompt, currentAttempt - 1, previousThemeData);
+                // Call proxy with checkbox state
+                const proxyResponse = await generateThemeViaProxy(prompt, generateImage, currentAttempt - 1, previousThemeData);
 
                 // Check for retry instruction from proxy
                 if (proxyResponse.retry) {
@@ -110,7 +132,9 @@
 
                 // If not retrying, process the final successful response
                 const { themeData, backgroundImage } = proxyResponse;
-                console.log('Theme generation via proxy successful on attempt', currentAttempt);
+                console.log('[theme-generator] Theme generation via proxy successful on attempt', currentAttempt);
+                console.log('[theme-generator] Received themeData:', JSON.stringify(themeData));
+                console.log(`[theme-generator] Received backgroundImage? ${!!backgroundImage}`);
                 
                 // Compress image if present
                 let finalBackgroundImageDataUrl = null;
@@ -136,12 +160,26 @@
                 // Update UI on success
                 loadingStatus.textContent = 'Done!';
                 setTimeout(() => {
+                    console.log('[theme-generator] Entering setTimeout callback for UI update.');
                     themeLoadingIndicator.style.display = 'none';
                     generateThemeBtn.disabled = false;
                     if (generatedThemeName) {
                         generatedThemeName.textContent = themeData.theme_name || 'Generated Theme';
                         generatedThemeResult.style.display = 'block';
                     }
+                    
+                    // --- Tooltip Update Logic ---
+                    console.log(`[theme-generator] Inside setTimeout: descriptionTooltip element found: ${!!descriptionTooltip}. Description present: ${!!themeData.description}`);
+                    if (descriptionTooltip && themeData.description) {
+                        descriptionTooltip.title = themeData.description;
+                        descriptionTooltip.style.display = 'inline'; // Show the info icon
+                        console.log(`[theme-generator] Inside setTimeout: Tooltip updated. Title: "${descriptionTooltip.title}", Display: "${descriptionTooltip.style.display}"`);
+                    } else if (descriptionTooltip) {
+                        descriptionTooltip.style.display = 'none'; // Ensure hidden if no description
+                        console.log('[theme-generator] Inside setTimeout: Tooltip hidden (no description).');
+                    }
+                    // --- End Tooltip Update Logic ---
+                    
                     // Optionally clear prompt
                     // themePromptInput.value = '';
                 }, 1000); // Show "Done!" for a second
@@ -176,19 +214,22 @@
     /**
      * Calls the local Theme Proxy service to generate theme properties and potentially a background image.
      * @param {string} userPrompt - The user's input prompt.
+     * @param {boolean} generateImage - Whether to request a background image.
      * @param {number} attempt - The current attempt number (for proxy retry logic).
      * @param {Object | null} previousThemeData - Theme data from a previous (potentially image-less) attempt.
      * @returns {Promise<{themeData: Object, backgroundImage: Object | null, retry: boolean, message: string | null}>} - Response from the proxy.
      */
-    async function generateThemeViaProxy(userPrompt, attempt = 0, previousThemeData = null) {
-        console.log(`Calling Theme Proxy (Attempt ${attempt})...`);
+    async function generateThemeViaProxy(userPrompt, generateImage, attempt = 0, previousThemeData = null) {
+        console.log(`Calling Theme Proxy (Attempt ${attempt}). Requesting image: ${generateImage}`);
         
         const requestBody = {
             prompt: userPrompt,
             attempt: attempt,
-            themeType: 'image', // Always request image for now, proxy handles logic
+            themeType: generateImage ? 'image' : 'color', // Use checkbox state
             previousThemeData: previousThemeData // Send previous data if available
         };
+
+        console.log('[theme-generator] Sending request to proxy with body:', JSON.stringify(requestBody));
 
         const response = await fetch(PROXY_API_URL, {
             method: 'POST',
@@ -198,6 +239,8 @@
              },
             body: JSON.stringify(requestBody)
         });
+
+        console.log(`[theme-generator] Fetch response status: ${response.status}`);
 
         // Handle 202 Accepted for retries
         if (response.status === 202) {
@@ -415,6 +458,8 @@
                  });
                  document.dispatchEvent(themeProcessedEvent);
                  console.log("Dispatched theme-data-processed event");
+
+                 // --- Tooltip Update Moved to Timeout --- 
 
             } else {
                 console.error('Theme carousel API (window.themeCarousel.addTheme) not found or invalid. Cannot add generated theme.');

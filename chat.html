@@ -132,8 +132,15 @@
             </div>
         </div>
         
+        <div class="config-row">
+            <label for="generate-bg-image" style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.9em;">
+                <input type="checkbox" id="generate-bg-image" checked>
+                Generate background image
+            </label>
+        </div>
+        
         <div class="config-row" id="generated-theme-result" style="display: none;">
-            <div>Generated: <span id="generated-theme-name"></span></div>
+            <div>Generated: <span id="generated-theme-name"></span> <span id="generated-theme-description-tooltip" class="info-tooltip" title="">ⓘ</span></div>
         </div>
         
         <!-- Generated themes are now integrated directly into the main theme carousel at the top -->
