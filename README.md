@@ -4,7 +4,8 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 
 ![Initial Connection Screen](assets/images/screenshots/initialization.png)
 ![Chat Interface](assets/images/screenshots/chat.png)
-![Settings Panel](assets/images/screenshots/settings.png)
+![AI Theme Generator](assets/images/screenshots/themegenerator.png)
+
 ## ✨ NEW: AI Theme Generation with Background Images!
 
 **Create fully personalized chat themes with matching background images!** Our latest update makes creating unique chat themes even more powerful:
