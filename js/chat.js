@@ -158,6 +158,7 @@
         // Connection and chat state
         let socket = null;
         let channel = '';
+        let isConnecting = false; // <<< ADD CONNECTION FLAG
         
         // Store config state when panel opens
         let initialConfigBeforeEdit = null; // Use ONLY this for revert state
@@ -633,6 +634,14 @@
         
         // Connect to Twitch chat
         function connectToChat() {
+            // <<< CHECK CONNECTION FLAG >>>
+            if (isConnecting) {
+                // console.warn("[connectToChat] Already connecting, ignoring duplicate call."); // <<< REMOVE THIS LINE >>>
+                return;
+            }
+            isConnecting = true; // <<< SET FLAG >>>
+            console.log("[connectToChat] Attempting connection..."); // Add log to confirm entry
+
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close(); // Close existing connection if any
             }
@@ -672,35 +681,47 @@
 
             socket.onopen = function() {
                 console.log('WebSocket connection opened. Proceeding...'); // Simplified log
-                // REMOVED: if (socket && socket.readyState === WebSocket.OPEN) { 
-                    // console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); 
-                    socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
-                    socket.send(`PASS SCHMOOPIIE`);
-                    socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
-                    socket.send(`JOIN #${channel}`);
-
-                    // ** Update UI State: Connected **
-                    updateConnectionStateUI(true); // Hide prompt, show chat
-
-                    // Save the channel name in config (memory)
-                    config.lastChannel = channel;
-                    // ** Save ONLY the last channel to storage **
-                    // console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // Optional log
-                    // console.log("[socket.onopen] About to call saveLastChannelOnly..."); // Optional log
-                    saveLastChannelOnly(channel);
-
-                    // Update UI elements within the settings panel
-                    if (channelForm) channelForm.style.display = 'none';
-                    if (disconnectBtn) {
-                        disconnectBtn.textContent = `Disconnect from ${channel}`;
-                        disconnectBtn.style.display = 'block';
+                
+                // Use setTimeout to ensure socket is truly ready for send commands
+                setTimeout(() => {
+                    // Check if socket still exists and is open *inside* the timeout
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        console.warn("[socket.onopen timeout] Socket closed before sending commands.");
+                        isConnecting = false; // <<< RESET FLAG on early exit >>>
+                        return;
                     }
 
-                    // Add connected message
-                    addSystemMessage(`Connected to ${channel}'s chat`);
-                // REMOVED: } else { 
-                // REMOVED:    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
-                // REMOVED: }
+                    // REMOVED: if (socket && socket.readyState === WebSocket.OPEN) { 
+                        // console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); 
+                        socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
+                        socket.send(`PASS SCHMOOPIIE`);
+                        socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
+                        socket.send(`JOIN #${channel}`);
+
+                        // ** Update UI State: Connected **
+                        updateConnectionStateUI(true); // Hide prompt, show chat
+
+                        // Save the channel name in config (memory)
+                        config.lastChannel = channel;
+                        // ** Save ONLY the last channel to storage **
+                        // console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // Optional log
+                        // console.log("[socket.onopen] About to call saveLastChannelOnly..."); // Optional log
+                        saveLastChannelOnly(channel);
+
+                        // Update UI elements within the settings panel
+                        if (channelForm) channelForm.style.display = 'none';
+                        if (disconnectBtn) {
+                            disconnectBtn.textContent = `Disconnect from ${channel}`;
+                            disconnectBtn.style.display = 'block';
+                        }
+
+                        // Add connected message
+                        addSystemMessage(`Connected to ${channel}'s chat`);
+                        isConnecting = false; // <<< RESET FLAG on success >>>
+                    // REMOVED: } else { 
+                    // REMOVED:    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
+                    // REMOVED: }
+                }, 0); // Delay of 0ms pushes to next event loop cycle
             };
 
             socket.onclose = function() {
@@ -727,6 +748,7 @@
 
                  // Ensure prompt input reflects the cleared state or last attempted channel
                  if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
+                 isConnecting = false; // <<< RESET FLAG on close >>>
             };
 
             socket.onerror = function(error) {
@@ -750,6 +772,7 @@
                 // Don't clear 'channel' here as the user might want to retry the same channel
                 // Ensure prompt input reflects the attempted channel
                 if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
+                isConnecting = false; // <<< RESET FLAG on error >>>
             };
 
             socket.onmessage = function(event) {
@@ -2500,7 +2523,7 @@
             // Use a flag to prevent multiple attachments if initApp runs multiple times
             if (!connectBtn.dataset.listenerAttachedPanel) { 
                 let panelConnectClicks = 0; // Add counter
-                connectBtn.addEventListener('click', () => { 
+                connectBtn.addEventListener('click', () => { // <<< RE-ENABLE LISTENER >>>
                     panelConnectClicks++;
                     console.log(`[Panel Connect Btn] Click detected (${panelConnectClicks}). Calling connectToChat...`); // Add log
                     connectToChat();
@@ -2511,8 +2534,11 @@
 
         if (channelInput) { // Input inside settings panel
              // Allow Enter key to trigger connection from settings input
-             channelInput.addEventListener('keypress', (e) => {
+             channelInput.addEventListener('keydown', (e) => { // Changed to keydown
                 if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent default form submission/action
+                    e.stopPropagation(); // <<< ADD stopPropagation >>>
+                    console.log('[Panel Input Enter] Keydown detected (prevented/stopped). Calling connectToChat...'); // Updated log
                     connectToChat();
                 }
              });
