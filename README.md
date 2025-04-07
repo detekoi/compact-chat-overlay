@@ -207,6 +207,8 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
    - Windows example: `file:///C:/path/to/chat.html?scene=gaming`
    - macOS example: `file:///Users/username/path/to/chat.html?scene=chatting`
 
+   **Note**: You cannot enter scene parameters if you check the "Local file" option - leave it unchecked and use file paths based on the examples instead.
+
 2. Each scene maintains its own separate settings with unique styling.
 
 3. Use descriptive scene names like:
