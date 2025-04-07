@@ -292,15 +292,9 @@ button:hover {
     border-radius: var(--chat-border-radius);
     overflow: hidden; /* Clip contents like #chat-container */
     box-shadow: var(--chat-box-shadow, none);
-    
-    /* Apply backgrounds directly here */
-    /* Background color with opacity */
     background-color: var(--chat-bg-color); /* Directly use the variable with RGBA */
     /* Background image with opacity - using a pseudo-element is still best for layering opacity */
     /* background-image: var(--chat-bg-image, none); <-- Let's use ::before/::after on the wrapper */
-    /* background-repeat: repeat; */
-    /* background-size: auto; */
-    /* opacity: var(--chat-bg-image-opacity, 0.55); <-- Doesn't work directly */
     z-index: 0; /* Establish stacking context */
 }
 
@@ -322,12 +316,8 @@ button:hover {
     position: absolute; /* Position relative to wrapper */
     inset: 0; /* Fill the wrapper */
     border-radius: inherit; /* Match wrapper radius */
-    /* font-size: var(--font-size); MOVED or inherited */
-    /* color: var(--chat-text-color); MOVED or inherited */
-    /* font-family: var(--font-family); MOVED or inherited */
     border: 2px solid;
     border-color: var(--chat-border-color);
-    /* box-shadow: var(--chat-box-shadow, none); MOVED to wrapper */
     overflow: hidden; /* Still needed for scroll area clipping */
     background: transparent; /* Make container transparent */
     z-index: 2; /* Above wrapper's ::before pseudo-element */
@@ -687,22 +677,29 @@ body.chat-page:hover #popup-settings-btn {
     gap: 4px;
 }
 
+/* Config Panel Theme Preview */
 .theme-preview {
+    background-color: var(--preview-bg-color, var(--chat-bg-color));
+    border: 1px solid var(--preview-border-color, var(--chat-border-color));
     padding: 10px;
-    overflow: hidden;
-    position: relative;
-    background-color: var(--preview-bg-color, rgba(30, 30, 30, 0.85)); /* Use dedicated variable */
-    /* background-size: cover; Should apply to image pseudo-element */
-    /* background-position: center; Should apply to image pseudo-element */
-    height: 120px; /* Set fixed height */
-    box-sizing: border-box; /* Ensure padding is included in height */
-    border-radius: var(--preview-border-radius, 8px); /* Use preview-specific radius */
-    border: 2px solid var(--preview-border-color, #444); /* Use preview-specific border */
-    box-shadow: var(--preview-box-shadow, none); /* Use preview-specific shadow */
-    color: var(--preview-text-color, #efeff1); /* Use preview-specific text color */
-    font-family: var(--preview-font-family, sans-serif); /* Use preview-specific font */
-    font-size: 12px; /* Slightly smaller font for preview */
-    line-height: 1.3;
+    border-radius: var(--preview-border-radius, var(--chat-border-radius));
+    box-shadow: var(--preview-box-shadow, var(--chat-box-shadow));
+    font-family: var(--preview-font-family, var(--font-family));
+    color: var(--preview-text-color, var(--chat-text-color));
+    margin: 5px auto 0; /* Center and add top margin */
+    width: 90%; /* Control width */
+    max-width: 280px; /* Limit max width */
+    min-height: 60px; /* Ensure some minimum height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; /* Prevent long lines from breaking layout */
+    position: relative; /* For background image positioning */
+    z-index: 0; /* Ensure preview content is above potential background layers */
+    background-image: var(--preview-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .theme-preview::before { /* For Background IMAGE */

@@ -1130,6 +1130,10 @@
             previewStyle.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
             previewStyle.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
+            // Apply Font Size directly to Theme Preview element
+            const fontSize = fontSizeSlider?.value || config?.fontSize || 14; // Prioritize slider value
+            previewStyle.fontSize = `${fontSize}px`;
+
             // Update the preview content HTML
             const ts1 = showTimestamps ? '<span class="timestamp">12:34 </span>' : '';
             const ts2 = showTimestamps ? '<span class="timestamp">12:35 </span>' : '';
