@@ -1047,7 +1047,6 @@ body.chat-page:hover #popup-settings-btn {
     align-items: center;
     padding: 0; /* Remove outer padding */
     box-sizing: border-box;
-    max-width: 98%; /* Take up most of the viewport width */
 }
 
 #initial-connection-prompt .prompt-content {
