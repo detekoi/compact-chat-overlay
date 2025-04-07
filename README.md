@@ -1,4 +1,4 @@
-# Compact Chat Overlay
+# Chat Overlay for Twitch and OBS
 
 A lightweight, customizable Twitch chat overlay for streamers using OBS or other broadcasting software.
 
