@@ -2600,9 +2600,9 @@
                 // Show prompt
                 if (initialConnectionPrompt) initialConnectionPrompt.style.display = 'flex';
 
-                // Hide both main containers
-                if (popupContainer) popupContainer.style.display = 'none';
-                if (chatWrapper) chatWrapper.style.display = 'none';
+                // --- REMOVE HIDING of main containers ---
+                // if (popupContainer) popupContainer.style.display = 'none';
+                // if (chatWrapper) chatWrapper.style.display = 'none';
 
                 document.body.classList.add('disconnected');
             }
