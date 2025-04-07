@@ -106,7 +106,9 @@ If you prefer to run everything locally:
 
 The Chat Scene Creator makes it easy to manage multiple chat overlays:
 
-![Chat Scene Creator Interface](assets/images/screenshots/scenecreator.png)
+![Initial Connection Screen](assets/images/screenshots/initialization.png)
+![Chat Interface](assets/images/screenshots/chat.png)
+![Settings Panel](assets/images/screenshots/settings.png)
 
 1. **Create chat scenes** with descriptive names for different parts of your stream
 2. **Customize settings** for each scene:
