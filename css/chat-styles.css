@@ -518,7 +518,7 @@ button:hover {
     inset: 0;
     background-image: var(--popup-bg-image, none);
     background-repeat: repeat;
-    background-size: contain;
+    background-size: 320px;
     opacity: var(--popup-bg-image-opacity, 0.55);
     z-index: -1;
     border-radius: inherit;
