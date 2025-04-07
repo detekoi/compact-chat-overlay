@@ -1638,27 +1638,32 @@
          */
         function updateThemePreview() {
             // No longer reads from theme object, reads from controls
-            if (!themePreview) return;
-            
-            console.log(`Updating theme preview based on config panel inputs...`);
+            if (!themePreview) {
+                console.error("Theme preview element not found!");
+                return;
+            }
+
+            // Check if showTimestampsInput exists before reading its state
+            const showTimestamps = showTimestampsInput ? showTimestampsInput.checked : (config?.showTimestamps ?? true); // Read checkbox state safely, default true
+            console.log(`[updateThemePreview] Updating preview. showTimestamps: ${showTimestamps}`); // LOGGING
 
             // --- Get current values from config panel controls --- 
-            const bgColor = bgColorInput.value || '#1e1e1e';
+            const bgColor = bgColorInput?.value || '#1e1e1e';
             const bgColorOpacity = (bgOpacityInput ? parseInt(bgOpacityInput.value) : 85) / 100.0;
-            const borderColor = borderColorInput.value || '#444444'; // Might need handling for 'transparent' button state
-            const textColor = textColorInput.value || '#efeff1';
-            const usernameColor = usernameColorInput.value || '#9147ff';
-            const timestampColor = config.timestampColor || '#adadb8'; // Use config value, as there's no input
-            const fontFamily = window.availableFonts[currentFontIndex]?.value || config.fontFamily || "'Atkinson Hyperlegible', sans-serif";
+            const borderColor = borderColorInput?.value || '#444444';
+            const textColor = textColorInput?.value || '#efeff1';
+            const usernameColor = usernameColorInput?.value || '#9147ff';
+            const timestampColor = config?.timestampColor || '#adadb8';
+            const fontFamily = window.availableFonts[currentFontIndex]?.value || config?.fontFamily || "'Atkinson Hyperlegible', sans-serif";
             const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
-            const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : getBorderRadiusValue(config.borderRadius || '8px');
-            const borderRadius = getBorderRadiusValue(borderRadiusValue); // Ensure CSS value
+            const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : getBorderRadiusValue(config?.borderRadius || '8px');
+            const borderRadius = getBorderRadiusValue(borderRadiusValue);
             const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
-            const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : (config.boxShadow || 'none');
-            const boxShadow = getBoxShadowValue(boxShadowValue); // Ensure CSS value
-            const bgImage = config.bgImage || 'none'; // Get from config as there's no direct UI input yet
+            const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : (config?.boxShadow || 'none');
+            const boxShadow = getBoxShadowValue(boxShadowValue);
+            const bgImage = config?.bgImage || 'none';
             const bgImageOpacity = (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) : 55) / 100.0;
-            
+
             // Handle transparent border specifically
             const borderTransparentButton = document.querySelector('.color-btn[data-target="border"][data-color="transparent"]');
             const finalBorderColor = (borderTransparentButton && borderTransparentButton.classList.contains('active')) 
@@ -1667,7 +1672,6 @@
 
             // --- Calculate background color with opacity --- 
             let finalBgColor;
-            // Handle case where transparent bg button is active
             const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
             if (bgTransparentButton && bgTransparentButton.classList.contains('active')) {
                  finalBgColor = 'transparent';
@@ -1682,30 +1686,33 @@
 
             // --- Set preview-specific CSS variables directly on the element --- 
             themePreview.style.setProperty('--preview-bg-color', finalBgColor);
-            themePreview.style.setProperty('--preview-border-color', finalBorderColor); // Use finalBorderColor
+            themePreview.style.setProperty('--preview-border-color', finalBorderColor);
             themePreview.style.setProperty('--preview-text-color', textColor);
             themePreview.style.setProperty('--preview-username-color', usernameColor);
             themePreview.style.setProperty('--preview-timestamp-color', timestampColor);
             themePreview.style.setProperty('--preview-font-family', fontFamily); 
-            themePreview.style.fontFamily = fontFamily; // Also set directly
+            themePreview.style.fontFamily = fontFamily;
             themePreview.style.setProperty('--preview-border-radius', borderRadius);
             themePreview.style.setProperty('--preview-box-shadow', boxShadow);
             themePreview.style.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
             themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
-            // --- Update the preview content (structure remains the same) --- 
+            // --- Update the preview content --- 
+            // Conditionally create timestamp HTML
+            const timestampHtml = showTimestamps ? '<span class="timestamp">12:34 </span>' : ''; // Added space for potential visual spacing
+            const timestampHtml2 = showTimestamps ? '<span class="timestamp">12:35 </span>' : ''; // Added space
+
+            // Construct preview HTML ensuring timestamps are only included if showTimestamps is true
             const previewHtml = `
                 <div class="preview-chat-message">
-                    <span class="timestamp">12:34</span>
-                    <span class="username" style="color: var(--preview-username-color);">Username:</span>
-                    <span>Example chat message</span>
+                    ${timestampHtml}<span class="username" style="color: var(--preview-username-color);">Username:</span> <span>Example chat message</span>
                 </div>
                 <div class="preview-chat-message">
-                    <span class="timestamp">12:35</span>
-                    <span class="username" style="color: var(--preview-username-color);">AnotherUser:</span>
-                    <span>This is how your chat will look</span>
+                    ${timestampHtml2}<span class="username" style="color: var(--preview-username-color);">AnotherUser:</span> <span>This is how your chat will look</span>
                 </div>
-            `;
+            `.trim();
+
+            console.log(`[updateThemePreview] Generated preview HTML (first line): ${previewHtml.split('\n')[0]}`); // LOGGING - check generated HTML
             themePreview.innerHTML = previewHtml;
         }
 
@@ -2517,6 +2524,23 @@
                     themePreview.style.fontSize = `${newSize}px`; 
                 }
             });
+        }
+
+        // Add listener for timestamp toggle to update preview
+        if (showTimestampsInput) {
+            // Check if listener already exists to prevent duplicates (optional but good practice)
+            if (!showTimestampsInput.dataset.listenerAttachedPreview) { 
+                showTimestampsInput.addEventListener('change', () => {
+                    console.log('[Timestamp Checkbox] Change event triggered.'); // LOGGING
+                    // Update config immediately ONLY if needed elsewhere, 
+                    // otherwise updateThemePreview reads directly from checkbox state
+                    config.showTimestamps = showTimestampsInput.checked; 
+                    updateThemePreview(); // Update preview when toggled
+                });
+                showTimestampsInput.dataset.listenerAttachedPreview = 'true'; // Mark listener as attached
+            }
+        } else {
+            console.warn("Show Timestamps checkbox element not found during listener setup.");
         }
 
     } // End of initApp
