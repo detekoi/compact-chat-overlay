@@ -1117,3 +1117,27 @@ body.chat-page:hover #popup-settings-btn {
     margin-top: 4px;
     margin-bottom: 0;
 }
+
+#initial-connection-prompt .secondary-button:hover {
+    background-color: #444;
+}
+
+/* Styles for Fixed Config Panel Actions */
+#config-panel-actions {
+    position: sticky; /* Use sticky positioning */
+    bottom: 0;
+    left: 0; /* Ensures it spans width within the panel */
+    right: 0;
+    background-color: var(--config-bg-color, rgba(35, 35, 35, 0.95)); /* Match panel background */
+    box-sizing: border-box;
+    z-index: 10; /* Ensure it's above scrolling content */
+    border-top: 1px solid var(--config-border-color, #6c757d); /* Add separator line */
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    /* Remove margin-top from the container itself */
+    padding-top: 0; /* Push to the bottom before sticking */
+}
+
+/* Remove margin-top from the inner flex container */
+#config-panel-actions > div {
+    margin-top: 0; 
+}
