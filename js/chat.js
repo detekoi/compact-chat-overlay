@@ -68,8 +68,8 @@
             usernameColor: '#9147ff',
             fontSize: 14,
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-            chatWidth: 100,
-            chatHeight: 100, // Default to 100%
+            chatWidth: 95, // Default width set to 95%
+            chatHeight: 95, // Default height set to 95%
             maxMessages: 50,
             showTimestamps: true,
             overrideUsernameColors: false,
@@ -1929,8 +1929,8 @@
                     
                     // Rest of the settings from UI controls
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
-                    chatWidth: getValue(chatWidthInput, 100, true),
-                    chatHeight: getValue(chatHeightInput, 100, true),
+                    chatWidth: getValue(chatWidthInput, 95, true), // Correct fallback
+                    chatHeight: getValue(chatHeightInput, 95, true), // Correct fallback
                     maxMessages: getValue(maxMessagesInput, 50, true),
                     showTimestamps: getValue(showTimestampsInput, true, false, true),
                     popup: {
@@ -2008,8 +2008,8 @@
                         usernameColor: parsedConfig.usernameColor || '#9147ff',
                         fontSize: parsedConfig.fontSize || 14,
                         fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
-                        chatWidth: parsedConfig.chatWidth || 100,
-                        chatHeight: parsedConfig.chatHeight || 100, // Will use normalized value from above
+                        chatWidth: parsedConfig.chatWidth || 95, // Correct fallback
+                        chatHeight: parsedConfig.chatHeight || 95, // Will use normalized value from above // Correct fallback
                         maxMessages: parsedConfig.maxMessages || 50,
                         showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
                         overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
@@ -2082,8 +2082,8 @@
                 usernameColor: '#9147ff',
                 fontSize: 14,
                 fontFamily: "'Atkinson Hyperlegible', sans-serif", // <<< CHANGE DEFAULT
-                chatWidth: 100,
-                chatHeight: 100, // Default 100% height
+                chatWidth: 95, // Correct default
+                chatHeight: 95, // Correct default
                 maxMessages: 50,
                 showTimestamps: true,
                 overrideUsernameColors: false,
@@ -2418,8 +2418,8 @@
               document.documentElement.style.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8'); // Add if you have this var
               document.documentElement.style.setProperty('--font-size', `${cfg.fontSize || 14}px`);
               document.documentElement.style.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
-              document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 100}%`);
-              document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 100}%`);
+              document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 95}%`); // Correct fallback
+              document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 95}%`); // Correct fallback
               document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
               document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
               // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
