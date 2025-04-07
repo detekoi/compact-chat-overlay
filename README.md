@@ -150,7 +150,7 @@ Browse through available themes with a visual interface:
 - Quickly find themes with background images that match your stream's style
 
 ### AI Theme Generator
-Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic.
+Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic using Google Gemini 2.0 Flash Image Generation.
 - Example prompts: "Minecraft dungeons", "80s synthwave", "pastel kawaii", "dark fantasy RPG"
 - AI automatically generates coordinated colors, fonts, and background images
 - Background images are optimized for chat overlay usage
