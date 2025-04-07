@@ -683,7 +683,7 @@
 
                     // Save the channel name in config
                     config.lastChannel = channel;
-                    saveConfiguration(); // Save immediately after successful connection
+                    // saveConfiguration(); // REMOVED: Don't save full config on connect, only update in memory
 
                     // Update UI elements within the settings panel
                     if (channelForm) channelForm.style.display = 'none';
@@ -901,16 +901,17 @@
                     try {
                         // Update just the lastChannel in localStorage without triggering full save/close
                         const scene = getUrlParameter('scene') || 'default';
-                        const configKey = `chatConfig_${scene}`;
+                        const configKey = `chatConfig-${scene}`; // CORRECTED KEY
                         let existingConfig = {};
                         try {
                             const saved = localStorage.getItem(configKey);
                             if (saved) existingConfig = JSON.parse(saved);
                         } catch (parseError) {
                             console.error("Error parsing existing config for channel save:", parseError);
+                            existingConfig = { ...config }; // Fallback to current in-memory config
                         }
-                        existingConfig.lastChannel = channel;
-                        localStorage.setItem(configKey, JSON.stringify(existingConfig));
+                        existingConfig.lastChannel = channel; // Update only the channel
+                        localStorage.setItem(configKey, JSON.stringify(existingConfig)); // Save the full modified object
                         console.log(`Saved lastChannel '${channel}' for scene '${scene}'`);
                     } catch (storageError) {
                         console.error("Error saving lastChannel to localStorage:", storageError);
@@ -937,16 +938,17 @@
                     try {
                         // Update just the lastChannel in localStorage without triggering full save/close
                         const scene = getUrlParameter('scene') || 'default';
-                        const configKey = `chatConfig_${scene}`;
+                        const configKey = `chatConfig-${scene}`; // CORRECTED KEY
                         let existingConfig = {};
                         try {
                             const saved = localStorage.getItem(configKey);
                             if (saved) existingConfig = JSON.parse(saved);
                         } catch (parseError) {
                             console.error("Error parsing existing config for channel save:", parseError);
+                             existingConfig = { ...config }; // Fallback to current in-memory config
                         }
-                        existingConfig.lastChannel = channel;
-                        localStorage.setItem(configKey, JSON.stringify(existingConfig));
+                        existingConfig.lastChannel = channel; // Update only the channel
+                        localStorage.setItem(configKey, JSON.stringify(existingConfig)); // Save the full modified object
                         console.log(`Saved lastChannel '${channel}' for scene '${scene}' via Enter`);
                     } catch (storageError) {
                         console.error("Error saving lastChannel to localStorage via Enter:", storageError);
@@ -1990,7 +1992,8 @@
                 console.log(`[saveConfiguration] >> Preparing to save - bgColor (hex): ${newConfig.bgColor}, bgColorOpacity (0-1): ${newConfig.bgColorOpacity}`);
 
                 const scene = getUrlParameter('scene') || 'default';
-                localStorage.setItem(`chatConfig_${scene}`, JSON.stringify(config));
+                // Use hyphen to match loadSavedConfig
+                localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config)); 
                 console.log(`Configuration saved for scene '${scene}':`, config);
                 
                 closeConfigPanel(false); // Close without reverting
@@ -2003,108 +2006,8 @@
         }
         
         // Load saved config on page load
-        function loadSavedConfig() {
-            const scene = getUrlParameter('scene') || 'default';
-            const storageKey = `chatConfig_${scene}`;
-            const savedConfigString = localStorage.getItem(storageKey);
+        // [OBSOLETE loadSavedConfig function definition removed]
 
-            if (savedConfigString) {
-                try {
-                    const parsedConfig = JSON.parse(savedConfigString);
-                    console.log('Loaded config:', parsedConfig);
-
-                    // Normalize chat height before merging into config
-                    if (parsedConfig.chatHeight !== undefined) {
-                        const heightValue = parseInt(parsedConfig.chatHeight, 10);
-                        if (!isNaN(heightValue) && heightValue > 100) {
-                            console.log(`Converting old chat height value (${heightValue}) to 100% for scene '${scene}'`);
-                            parsedConfig.chatHeight = 100;
-                            // Save the normalized config back to localStorage
-                            localStorage.setItem(storageKey, JSON.stringify(parsedConfig));
-                        }
-                    }
-
-                    // Merge saved config into default config
-                    config = { ...config, ...parsedConfig };
-
-                    // Find the full theme object for the saved theme value
-                    const savedThemeValue = parsedConfig.theme || 'default';
-                    const currentFullTheme = window.availableThemes?.find(t => t.value === savedThemeValue) || window.availableThemes?.[0];
-                    const themeBgImage = currentFullTheme?.backgroundImage || null;
-
-                    // Create new config object by merging defaults with saved settings
-                    config = {
-                        // Display mode
-                        chatMode: parsedConfig.chatMode || 'window',
-                        
-                        // Window mode settings
-                        bgColor: parsedConfig.bgColor || '#121212',
-                        bgColorOpacity: parsedConfig.bgColorOpacity !== undefined ? parsedConfig.bgColorOpacity : 0.85,
-                        bgImage: parsedConfig.bgImage !== undefined ? parsedConfig.bgImage : themeBgImage,
-                        bgImageOpacity: parsedConfig.bgImageOpacity !== undefined ? parsedConfig.bgImageOpacity : 0.55,
-                        borderColor: parsedConfig.borderColor === 'transparent' ? 'transparent' : (parsedConfig.borderColor || '#9147ff'),
-                        textColor: parsedConfig.textColor || '#efeff1',
-                        usernameColor: parsedConfig.usernameColor || '#9147ff',
-                        fontSize: parsedConfig.fontSize || 14,
-                        fontFamily: parsedConfig.fontFamily || "'Atkinson Hyperlegible', sans-serif",
-                        chatWidth: parsedConfig.chatWidth || 95, // Correct fallback
-                        chatHeight: parsedConfig.chatHeight || 95, // Will use normalized value from above // Correct fallback
-                        maxMessages: parsedConfig.maxMessages || 50,
-                        showTimestamps: parsedConfig.showTimestamps !== undefined ? parsedConfig.showTimestamps : true,
-                        overrideUsernameColors: parsedConfig.overrideUsernameColors || false,
-                        borderRadius: window.getBorderRadiusValue(parsedConfig.borderRadius || '8px'),
-                        boxShadow: parsedConfig.boxShadow || 'soft',
-                        theme: savedThemeValue,
-                        lastChannel: parsedConfig.lastChannel || '',
-                        
-                        // Popup mode settings
-                        popup: {
-                            direction: parsedConfig.popup?.direction || 'from-bottom',
-                            duration: parsedConfig.popup?.duration || 5,
-                            maxMessages: parsedConfig.popup?.maxMessages || 3
-                        }
-                    };
-
-                    // Apply the loaded configuration
-                    console.log("[loadSavedConfig] Applying loaded configuration visually...");
-                    applyConfiguration(config);
-                    console.log("[loadSavedConfig] Visual application complete.");
-
-                    // Hide config panel
-                    closeConfigPanel();
-
-                    // Update the panel controls to match loaded state
-                    updateConfigPanelFromConfig();
-
-                    // If the channel was previously saved, auto-connect
-                    if (config.lastChannel && channelInput) {
-                        channelInput.value = config.lastChannel;
-                        channel = config.lastChannel;
-                        setTimeout(() => {
-                            connectToChat();
-                        }, 1000);
-                    } else {
-                        if (channelForm) channelForm.style.display = 'flex';
-                        if (disconnectBtn) disconnectBtn.style.display = 'none';
-                    }
-
-                } catch (e) {
-                    console.error('Error parsing or applying saved config:', e);
-                    applyDefaultSettings();
-                    updateConfigPanelFromConfig();
-                }
-            } else {
-                applyDefaultSettings();
-                updateConfigPanelFromConfig();
-            }
-
-            // Add initial system messages
-            addSystemMessage('Welcome to Twitch Chat Overlay');
-            if (!config.lastChannel) {
-                addSystemMessage('Enter a channel name to connect');
-            }
-        }
-        
         // Apply default settings when no saved config or on error
         function applyDefaultSettings() {
             console.log("Applying default settings...");
