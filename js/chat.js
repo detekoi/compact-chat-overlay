@@ -671,8 +671,9 @@
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
             socket.onopen = function() {
-                console.log('WebSocket connection opened');
-                if (socket && socket.readyState === WebSocket.OPEN) {
+                console.log('WebSocket connection opened. Checking state...'); // Log entry
+                if (socket && socket.readyState === WebSocket.OPEN) { // Check 1
+                    console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); // << ADD LOG 1
                     socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
                     socket.send(`PASS SCHMOOPIIE`);
                     socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
@@ -681,9 +682,12 @@
                     // ** Update UI State: Connected **
                     updateConnectionStateUI(true); // Hide prompt, show chat
 
-                    // Save the channel name in config
+                    // Save the channel name in config (memory)
                     config.lastChannel = channel;
-                    // saveConfiguration(); // REMOVED: Don't save full config on connect, only update in memory
+                    // ** Save ONLY the last channel to storage **
+                    console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // << ADD LOG 2
+                    console.log("[socket.onopen] About to call saveLastChannelOnly..."); // <<< Log before call
+                    saveLastChannelOnly(channel); // << CHANGED from saveConfiguration()
 
                     // Update UI elements within the settings panel
                     if (channelForm) channelForm.style.display = 'none';
@@ -694,6 +698,8 @@
 
                     // Add connected message
                     addSystemMessage(`Connected to ${channel}'s chat`);
+                } else { // << ADD ELSE BLOCK
+                    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
                 }
             };
 
@@ -895,29 +901,6 @@
                 if (e) e.preventDefault();
                 connectToChat(); // Initiate connection
 
-                // Save ONLY the lastChannel after connection attempt, don't close panel
-                if (channel) {
-                    config.lastChannel = channel;
-                    try {
-                        // Update just the lastChannel in localStorage without triggering full save/close
-                        const scene = getUrlParameter('scene') || 'default';
-                        const configKey = `chatConfig-${scene}`; // CORRECTED KEY
-                        let existingConfig = {};
-                        try {
-                            const saved = localStorage.getItem(configKey);
-                            if (saved) existingConfig = JSON.parse(saved);
-                        } catch (parseError) {
-                            console.error("Error parsing existing config for channel save:", parseError);
-                            existingConfig = { ...config }; // Fallback to current in-memory config
-                        }
-                        existingConfig.lastChannel = channel; // Update only the channel
-                        localStorage.setItem(configKey, JSON.stringify(existingConfig)); // Save the full modified object
-                        console.log(`Saved lastChannel '${channel}' for scene '${scene}'`);
-                    } catch (storageError) {
-                        console.error("Error saving lastChannel to localStorage:", storageError);
-                    }
-                }
-
                 return false;
             });
             
@@ -931,29 +914,6 @@
         channelInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 connectToChat();
-                
-                // Also save ONLY the lastChannel after connection is attempted via Enter
-                if (channel) {
-                    config.lastChannel = channel;
-                    try {
-                        // Update just the lastChannel in localStorage without triggering full save/close
-                        const scene = getUrlParameter('scene') || 'default';
-                        const configKey = `chatConfig-${scene}`; // CORRECTED KEY
-                        let existingConfig = {};
-                        try {
-                            const saved = localStorage.getItem(configKey);
-                            if (saved) existingConfig = JSON.parse(saved);
-                        } catch (parseError) {
-                            console.error("Error parsing existing config for channel save:", parseError);
-                             existingConfig = { ...config }; // Fallback to current in-memory config
-                        }
-                        existingConfig.lastChannel = channel; // Update only the channel
-                        localStorage.setItem(configKey, JSON.stringify(existingConfig)); // Save the full modified object
-                        console.log(`Saved lastChannel '${channel}' for scene '${scene}' via Enter`);
-                    } catch (storageError) {
-                        console.error("Error saving lastChannel to localStorage via Enter:", storageError);
-                    }
-                }
             }
         });
         
@@ -2637,6 +2597,49 @@
                 updateConnectionStateUI(false);
                  channelInput.value = '';
                  if (initialChannelInput) initialChannelInput.value = '';
+            }
+        }
+
+        /**
+         * Saves only the lastChannel property to localStorage, preserving other settings.
+         */
+        function saveLastChannelOnly(channelToSave) {
+            console.log(`[saveLastChannelOnly] Attempting to save channel: ${channelToSave}`); // <<< ADD LOG
+            if (!channelToSave) {
+                console.warn("[saveLastChannelOnly] Channel is empty, returning early."); // <<< ADD LOG
+                return; // Don't save empty channel
+            }
+
+            try {
+                const scene = getUrlParameter('scene') || 'default';
+                const configKey = `chatConfig-${scene}`;
+                let currentFullConfig = {};
+                try {
+                    const saved = localStorage.getItem(configKey);
+                    if (saved) {
+                        currentFullConfig = JSON.parse(saved);
+                         console.log("[saveLastChannelOnly] Parsed existing config:", currentFullConfig); // <<< ADD LOG
+                    } else {
+                        console.log("[saveLastChannelOnly] No existing config found in localStorage."); // <<< ADD LOG
+                    }
+                } catch (parseError) {
+                    console.error("[saveLastChannelOnly] Error parsing existing config:", parseError);
+                    // Continue with potentially empty config object
+                }
+
+                // Update only the lastChannel property
+                currentFullConfig.lastChannel = channelToSave;
+
+                // Save the modified config back to localStorage
+                console.log(`[saveLastChannelOnly] Preparing to set localStorage item for key '${configKey}' with config:`, currentFullConfig); // <<< ADD LOG
+                localStorage.setItem(configKey, JSON.stringify(currentFullConfig));
+                console.log(`[saveLastChannelOnly] Saved lastChannel '${channelToSave}' for scene '${scene}'`);
+
+                // Also update the global config object in memory
+                config.lastChannel = channelToSave;
+
+            } catch (storageError) {
+                console.error("[saveLastChannelOnly] Error saving lastChannel to localStorage:", storageError);
             }
         }
 
