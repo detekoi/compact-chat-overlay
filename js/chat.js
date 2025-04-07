@@ -671,9 +671,9 @@
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
 
             socket.onopen = function() {
-                console.log('WebSocket connection opened. Checking state...'); // Log entry
-                if (socket && socket.readyState === WebSocket.OPEN) { // Check 1
-                    console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); // << ADD LOG 1
+                console.log('WebSocket connection opened. Proceeding...'); // Simplified log
+                // REMOVED: if (socket && socket.readyState === WebSocket.OPEN) { 
+                    // console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); 
                     socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
                     socket.send(`PASS SCHMOOPIIE`);
                     socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
@@ -685,9 +685,9 @@
                     // Save the channel name in config (memory)
                     config.lastChannel = channel;
                     // ** Save ONLY the last channel to storage **
-                    console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // << ADD LOG 2
-                    console.log("[socket.onopen] About to call saveLastChannelOnly..."); // <<< Log before call
-                    saveLastChannelOnly(channel); // << CHANGED from saveConfiguration()
+                    // console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // Optional log
+                    // console.log("[socket.onopen] About to call saveLastChannelOnly..."); // Optional log
+                    saveLastChannelOnly(channel);
 
                     // Update UI elements within the settings panel
                     if (channelForm) channelForm.style.display = 'none';
@@ -698,9 +698,9 @@
 
                     // Add connected message
                     addSystemMessage(`Connected to ${channel}'s chat`);
-                } else { // << ADD ELSE BLOCK
-                    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
-                }
+                // REMOVED: } else { 
+                // REMOVED:    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
+                // REMOVED: }
             };
 
             socket.onclose = function() {
@@ -893,23 +893,7 @@
             
             return `hsl(${h}, ${s}%, ${l}%)`;
         }
-        
-        // Connect button handler
-        if (connectBtn) {
-            connectBtn.addEventListener('click', function(e) {
-                console.log('Connect button clicked');
-                if (e) e.preventDefault();
-                connectToChat(); // Initiate connection
-
-                return false;
-            });
-            
-            // Visual feedback to confirm the button is clickable
-            connectBtn.style.cursor = 'pointer';
-            connectBtn.style.position = 'relative';
-            connectBtn.style.zIndex = '100';
-        }
-        
+                
         // Channel input connect on Enter
         channelInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -2513,7 +2497,16 @@
 
         // Existing Listeners (Ensure they interact correctly)
         if (connectBtn) { // Button inside settings panel
-            connectBtn.addEventListener('click', connectToChat);
+            // Use a flag to prevent multiple attachments if initApp runs multiple times
+            if (!connectBtn.dataset.listenerAttachedPanel) { 
+                let panelConnectClicks = 0; // Add counter
+                connectBtn.addEventListener('click', () => { 
+                    panelConnectClicks++;
+                    console.log(`[Panel Connect Btn] Click detected (${panelConnectClicks}). Calling connectToChat...`); // Add log
+                    connectToChat();
+                });
+                connectBtn.dataset.listenerAttachedPanel = 'true'; // Mark as attached
+            }
         }
 
         if (channelInput) { // Input inside settings panel
