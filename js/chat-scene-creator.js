@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // OBS setup
                 this.instanceUrlConfig = document.getElementById('instanceUrlConfig');
                 this.instanceUrlSetup = document.getElementById('instanceUrlSetup');
-                this.copyUrlBtn = document.getElementById('copyUrlBtn');
+                this.copyUrlBtnConfig = document.getElementById('copyUrlBtnConfig');
+                this.copyUrlBtnSetup = document.getElementById('copyUrlBtnSetup');
                 
                 // Modal elements
                 this.instanceModal = document.getElementById('instanceModal');
@@ -168,7 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Preview button removed
                 
                 // OBS setup
-                this.copyUrlBtn.addEventListener('click', () => this.copyInstanceUrl());
+                this.copyUrlBtnConfig.addEventListener('click', () => this.copyInstanceUrl());
+                this.copyUrlBtnSetup.addEventListener('click', () => this.copyInstanceUrl());
                 
                 // Form input events
                 this.setupFormEvents();
