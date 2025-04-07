@@ -159,7 +159,15 @@
         let socket = null;
         let channel = '';
         let isConnecting = false; // <<< ADD CONNECTION FLAG
-        
+
+        // Reconnection state
+        let isExplicitDisconnect = false; // Flag to track if disconnect was user-initiated
+        let reconnectAttempts = 0;
+        let reconnectTimer = null;
+        const MAX_RECONNECT_ATTEMPTS = 5;
+        const INITIAL_RECONNECT_DELAY = 1000; // 1 second
+        const MAX_RECONNECT_DELAY = 30000; // 30 seconds
+
         // Store config state when panel opens
         let initialConfigBeforeEdit = null; // Use ONLY this for revert state
         
@@ -396,10 +404,12 @@
             messageElement.innerHTML = `<span class="timestamp">${timestamp}</span><span class="message-content">${message}</span>`;
             
             // Append to the correct container (chatMessages is inside scrollArea)
+            // Ensure chatMessages exists before appending
             if (chatMessages) {
                 chatMessages.appendChild(messageElement);
             } else {
                 console.error("Chat messages container not found for system message.");
+                // If attempting to reconnect, we might want to queue messages or handle this differently
                 return;
             }
 
@@ -642,6 +652,22 @@
             isConnecting = true; // <<< SET FLAG >>>
             console.log("[connectToChat] Attempting connection..."); // Add log to confirm entry
 
+            // Clear any pending reconnection attempts if manually connecting
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+            // Reset attempts ONLY if not triggered by reconnect logic itself
+            // Reconnect logic will increment attempts before calling connectToChat
+            // reconnectAttempts = 0; // Let scheduleReconnect handle attempts
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                console.warn("[connectToChat] Socket already open. Closing before reconnecting.");
+                // Ensure we don't trigger reconnect logic when deliberately closing here
+                isExplicitDisconnect = true;
+                socket.close();
+                socket = null; // Clear immediately
+                isExplicitDisconnect = false; // Reset flag
+            }
+
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.close(); // Close existing connection if any
             }
@@ -678,7 +704,7 @@
 
             // Connect to Twitch IRC via WebSocket
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-
+            window.socket = socket; // Make socket available to the console for debugging
             socket.onopen = function() {
                 console.log('WebSocket connection opened. Proceeding...'); // Simplified log
                 
@@ -716,7 +742,13 @@
                         }
 
                         // Add connected message
-                        addSystemMessage(`Connected to ${channel}'s chat`);
+                        // Check if this was a successful reconnection
+                        if (reconnectAttempts > 0) {
+                            addSystemMessage(`Reconnected to ${channel}'s chat.`);
+                        } else {
+                            addSystemMessage(`Connected to ${channel}'s chat`);
+                        }
+                        reconnectAttempts = 0; // Reset attempts on successful connection
                         isConnecting = false; // <<< RESET FLAG on success >>>
                     // REMOVED: } else { 
                     // REMOVED:    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
@@ -724,55 +756,49 @@
                 }, 0); // Delay of 0ms pushes to next event loop cycle
             };
 
-            socket.onclose = function() {
-                console.log('WebSocket connection closed');
-                 // ** Update UI State: Disconnected **
-                 updateConnectionStateUI(false); // Show prompt, hide chat
-                 // addSystemMessage('Disconnected from chat'); // Message not visible if prompt is shown
+            socket.onclose = function(event) {
+                console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
+                isConnecting = false; // Reset connecting flag
 
-                // Reset UI elements within the settings panel
+                // Store the last channel before clearing
+                const lastConnectedChannel = channel;
+
+                // Clear socket reference immediately
+                socket = null;
+                channel = ''; // Clear current channel state
+
+                // Reset UI elements within the settings panel *regardless* of explicit disconnect
+                // This ensures the UI reflects the disconnected state even during retries
                 if (disconnectBtn) {
                     disconnectBtn.style.display = 'none';
                     disconnectBtn.textContent = 'Disconnect'; // Reset text
                 }
-                // Re-show the channel form inside the settings panel
                 if (channelForm) {
-                    // Use flex display based on HTML structure
-                    channelForm.style.display = 'flex';
+                    channelForm.style.display = 'flex'; // Use flex based on HTML structure
                 }
 
-                socket = null; // Clear socket reference
-                channel = ''; // Clear channel
-                config.lastChannel = ''; // Clear last channel on explicit disconnect? Maybe not.
-                // saveConfiguration(); // Decide if disconnect should clear saved channel
-
-                 // Ensure prompt input reflects the cleared state or last attempted channel
-                 if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
-                 isConnecting = false; // <<< RESET FLAG on close >>>
+                // If this was NOT an intentional disconnect, try to reconnect
+                if (!isExplicitDisconnect) {
+                    addSystemMessage('Connection lost. Attempting to reconnect...');
+                    scheduleReconnect(lastConnectedChannel); // Pass the channel we *were* connected to
+                } else {
+                    // This was an intentional disconnect
+                    addSystemMessage('Disconnected from chat.');
+                    updateConnectionStateUI(false); // Show initial prompt
+                    isExplicitDisconnect = false; // Reset the flag for future connections
+                    // Ensure prompt input reflects the cleared state or last attempted channel
+                    if (initialChannelInput) initialChannelInput.value = channelInput.value || config.lastChannel || ''; // Keep synced or use last known good channel
+                }
             };
 
             socket.onerror = function(error) {
-                console.error('WebSocket error:', error);
-                // ** Update UI State: Disconnected (due to error) **
-                updateConnectionStateUI(false); // Show prompt, hide chat
-                // addSystemMessage('Error connecting to chat'); // Message not visible if prompt shown
+                console.error('WebSocket Error:', error);
+                addSystemMessage('Error connecting to chat. Check console for details.');
+                isConnecting = false; // Reset connecting flag on error
 
-                // Reset UI elements within the settings panel
-                if (disconnectBtn) {
-                    disconnectBtn.style.display = 'none';
-                    disconnectBtn.textContent = 'Disconnect'; // Reset text
-                }
-                 // Re-show the channel form inside the settings panel
-                 if (channelForm) {
-                     // Use flex display based on HTML structure
-                     channelForm.style.display = 'flex';
-                 }
-
-                socket = null; // Clear socket reference
-                // Don't clear 'channel' here as the user might want to retry the same channel
-                // Ensure prompt input reflects the attempted channel
-                if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
-                isConnecting = false; // <<< RESET FLAG on error >>>
+                // Consider if an error should also trigger a reconnect attempt or just fail
+                // updateConnectionStateUI(false); // Might show prompt too early if reconnecting
+                // For now, let onclose handle potential reconnects
             };
 
             socket.onmessage = function(event) {
@@ -2660,6 +2686,123 @@
             } catch (storageError) {
                 console.error("[saveLastChannelOnly] Error saving lastChannel to localStorage:", storageError);
             }
+        }
+
+        // Function to handle explicit user disconnection
+        function disconnectChat() {
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+                console.log("User initiated disconnect.");
+                isExplicitDisconnect = true; // Set the flag *before* closing
+                clearTimeout(reconnectTimer); // Cancel any pending reconnect attempts
+                reconnectTimer = null;
+                reconnectAttempts = 0;
+                socket.close();
+                // UI updates and state clearing will happen in socket.onclose
+            } else {
+                console.log("Disconnect requested but socket is not open or connecting.");
+                // Still ensure UI is in disconnected state if somehow out of sync
+                 updateConnectionStateUI(false);
+                 if (disconnectBtn) disconnectBtn.style.display = 'none';
+                 if (channelForm) channelForm.style.display = 'flex';
+                 isExplicitDisconnect = false; // Reset flag just in case
+            }
+        }
+
+        // Function to schedule reconnection attempts with exponential backoff
+        function scheduleReconnect(channelToReconnect) {
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.log("Max reconnect attempts reached. Giving up.");
+                addSystemMessage("Failed to reconnect after multiple attempts.");
+                updateConnectionStateUI(false); // Show the initial connection prompt
+                // Optionally clear chat messages here if desired upon giving up
+                // if (chatMessages) chatMessages.innerHTML = '';
+                reconnectAttempts = 0; // Reset for future manual connections
+                 if (initialChannelInput) initialChannelInput.value = channelToReconnect || config.lastChannel || ''; // Pre-fill prompt with last channel
+                return;
+            }
+
+            // Calculate delay: initial * 2^attempts, capped at max delay
+            let delay = INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts);
+            delay = Math.min(delay, MAX_RECONNECT_DELAY);
+
+            reconnectAttempts++;
+            console.log(`Scheduling reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay / 1000}s for channel: ${channelToReconnect}`);
+            addSystemMessage(`Reconnecting in ${Math.round(delay / 1000)}s... (Attempt ${reconnectAttempts})`);
+
+             // Pre-fill the channel input *before* attempting to connect
+             // This ensures connectToChat() picks up the correct channel
+             if (channelInput) {
+                 channelInput.value = channelToReconnect;
+             }
+             if (initialChannelInput) { // Keep prompt input synced too
+                 initialChannelInput.value = channelToReconnect;
+             }
+
+
+            // Clear previous timer just in case
+            clearTimeout(reconnectTimer);
+
+            reconnectTimer = setTimeout(() => {
+                console.log(`Executing reconnect attempt ${reconnectAttempts}`);
+                // Important: Ensure the channel input still holds the correct value before connecting
+                // connectToChat() will read from channelInput or initialChannelInput
+                 if (channelInput && channelInput.value !== channelToReconnect) {
+                    console.warn(`Channel input changed during reconnect delay. Using: ${channelInput.value}`);
+                    // Decide policy: use new value or stick to original? Sticking for now.
+                    channelInput.value = channelToReconnect;
+                 }
+                 if (initialChannelInput && initialChannelInput.value !== channelToReconnect) {
+                     initialChannelInput.value = channelToReconnect;
+                 }
+                connectToChat(); // Attempt connection
+            }, delay);
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Initial prompt connect button
+        if (initialConnectBtn && initialChannelInput) {
+            initialConnectBtn.addEventListener('click', () => {
+                // Sync value to main input and trigger connection
+                if (channelInput) {
+                     channelInput.value = initialChannelInput.value;
+                }
+                connectToChat();
+            });
+            // Allow Enter key to connect from initial prompt input
+            initialChannelInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    initialConnectBtn.click(); // Trigger button click
+                }
+            });
+        } else {
+             console.error("Initial connection prompt elements not found.");
+        }
+
+        // Open Settings from initial prompt
+         if (openSettingsFromPromptBtn && configPanel) {
+             openSettingsFromPromptBtn.addEventListener('click', () => {
+                 openSettingsPanel();
+                 // Optionally pre-fill channel from prompt to settings input
+                 if (initialChannelInput && channelInput) {
+                     channelInput.value = initialChannelInput.value;
+                 }
+             });
+         }
+
+        // Settings panel connect/disconnect
+        if (connectBtn && channelInput) {
+            connectBtn.addEventListener('click', connectToChat);
+            // Allow Enter key to connect from settings panel input
+            channelInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                     connectBtn.click();
+                 }
+            });
+        }
+        if (disconnectBtn) {
+            // Use the new dedicated disconnect function
+            disconnectBtn.addEventListener('click', disconnectChat);
         }
 
     } // End of initApp
