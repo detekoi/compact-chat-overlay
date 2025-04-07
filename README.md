@@ -20,9 +20,9 @@ Simply describe any game, aesthetic, or mood (like "Minecraft," "cyberpunk night
 
 ## Try It Now
 
-**[➡️ Online Version](https://detekoi.github.io/compact-chat-overlay/)**
+**[➜ Online Version](https://detekoi.github.io/compact-chat-overlay/)**
 
-Create and manage multiple chat scenes for your stream in seconds!
+Create and manage multiple chat styles for all of your OBS scenes in seconds!
 
 ## Features
 
@@ -30,7 +30,6 @@ Create and manage multiple chat scenes for your stream in seconds!
 - **Theme Carousel**: Visually browse through themes with intuitive navigation controls
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Initial Connection Prompt**: User-friendly setup guide for first-time users
-- **Compact & Clean Interface**: Displays chat messages in a minimalist window that can be added as a browser source.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
 - **Emote Support**: Displays Twitch emotes in chat.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
@@ -106,7 +105,7 @@ If you prefer to run everything locally:
 
 ### Using the Chat Scene Creator
 
-The Chat Scene Creator makes it easy to manage multiple chat overlays:
+You can easily manage multiple OBS scenes using the [Chat Scene Creator](https://detekoi.github.io/compact-chat-overlay/chat-scene-creator.html):
 
 ![Chat Scene Creator](assets/images/screenshots/scenecreator.png)
 

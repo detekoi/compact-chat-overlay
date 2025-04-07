@@ -41,7 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Preview section removed
                 
                 // OBS setup
-                this.instanceUrl = document.getElementById('instanceUrl');
+                this.instanceUrlConfig = document.getElementById('instanceUrlConfig');
+                this.instanceUrlSetup = document.getElementById('instanceUrlSetup');
                 this.copyUrlBtn = document.getElementById('copyUrlBtn');
                 
                 // Modal elements
@@ -561,12 +562,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const basePath = window.location.href.replace(/\/[^\/]*$/, '/chat.html');
                 const instanceUrl = `${basePath}?scene=${this.currentInstanceId}`;
                 
-                this.instanceUrl.textContent = instanceUrl;
+                // Update both URL displays
+                this.instanceUrlConfig.textContent = instanceUrl;
+                this.instanceUrlSetup.textContent = instanceUrl;
             }
             
             // Copy instance URL to clipboard
             copyInstanceUrl() {
-                const url = this.instanceUrl.textContent;
+                // Use either URL display since they contain the same content
+                const url = this.instanceUrlConfig.textContent;
                 
                 navigator.clipboard.writeText(url)
                     .then(() => {
