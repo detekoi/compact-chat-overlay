@@ -143,7 +143,7 @@
     --popup-bg-image: var(--chat-bg-image, none);
     
     /* Config Panel specific styles - not affected by chat themes */
-    --config-bg-color: rgba(35, 35, 35, 0.95);
+    --config-bg-color: rgba(35, 35, 35, 0.75);
     --config-text-color: #ffffff;
     --config-border-color: #6c757d; /* A neutral gray color */
     --config-font-family: 'Atkinson Hyperlegible', sans-serif;

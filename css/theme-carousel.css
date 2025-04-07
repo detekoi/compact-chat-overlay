@@ -161,10 +161,6 @@
     max-height: calc(1.2em * 2); /* Calculate max height based on line clamp and line height */
 }
 
-/* Style for the theme card's background color pseudo-element */
-.theme-card::before {
-}
-
 /* Style for active theme card */
 .theme-card.active {
     outline: 2px solid #9147ff;
