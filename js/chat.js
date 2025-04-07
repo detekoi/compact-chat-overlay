@@ -7,109 +7,87 @@
         // DOM already loaded, run immediately
         initApp();
     }
-    
+
     function initApp() {
-        console.log('DOM is fully loaded, initializing application...');
-        
-        // Initial Connection Prompt Elements (Moved to top)
+        // Initial Connection Prompt Elements
         const initialConnectionPrompt = document.getElementById('initial-connection-prompt');
         const initialChannelInput = document.getElementById('initial-channel-input');
         const initialConnectBtn = document.getElementById('initial-connect-btn');
         const openSettingsFromPromptBtn = document.getElementById('open-settings-from-prompt');
-        
+
         // --- HELPER FUNCTIONS (Defined Early) ---
 
         /**
          * Converts a hex color string and an opacity value (0-1) to an rgba string.
-         * @param {string} hex - The hex color string (e.g., "#ff0000").
-         * @param {number} opacity - The opacity value (0.0 to 1.0).
-         * @returns {string} The rgba color string (e.g., "rgba(255, 0, 0, 0.5)").
          */
         function hexToRgba(hex, opacity) {
-            // <<< ADD CHECK: If input is already rgba, return it >>>
             if (typeof hex === 'string' && hex.trim().toLowerCase().startsWith('rgba')) {
                 console.warn(`[hexToRgba] Received rgba value "${hex}" instead of hex. Returning directly.`);
                 return hex; // Input is already rgba
             }
 
-            if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) { // Also check for # prefix
+            if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) {
                 console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
                 return `rgba(0, 0, 0, ${opacity})`; // Default black if hex invalid
             }
 
             let r = 0, g = 0, b = 0;
-            // 3 digit hex
-            if (hex.length === 4) {
+            if (hex.length === 4) { // 3 digit hex
                 r = parseInt(hex[1] + hex[1], 16);
                 g = parseInt(hex[2] + hex[2], 16);
                 b = parseInt(hex[3] + hex[3], 16);
-            }
-            // 6 digit hex
-            else if (hex.length === 7) {
+            } else if (hex.length === 7) { // 6 digit hex
                 r = parseInt(hex[1] + hex[2], 16);
                 g = parseInt(hex[3] + hex[4], 16);
                 b = parseInt(hex[5] + hex[6], 16);
-            }
-             else {
-                 // Invalid hex format, return default black with opacity
+            } else {
                  console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
                  return `rgba(0, 0, 0, ${opacity})`;
              }
 
-            // Ensure opacity is within bounds
-            opacity = Math.max(0, Math.min(1, opacity));
-
-            return `rgba(${r}, ${g}, ${b}, ${opacity.toFixed(2)})`; // Keep 2 decimal places for opacity
+            opacity = Math.max(0, Math.min(1, opacity)); // Ensure opacity is within bounds
+            return `rgba(${r}, ${g}, ${b}, ${opacity.toFixed(2)})`;
         }
-        
+
         // Default configuration
         let config = {
-            // Display mode
             chatMode: 'window',
-            
-            // Window mode settings
-            bgColor: 'rgba(18, 18, 18, 0.8)',
+            bgColor: 'rgba(18, 18, 18, 0.8)', // Includes default opacity
             borderColor: '#9147ff',
             textColor: '#efeff1',
             usernameColor: '#9147ff',
             fontSize: 14,
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-            chatWidth: 95, // Default width set to 95%
-            chatHeight: 95, // Default height set to 95%
+            chatWidth: 95,
+            chatHeight: 95,
             maxMessages: 50,
             showTimestamps: true,
             overrideUsernameColors: false,
             borderRadius: '8px',
             boxShadow: 'none',
-            
-            // Popup mode settings
             popup: {
                 direction: 'from-bottom',
                 duration: 5, // seconds
                 maxMessages: 3
             },
-            
-            // Theme
             theme: 'default',
-            
-            // Last connected channel
             lastChannel: ''
+            // bgColorOpacity and bgImageOpacity are derived/set later
         };
-        
+
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
-        const chatWrapper = document.getElementById('chat-wrapper'); // Get reference to the wrapper
-        const popupContainer = document.getElementById('popup-container'); // << ADDED HERE
+        const chatWrapper = document.getElementById('chat-wrapper');
+        const popupContainer = document.getElementById('popup-container');
         const chatMessages = document.getElementById('chat-messages');
         const scrollArea = document.getElementById('chat-scroll-area');
-        // Create status indicator if it doesn't exist
         let statusIndicator;
         if (!document.getElementById('status-indicator')) {
             statusIndicator = document.createElement('div');
             statusIndicator.id = 'status-indicator';
             statusIndicator.className = 'disconnected';
             statusIndicator.title = 'Disconnected';
-            document.getElementById('chat-container').appendChild(statusIndicator);
+            document.getElementById('chat-container')?.appendChild(statusIndicator); // Added safety check
         } else {
             statusIndicator = document.getElementById('status-indicator');
         }
@@ -125,7 +103,7 @@
         const fontSizeValue = document.getElementById('font-size-value');
         const bgColorInput = document.getElementById('bg-color');
         const bgOpacityInput = document.getElementById('bg-opacity');
-        const bgOpacityValue = document.getElementById('bg-opacity-value'); // Get existing element
+        const bgOpacityValue = document.getElementById('bg-opacity-value');
         const borderColorInput = document.getElementById('border-color');
         const textColorInput = document.getElementById('text-color');
         const usernameColorInput = document.getElementById('username-color');
@@ -136,104 +114,74 @@
         const chatHeightValue = document.getElementById('chat-height-value');
         const maxMessagesInput = document.getElementById('max-messages');
         const showTimestampsInput = document.getElementById('show-timestamps');
-        
-        // Border radius and box shadow presets
         const borderRadiusPresets = document.getElementById('border-radius-presets');
         const boxShadowPresets = document.getElementById('box-shadow-presets');
-        
-        // Font selection carousel
         const prevFontBtn = document.getElementById('prev-font');
         const nextFontBtn = document.getElementById('next-font');
         const currentFontDisplay = document.getElementById('current-font');
-        
-        // Theme carousel
-        // const prevThemeBtn = document.getElementById('prev-theme'); // REMOVED
-        // const nextThemeBtn = document.getElementById('next-theme'); // REMOVED
-        // const currentThemeDisplay = document.getElementById('current-theme'); // REMOVED
-        const themePreview = document.getElementById('theme-preview'); // Ensure themePreview is defined
-        
-        // Connection Management Elements (inside config panel)
-        const channelForm = document.getElementById('channel-form'); // Now refers to the one in the panel
-        
+        const themePreview = document.getElementById('theme-preview');
+        const channelForm = document.getElementById('channel-form');
+
         // Connection and chat state
         let socket = null;
         let channel = '';
-        let isConnecting = false; // <<< ADD CONNECTION FLAG
+        let isConnecting = false; // Flag to prevent multiple connection attempts
 
         // Reconnection state
-        let isExplicitDisconnect = false; // Flag to track if disconnect was user-initiated
+        let isExplicitDisconnect = false;
         let reconnectAttempts = 0;
         let reconnectTimer = null;
         const MAX_RECONNECT_ATTEMPTS = 5;
-        const INITIAL_RECONNECT_DELAY = 1000; // 1 second
-        const MAX_RECONNECT_DELAY = 30000; // 30 seconds
+        const INITIAL_RECONNECT_DELAY = 1000;
+        const MAX_RECONNECT_DELAY = 30000;
 
         // Store config state when panel opens
-        let initialConfigBeforeEdit = null; // Use ONLY this for revert state
-        
+        let initialConfigBeforeEdit = null;
+
         // Font selection
         let currentFontIndex = 0;
-        // availableFonts is now defined globally in theme-carousel.js
-        // const availableFonts = [ ... ]; // REMOVED local definition
-        
-        // Theme selection (populated by theme-carousel.js)
-        // let currentThemeIndex = 0; // REMOVED
-        let lastAppliedThemeValue = 'default'; // Keep for saving state
-        // availableThemes is now managed globally, initialized by theme-carousel.js
-        // const availableThemes = [ ... ]; // Removed initial definition
-        
-        // --- DEFINE HELPER FUNCTIONS EARLY ---
+        // availableFonts is expected to be defined globally in theme-carousel.js
+
+        // Theme selection
+        let lastAppliedThemeValue = 'default'; // Track theme for saving
+        // availableThemes is expected to be managed globally by theme-carousel.js
+
+        // --- HELPER FUNCTIONS ---
 
         /**
          * Fix any CSS variables that contain preset names instead of actual CSS values.
          */
         function fixCssVariables() {
-            // Get current CSS variable values
             const borderRadius = document.documentElement.style.getPropertyValue('--chat-border-radius').trim();
             const boxShadow = document.documentElement.style.getPropertyValue('--chat-box-shadow').trim();
-            
-            // Only proceed if variables have values
-            if (borderRadius || boxShadow) {
-                // Check border radius
-                if (borderRadius) {
-                    const borderRadiusMap = {
-                        'None': '0px', 'none': '0px',
-                        'Subtle': '8px', 'subtle': '8px',
-                        'Rounded': '16px', 'rounded': '16px',
-                        'Pill': '24px', 'pill': '24px'
-                    };
-                    
-                    // If it's a preset name, convert to CSS value
-                    if (borderRadiusMap[borderRadius]) {
-                        const cssValue = borderRadiusMap[borderRadius];
-                        // *** Add check: Only set if value is different ***
-                        if (borderRadius !== cssValue) {
-                            console.log(`Converting border radius "${borderRadius}" to "${cssValue}"`);
-                            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
-                        }
+
+            if (borderRadius) {
+                const borderRadiusMap = {
+                    'None': '0px', 'none': '0px',
+                    'Subtle': '8px', 'subtle': '8px',
+                    'Rounded': '16px', 'rounded': '16px',
+                    'Pill': '24px', 'pill': '24px'
+                };
+                if (borderRadiusMap[borderRadius]) {
+                    const cssValue = borderRadiusMap[borderRadius];
+                    if (borderRadius !== cssValue) {
+                        document.documentElement.style.setProperty('--chat-border-radius', cssValue);
                     }
                 }
-                
-                // Check box shadow
-                if (boxShadow) {
-                    const boxShadowMap = {
-                        'None': 'none', 'none': 'none',
-                        'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', 'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
-                        'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px', 'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px', 'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
-                        'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px', 'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px', 'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
-                        'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)', 'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
-                    };
-                    
-                    // If it's a preset name (key exists in map)
-                    if (boxShadowMap[boxShadow]) {
-                        const cssValue = boxShadowMap[boxShadow];
-                        // *** Add check: Only setProperty if the current value is not already the target CSS value ***
-                        if (boxShadow !== cssValue) {
-                            console.log(`Converting box shadow "${boxShadow}" to "${cssValue}"`);
-                            document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
-                        } 
-                        // Optional: Log that it's already correct - uncomment below for debugging
-                        // else { console.log(`Box shadow variable "--chat-box-shadow" already has correct CSS value: "${boxShadow}"`); }
+            }
+
+            if (boxShadow) {
+                const boxShadowMap = {
+                    'None': 'none', 'none': 'none',
+                    'Soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px', 'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
+                    'Simple 3D': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px', 'simple 3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px', 'simple3d': 'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+                    'Intense 3D': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px', 'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px', 'intense3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
+                    'Sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)', 'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
+                };
+                if (boxShadowMap[boxShadow]) {
+                    const cssValue = boxShadowMap[boxShadow];
+                    if (boxShadow !== cssValue) {
+                        document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
                     }
                 }
             }
@@ -244,23 +192,15 @@
          */
         window.getBorderRadiusValue = function(value) { // Make global
             if (!value) return '8px'; // Default
-            
             const borderRadiusMap = {
                 'None': '0px', 'none': '0px',
                 'Subtle': '8px', 'subtle': '8px',
                 'Rounded': '16px', 'rounded': '16px',
                 'Pill': '24px', 'pill': '24px',
-                'Sharp': '0px', 'sharp': '0px' // Added Sharp preset
+                'Sharp': '0px', 'sharp': '0px'
             };
-            
-            if (borderRadiusMap[value]) {
-                return borderRadiusMap[value];
-            }
-            
-            if (typeof value === 'string' && value.endsWith('px')) {
-                return value;
-            }
-            
+            if (borderRadiusMap[value]) return borderRadiusMap[value];
+            if (typeof value === 'string' && value.endsWith('px')) return value;
             console.warn(`Unknown border radius value: ${value}. Defaulting to 8px.`);
             return '8px';
         }
@@ -270,7 +210,6 @@
          */
         window.getBoxShadowValue = function(preset) { // Make global
             if (!preset) return 'none';
-            
             const boxShadowMap = {
                 'none': 'none',
                 'soft': 'rgba(99, 99, 99, 0.2) 0px 2px 8px 0px',
@@ -280,19 +219,12 @@
                 'intense 3d': 'rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px',
                 'sharp': '8px 8px 0px 0px rgba(0, 0, 0, 0.9)'
             };
-            
             const presetLower = preset.toLowerCase();
-            if (boxShadowMap[presetLower]) {
-                return boxShadowMap[presetLower];
-            }
-            
-            if (preset === 'none' || preset.includes('rgba') || preset.includes('px')) {
-                return preset;
-            }
-            
+            if (boxShadowMap[presetLower]) return boxShadowMap[presetLower];
+            if (preset === 'none' || preset.includes('rgba') || preset.includes('px')) return preset;
             return 'none';
         }
-        
+
         /**
          * Highlight the active border radius button based on CSS value
          */
@@ -300,11 +232,7 @@
              if (borderRadiusPresets) {
                 const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    if (btn.dataset.value === cssValue) { 
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
+                    btn.classList.toggle('active', btn.dataset.value === cssValue);
                 });
             }
         }
@@ -314,19 +242,12 @@
          */
         function highlightBoxShadowButton(presetName) {
              if (boxShadowPresets) {
-                // Normalize the input preset name to match the data-value format (lowercase, no spaces)
-                const normalizedPreset = typeof presetName === 'string' 
-                    ? presetName.toLowerCase().replace(/\\s+/g, '') 
-                    : 'none'; // Default to 'none' if input is invalid
-
+                const normalizedPreset = typeof presetName === 'string'
+                    ? presetName.toLowerCase().replace(/\s+/g, '')
+                    : 'none';
                 const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
-                    // Compare button's data-value with the normalized preset name
-                    if (btn.dataset.value === normalizedPreset) { 
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
+                    btn.classList.toggle('active', btn.dataset.value === normalizedPreset);
                 });
             }
         }
@@ -338,8 +259,6 @@
             const results = regex.exec(location.search);
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
-        
-        // --- END OF EARLY HELPER DEFINITIONS ---
 
         // Add a MutationObserver to fix any incorrect CSS variable values immediately
         const cssVarObserver = new MutationObserver(mutations => {
@@ -349,47 +268,34 @@
                 }
             });
         });
-        
-        // Start observing document.documentElement style changes
         cssVarObserver.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['style']
         });
-        
-        
-        // Theme selection (populated by theme-carousel.js)
-        // window.availableThemes is initialized/populated by theme-carousel.js
-        
-        // --- REST OF THE initApp FUNCTIONS ---
-        
+
         // Show status indicators and messages
         function updateStatus(connected) {
-            if (connected) {
-                statusIndicator.classList.add('connected');
-                statusIndicator.classList.remove('disconnected');
-                statusIndicator.title = `Connected to ${channel}'s chat`;
-            } else {
-                statusIndicator.classList.add('disconnected');
-                statusIndicator.classList.remove('connected');
-                statusIndicator.title = 'Disconnected';
-            }
+            if (!statusIndicator) return; // Safety check
+            statusIndicator.className = connected ? 'connected' : 'disconnected';
+            statusIndicator.title = connected ? `Connected to ${channel}'s chat` : 'Disconnected';
         }
-        
+
         /**
          * Check if the user is scrolled near the bottom of an element.
          */
         function isUserScrolledToBottom(element) {
             if (!element) return false;
-            // Use a tolerance (e.g., 5 pixels) for slight variations
-            const tolerance = 5;
+            const tolerance = 5; // Pixels
             return element.scrollHeight - element.clientHeight <= element.scrollTop + tolerance;
         }
-        
+
         // Add a system message to the chat
         function addSystemMessage(message) {
-            // Determine if we should scroll after adding the message (only in window mode)
+            if (!chatMessages) {
+                console.error("Chat messages container not found for system message.");
+                return;
+            }
             const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(scrollArea);
-
             const messageElement = document.createElement('div');
             messageElement.className = 'chat-message system-message';
 
@@ -400,825 +306,518 @@
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 timestamp = `${hours}:${minutes} `;
             }
-
             messageElement.innerHTML = `<span class="timestamp">${timestamp}</span><span class="message-content">${message}</span>`;
-            
-            // Append to the correct container (chatMessages is inside scrollArea)
-            // Ensure chatMessages exists before appending
-            if (chatMessages) {
-                chatMessages.appendChild(messageElement);
-            } else {
-                console.error("Chat messages container not found for system message.");
-                // If attempting to reconnect, we might want to queue messages or handle this differently
-                return;
-            }
+            chatMessages.appendChild(messageElement);
 
-            // Limit messages (only makes sense in window mode)
             if (config.chatMode === 'window') {
                 limitMessages();
             }
-
-            // Conditionally scroll down only if user was at the bottom before adding
             if (shouldScroll && scrollArea) {
                 scrollArea.scrollTop = scrollArea.scrollHeight;
             }
-            // Removed unconditional scrollToBottom();
         }
-        
+
         // Add a user message to the chat
         function addChatMessage(data) {
             try {
                 if (!data.username || !data.message) return;
-                
-                // First check which mode we're in and get appropriate container
+
                 let targetContainer;
-                let currentScrollArea; // Define specific scroll area for this function instance
-                
+                let currentScrollArea;
+
                 if (config.chatMode === 'popup') {
                     targetContainer = document.getElementById('popup-messages');
-                    currentScrollArea = null; // No scrolling needed for popup
-                    if (!targetContainer) {
-                        console.error('Popup messages container not found');
-                        return; // Exit early if container not found
-                    }
-                } else {
+                    if (!targetContainer) { console.error('Popup messages container not found'); return; }
+                } else { // window mode
                     targetContainer = chatMessages;
-                    currentScrollArea = scrollArea; // Use the globally defined scroll area
-                    if (!targetContainer) {
-                        console.error('Chat messages container not found');
-                        return; // Exit early if container not found
-                    }
-                    if (!currentScrollArea) {
-                         console.error('Chat scroll area not found');
-                        // Potentially try to find it again, though it should exist
-                        // currentScrollArea = document.getElementById('chat-scroll-area');
-                        // If still not found, maybe return or log error
-                    }
+                    currentScrollArea = scrollArea;
+                    if (!targetContainer) { console.error('Chat messages container not found'); return; }
+                    if (!currentScrollArea) { console.error('Chat scroll area not found'); }
                 }
+                if (!targetContainer) { console.error('Target container could not be determined or found.'); return; }
 
-                 if (!targetContainer) {
-                    console.error('Target container could not be determined or found.');
-                    return;
-                 }
-
-
-                // Check scroll position *before* adding the message (only in window mode)
                 const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(currentScrollArea);
-
                 const messageElement = document.createElement('div');
 
                 if (config.chatMode === 'popup') {
                     messageElement.className = 'popup-message';
-                    // Add animation direction class
-                    if (config.popup && config.popup.direction) {
-                        messageElement.classList.add(config.popup.direction);
-                    } else {
-                        messageElement.classList.add('from-bottom'); // Default fallback
-                    }
+                    messageElement.classList.add(config.popup?.direction || 'from-bottom');
                 } else {
                     messageElement.className = 'chat-message';
                 }
-                
-                // Add timestamp if enabled
+
                 let timestamp = '';
                 if (config.showTimestamps) {
                     const now = new Date();
-                    const hours = now.getHours().toString().padStart(2, '0');
-                    const minutes = now.getMinutes().toString().padStart(2, '0');
-                    timestamp = `${hours}:${minutes} `;
+                    timestamp = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} `;
                 }
-                
-                // Create a random username color if not provided or if we're overriding
+
                 let userColor = data.color || generateColorFromName(data.username);
-                
-                // The overrideUsernameColors setting controls if we use the user's Twitch color
                 if (config.overrideUsernameColors) {
-                    userColor = config.usernameColor; // Use the theme's username color instead
+                    userColor = config.usernameColor;
                 }
-                
-                // Handle message content
+
                 let message = data.message;
-                
-                // Parse emotes if available
+
+                // Parse emotes
                 if (data.emotes && typeof data.emotes === 'object') {
                     const emotePositions = [];
-                    
                     try {
-                        // Build a list of all emote positions
                         for (const emoteId in data.emotes) {
                             if (!data.emotes.hasOwnProperty(emoteId)) continue;
-                            
                             const emotePositionArray = data.emotes[emoteId];
                             if (!Array.isArray(emotePositionArray)) continue;
-                            
+
                             for (const position of emotePositionArray) {
-                                if (!position || !position.includes('-')) continue;
-                                
+                                if (!position?.includes('-')) continue;
                                 const [startStr, endStr] = position.split('-');
                                 const start = parseInt(startStr, 10);
                                 const end = parseInt(endStr, 10);
-                                
-                                // Validate the positions are valid numbers and in range
-                                if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start > end || end >= data.message.length) {
-                                    continue;
-                                }
-                                
-                                emotePositions.push({
-                                    start,
-                                    end,
-                                    id: emoteId
-                                });
+                                if (isNaN(start) || isNaN(end) || start < 0 || end < 0 || start > end || end >= data.message.length) continue;
+                                emotePositions.push({ start, end, id: emoteId });
                             }
                         }
-                    } catch (err) {
-                        console.error('Error processing emotes:', err);
-                    }
-                    
-                    // Sort emote positions from end to start to avoid position shifts
-                    emotePositions.sort((a, b) => b.start - a.start);
-                    
-                    // Replace each emote with an img tag
+                    } catch (err) { console.error('Error processing emotes:', err); }
+
+                    emotePositions.sort((a, b) => b.start - a.start); // Process from end
+
                     for (const emote of emotePositions) {
                         try {
                             const emoteCode = message.substring(emote.start, emote.end + 1);
                             const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0`;
-                            
-                            // Create the replacement HTML with proper escaping
                             const emoteHtml = `<img class="emote" src="${emoteUrl}" alt="${emoteCode.replace(/"/g, '&quot;')}" title="${emoteCode.replace(/"/g, '&quot;')}" />`;
-                            
-                            // Replace the emote in the message
                             message = message.substring(0, emote.start) + emoteHtml + message.substring(emote.end + 1);
-                        } catch (err) {
-                            console.error('Error replacing emote:', err);
-                        }
+                        } catch (err) { console.error('Error replacing emote:', err); }
                     }
                 }
-                
-                // Skip URL processing entirely if message contains emote tags
+
+                // Process URLs only if message does not contain emotes
                 if (!message.includes('<img class="emote"')) {
-                    // Only process URLs in messages without emotes
-                    message = message.replace(
-                        /(\bhttps?:\/\/[^\s<]+)/g,
-                        (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
-                    );
+                    message = message.replace(/(\bhttps?:\/\/[^\s<]+)/g, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
                 }
-                
-                // Badge functionality removed - requires Twitch API auth
-                
-                // Assemble the chat message
+
                 messageElement.innerHTML = `
                     <span class="timestamp">${timestamp}</span>
                     <span class="username" style="color: ${userColor}">${data.username}:</span>
-                    <span class="message-content">${message}</span>
-                `;
-                
-                // Add to appropriate container
+                    <span class="message-content">${message}</span>`;
                 targetContainer.appendChild(messageElement);
 
-                // Trigger slide-in transition for popup mode
                 if (config.chatMode === 'popup') {
-                    // Force reflow before adding the class to trigger transition
-                    void messageElement.offsetWidth;
+                    void messageElement.offsetWidth; // Force reflow for transition
                     messageElement.classList.add('visible');
-                }
 
-                if (config.chatMode === 'window') {
-                    // Limit messages to maintain performance
-                    limitMessages();
-                    
-                    // Conditionally scroll down only if user was at the bottom before adding
-                    if (shouldScroll && currentScrollArea) {
-                        currentScrollArea.scrollTop = currentScrollArea.scrollHeight;
-                    }
-                    // Removed unconditional scrollToBottom();
-                    
-                } else if (config.chatMode === 'popup') {
-                    
-                    // For popup mode, limit messages and set auto-remove timer
-                    // Limit popup messages - Use Array.from to create a static array instead of live NodeList
+                    // Limit popup messages
                     const popupMsgs = Array.from(targetContainer.querySelectorAll('.popup-message'));
                     const maxMessages = config.popup?.maxMessages;
-                    
-                    // Remove excess messages starting from the oldest ones
                     if (popupMsgs.length > maxMessages && maxMessages > 0) {
                         try {
                             const removeCount = popupMsgs.length - maxMessages;
                             for (let i = 0; i < removeCount; i++) {
-                                if (popupMsgs[i] && popupMsgs[i].parentNode) {
-                                    popupMsgs[i].parentNode.removeChild(popupMsgs[i]);
-                                }
+                                popupMsgs[i]?.parentNode?.removeChild(popupMsgs[i]);
                             }
-                        } catch (err) {
-                            console.error('Error removing excess popup messages:', err);
-                        }
+                        } catch (err) { console.error('Error removing excess popup messages:', err); }
                     }
-                    
-                    // Set the auto-remove timer with a safety check for duration
+
+                    // Auto-remove timer
                     const duration = (config.popup?.duration || 5) * 1000;
-                    if (duration > 0 && duration < 60000) { // Ensure valid duration (0-60 seconds)
+                    if (duration > 0 && duration < 60000) { // Validate duration
                         setTimeout(() => {
-                            // 1. Remove .visible to start slide-out transition state
-                            messageElement.classList.remove('visible');
-
-                            // 2. Use requestAnimationFrame to ensure .visible removal is processed
-                            requestAnimationFrame(() => {
-                                // Force reflow before adding .removing (belt-and-suspenders)
-                                void messageElement.offsetWidth;
-                                // 3. Add .removing class (CSS sets opacity: 0, transition handles the rest)
+                            messageElement.classList.remove('visible'); // Start slide-out
+                            requestAnimationFrame(() => { // Ensure transition starts
+                                void messageElement.offsetWidth; // Force reflow
                                 messageElement.classList.add('removing');
-
-                                // 4. Set timeout to remove the DOM element *after* the transition completes
-                                setTimeout(() => {
-                                    if (messageElement.parentNode) {
-                                        messageElement.parentNode.removeChild(messageElement);
-                                    }
-                                }, 300); // Match the CSS transition duration
+                                setTimeout(() => { // Remove after transition
+                                    messageElement.parentNode?.removeChild(messageElement);
+                                }, 300); // Match CSS transition duration
                             });
-                        }, duration); // Start removal process after configured duration
+                        }, duration);
+                    }
+                } else { // Window mode
+                    limitMessages();
+                    if (shouldScroll && currentScrollArea) {
+                        currentScrollArea.scrollTop = currentScrollArea.scrollHeight;
                     }
                 }
             } catch (error) {
                 console.error('Error adding chat message:', error);
             }
         }
-        
+
         // Connect to Twitch chat
         function connectToChat() {
-            // <<< CHECK CONNECTION FLAG >>>
-            if (isConnecting) {
-                // console.warn("[connectToChat] Already connecting, ignoring duplicate call."); // <<< REMOVE THIS LINE >>>
-                return;
-            }
-            isConnecting = true; // <<< SET FLAG >>>
-            console.log("[connectToChat] Attempting connection..."); // Add log to confirm entry
+            if (isConnecting) return;
+            isConnecting = true;
 
-            // Clear any pending reconnection attempts if manually connecting
             clearTimeout(reconnectTimer);
             reconnectTimer = null;
-            // Reset attempts ONLY if not triggered by reconnect logic itself
-            // Reconnect logic will increment attempts before calling connectToChat
-            // reconnectAttempts = 0; // Let scheduleReconnect handle attempts
 
             if (socket && socket.readyState === WebSocket.OPEN) {
                 console.warn("[connectToChat] Socket already open. Closing before reconnecting.");
-                // Ensure we don't trigger reconnect logic when deliberately closing here
                 isExplicitDisconnect = true;
                 socket.close();
-                socket = null; // Clear immediately
-                isExplicitDisconnect = false; // Reset flag
+                socket = null;
+                isExplicitDisconnect = false;
             }
+            // Ensure any existing socket is closed before creating a new one
+            if (socket) socket.close();
 
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close(); // Close existing connection if any
-            }
-
-            // Prioritize channel input from the main settings panel IF it has a value,
-            // otherwise use the initial prompt's value if it's visible.
-            // This handles connecting from either the prompt or the settings panel.
-            let channelToConnect = channelInput.value.trim().toLowerCase();
-            if (!channelToConnect && initialConnectionPrompt.style.display !== 'none' && initialChannelInput.value) {
+            let channelToConnect = channelInput?.value.trim().toLowerCase();
+            if (!channelToConnect && initialConnectionPrompt?.style.display !== 'none' && initialChannelInput?.value) {
                  channelToConnect = initialChannelInput.value.trim().toLowerCase();
-                 // Sync back to main input for consistency if using prompt input
-                 channelInput.value = channelToConnect;
+                 if (channelInput) channelInput.value = channelToConnect; // Sync back
             }
 
-            // Update the global channel variable
             channel = channelToConnect;
-
             if (!channel) {
-                // Show error within the prompt if it's visible
-                if (initialConnectionPrompt.style.display !== 'none') {
-                     // Maybe add an error message area to the prompt later
+                if (initialConnectionPrompt?.style.display !== 'none') {
                      console.error('Please enter a channel name in the prompt.');
-                     initialChannelInput.focus();
+                     initialChannelInput?.focus();
                 } else {
-                     // Otherwise, show system message in chat area (if connected or trying from settings)
                      addSystemMessage('Please enter a valid channel name in the settings panel');
                 }
+                isConnecting = false; // Reset flag if no channel
                 return;
             }
 
-            // Display connecting message
             addSystemMessage(`Connecting to ${channel}'s chat...`);
-            // You could also add a status message within the initial prompt if desired
-
-            // Connect to Twitch IRC via WebSocket
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-            window.socket = socket; // Make socket available to the console for debugging
+            window.socket = socket; // Debugging access
+
             socket.onopen = function() {
-                console.log('WebSocket connection opened. Proceeding...'); // Simplified log
-                
-                // Use setTimeout to ensure socket is truly ready for send commands
+                // Use timeout to ensure socket is ready before sending commands
                 setTimeout(() => {
-                    // Check if socket still exists and is open *inside* the timeout
                     if (!socket || socket.readyState !== WebSocket.OPEN) {
                         console.warn("[socket.onopen timeout] Socket closed before sending commands.");
-                        isConnecting = false; // <<< RESET FLAG on early exit >>>
+                        isConnecting = false;
                         return;
                     }
+                    socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
+                    socket.send(`PASS SCHMOOPIIE`); // Use anonymous PASS
+                    socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
+                    socket.send(`JOIN #${channel}`);
 
-                    // REMOVED: if (socket && socket.readyState === WebSocket.OPEN) { 
-                        // console.log('[socket.onopen] State confirmed OPEN. Proceeding...'); 
-                        socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
-                        socket.send(`PASS SCHMOOPIIE`);
-                        socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
-                        socket.send(`JOIN #${channel}`);
+                    updateConnectionStateUI(true);
+                    config.lastChannel = channel;
+                    saveLastChannelOnly(channel);
 
-                        // ** Update UI State: Connected **
-                        updateConnectionStateUI(true); // Hide prompt, show chat
+                    if (channelForm) channelForm.style.display = 'none';
+                    if (disconnectBtn) {
+                        disconnectBtn.textContent = `Disconnect from ${channel}`;
+                        disconnectBtn.style.display = 'block';
+                    }
 
-                        // Save the channel name in config (memory)
-                        config.lastChannel = channel;
-                        // ** Save ONLY the last channel to storage **
-                        // console.log(`[socket.onopen] Value of 'channel' before save: "${channel}"`); // Optional log
-                        // console.log("[socket.onopen] About to call saveLastChannelOnly..."); // Optional log
-                        saveLastChannelOnly(channel);
-
-                        // Update UI elements within the settings panel
-                        if (channelForm) channelForm.style.display = 'none';
-                        if (disconnectBtn) {
-                            disconnectBtn.textContent = `Disconnect from ${channel}`;
-                            disconnectBtn.style.display = 'block';
-                        }
-
-                        // Add connected message
-                        // Check if this was a successful reconnection
-                        if (reconnectAttempts > 0) {
-                            addSystemMessage(`Reconnected to ${channel}'s chat.`);
-                        } else {
-                            addSystemMessage(`Connected to ${channel}'s chat`);
-                        }
-                        reconnectAttempts = 0; // Reset attempts on successful connection
-                        isConnecting = false; // <<< RESET FLAG on success >>>
-                    // REMOVED: } else { 
-                    // REMOVED:    console.error(`[socket.onopen] FAILED state check! Socket: ${socket}, ReadyState: ${socket?.readyState}`); 
-                    // REMOVED: }
-                }, 0); // Delay of 0ms pushes to next event loop cycle
+                    addSystemMessage(reconnectAttempts > 0 ? `Reconnected to ${channel}'s chat.` : `Connected to ${channel}'s chat`);
+                    reconnectAttempts = 0; // Reset on successful connection
+                    isConnecting = false;
+                }, 50); // Small delay can sometimes help ensure readiness
             };
 
             socket.onclose = function(event) {
                 console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
-                isConnecting = false; // Reset connecting flag
-
-                // Store the last channel before clearing
-                const lastConnectedChannel = channel;
-
-                // Clear socket reference immediately
+                isConnecting = false;
+                const lastConnectedChannel = channel; // Store before clearing
                 socket = null;
-                channel = ''; // Clear current channel state
+                channel = '';
 
-                // Reset UI elements within the settings panel *regardless* of explicit disconnect
-                // This ensures the UI reflects the disconnected state even during retries
+                // Reset relevant UI elements in the settings panel
                 if (disconnectBtn) {
                     disconnectBtn.style.display = 'none';
-                    disconnectBtn.textContent = 'Disconnect'; // Reset text
+                    disconnectBtn.textContent = 'Disconnect';
                 }
-                if (channelForm) {
-                    channelForm.style.display = 'flex'; // Use flex based on HTML structure
-                }
+                if (channelForm) channelForm.style.display = 'flex';
 
-                // If this was NOT an intentional disconnect, try to reconnect
                 if (!isExplicitDisconnect) {
                     addSystemMessage('Connection lost. Attempting to reconnect...');
-                    scheduleReconnect(lastConnectedChannel); // Pass the channel we *were* connected to
+                    scheduleReconnect(lastConnectedChannel); // Attempt reconnect
                 } else {
-                    // This was an intentional disconnect
                     addSystemMessage('Disconnected from chat.');
                     updateConnectionStateUI(false); // Show initial prompt
-                    isExplicitDisconnect = false; // Reset the flag for future connections
-                    // Ensure prompt input reflects the cleared state or last attempted channel
-                    if (initialChannelInput) initialChannelInput.value = channelInput.value || config.lastChannel || ''; // Keep synced or use last known good channel
+                    isExplicitDisconnect = false; // Reset flag
+                    // Sync channel input state
+                    if (initialChannelInput) initialChannelInput.value = channelInput?.value || config.lastChannel || '';
                 }
             };
 
             socket.onerror = function(error) {
                 console.error('WebSocket Error:', error);
                 addSystemMessage('Error connecting to chat. Check console for details.');
-                isConnecting = false; // Reset connecting flag on error
-
-                // Consider if an error should also trigger a reconnect attempt or just fail
-                // updateConnectionStateUI(false); // Might show prompt too early if reconnecting
-                // For now, let onclose handle potential reconnects
+                isConnecting = false;
+                // Let socket.onclose handle potential reconnection logic
             };
 
             socket.onmessage = function(event) {
                 const messages = event.data.split('\r\n');
-                
                 messages.forEach(message => {
                     if (!message) return;
-                    
-                    // Keep connection alive
-                    if (message.includes('PING')) {
-                        socket.send('PONG :tmi.twitch.tv');
+
+                    if (message.includes('PING')) { // Handle PING/PONG keepalive
+                        socket?.send('PONG :tmi.twitch.tv');
                         return;
                     }
-                    
-                    // Handle PRIVMSG (chat messages)
-                    if (message.includes('PRIVMSG')) {
-                        // Debug log for troubleshooting message format issues
-                        console.debug('Received Twitch message:', message);
-                        // Parse tags if present (IRCv3)
+
+                    if (message.includes('PRIVMSG')) { // Handle chat messages
                         let tags = {};
-                        if (message.startsWith('@')) {
+                        if (message.startsWith('@')) { // Parse IRCv3 tags
                             try {
-                                const tagEnd = message.indexOf(' ');
-                                if (tagEnd > 0) {
-                                    const tagPart = message.slice(1, tagEnd);
-                                    tagPart.split(';').forEach(tag => {
-                                        if (tag && tag.includes('=')) {
-                                            const [key, value] = tag.split('=');
-                                            if (key) tags[key] = value || '';
-                                        }
-                                    });
-                                }
-                            } catch (err) {
-                                console.error('Error parsing IRC tags:', err);
-                            }
+                                const tagPart = message.slice(1, message.indexOf(' '));
+                                tagPart.split(';').forEach(tag => {
+                                    if (tag?.includes('=')) {
+                                        const [key, value] = tag.split('=');
+                                        if (key) tags[key] = value || '';
+                                    }
+                                });
+                            } catch (err) { console.error('Error parsing IRC tags:', err); }
                         }
-                        
-                        // Extract username from message - handling both standard and non-standard formats
-                        let username = 'Anonymous';
-                        try {
-                            // First try the display-name from tags (most reliable)
-                            if (tags['display-name']) {
-                                username = tags['display-name'];
-                            } else {
-                                // Fall back to extracting from message
-                                const usernameMatch = message.match(/:(.*?)!/);
-                                if (usernameMatch && usernameMatch[1]) {
-                                    username = usernameMatch[1];
-                                }
-                            }
-                        } catch (err) {
-                            console.error('Error extracting username:', err);
-                        }
-                        
-                        // Extract message content more reliably
+
+                        // Extract username (prefer display-name tag)
+                        let username = tags['display-name'] || message.match(/:(.*?)!/)?.[1] || 'Anonymous';
+
+                        // Extract message content
                         let messageContent = '';
                         try {
-                            // Look for the PRIVMSG part and extract everything after the colon
-                            const messageParts = message.split('PRIVMSG #');
-                            if (messageParts.length > 1) {
-                                // Get the channel and message part
-                                const channelAndMessage = messageParts[1];
-                                // Find the first colon after the channel name
-                                const colonIndex = channelAndMessage.indexOf(' :');
-                                if (colonIndex !== -1) {
-                                    // Extract everything after the colon
-                                    messageContent = channelAndMessage.substring(colonIndex + 2);
-                                }
+                            const msgParts = message.split('PRIVMSG #');
+                            if (msgParts.length > 1) {
+                                const colonIndex = msgParts[1].indexOf(' :');
+                                if (colonIndex !== -1) messageContent = msgParts[1].substring(colonIndex + 2);
                             }
-                        } catch (err) {
-                            console.error('Error extracting message content:', err);
-                        }
-                        
-                        // Parse emotes
+                        } catch (err) { console.error('Error extracting message content:', err); }
+
+                        // Parse emotes from tags
                         let emotes = null;
                         if (tags.emotes) {
                             try {
                                 emotes = {};
-                                const emoteGroups = tags.emotes.split('/');
-                                emoteGroups.forEach(group => {
-                                    if (!group || !group.includes(':')) return;
+                                tags.emotes.split('/').forEach(group => {
+                                    if (!group?.includes(':')) return;
                                     const [emoteId, positions] = group.split(':');
-                                    if (emoteId && positions) {
-                                        emotes[emoteId] = positions.split(',').filter(pos => pos && pos.includes('-'));
-                                    }
+                                    if (emoteId && positions) emotes[emoteId] = positions.split(',').filter(pos => pos?.includes('-'));
                                 });
-                            } catch (err) {
-                                console.error('Error parsing emotes:', err, tags.emotes);
-                            }
+                            } catch (err) { console.error('Error parsing emotes:', err, tags.emotes); }
                         }
-                        
-                        // Badge parsing removed - requires Twitch API auth
-                        
-                        // Log parsed data for debugging
-                        console.debug('Parsed message data:', {
-                            username,
-                            messageContent,
-                            emotes: tags.emotes
-                        });
-                        
-                        // Add the chat message
-                        addChatMessage({
-                            username,
-                            message: messageContent,
-                            color: tags.color || null,
-                            emotes
-                        });
+
+                        addChatMessage({ username, message: messageContent, color: tags.color || null, emotes });
                     }
                 });
             };
         }
-        
-        // Limit the number of messages based on settings
+
+        // Limit the number of messages displayed in window mode
         function limitMessages() {
-            // Save scroll position information
+            if (!chatMessages) return;
+            const max = config.maxMessages || 50;
             const isAtBottom = Math.abs((chatMessages.scrollHeight - chatMessages.scrollTop) - chatMessages.clientHeight) < 5;
-            
-            // Remove excess messages
-            while (chatMessages.children.length > config.maxMessages) {
+            while (chatMessages.children.length > max) {
                 chatMessages.removeChild(chatMessages.firstChild);
             }
-            
-            // If we were at the bottom before, make sure we stay there
-            if (isAtBottom) {
+            if (isAtBottom) { // Maintain scroll position if user was at the bottom
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
-        
-        // Generate a color from a username
+
+        // Generate a visually distinct color from a username string
         function generateColorFromName(name) {
-            // Simple hash function for the name
             let hash = 0;
             for (let i = 0; i < name.length; i++) {
                 hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash; // Convert to 32bit integer
             }
-            
-            // Create a color from the hash
-            const h = Math.abs(hash) % 360;
-            const s = 70 + (Math.abs(hash) % 30); // 70-100%
-            const l = 40 + (Math.abs(hash) % 30); // 40-70%
-            
+            const h = Math.abs(hash) % 360;         // Hue (0-359)
+            const s = 70 + (Math.abs(hash) % 31); // Saturation (70-100)
+            const l = 45 + (Math.abs(hash) % 26); // Lightness (45-70) - Adjusted for better readability
             return `hsl(${h}, ${s}%, ${l}%)`;
         }
-                
-        // Channel input connect on Enter
-        channelInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                connectToChat();
-            }
-        });
-        
-        // Background color + opacity handling
-        function updateBgColor() {
-            // Get the hex color without transparency
-            const hexColor = bgColorInput.value;
-            // Get opacity value (0-1) from the slider
-            const opacity = parseInt(bgOpacityInput.value) / 100;
 
-            // Convert hex and opacity to rgba string for immediate visual feedback
-            const rgbaColorForCSS = hexToRgba(hexColor, opacity);
-
-            // Set the combined rgba color for both chat and popup backgrounds
-            document.documentElement.style.setProperty('--chat-bg-color', rgbaColorForCSS);
-            document.documentElement.style.setProperty('--popup-bg-color', rgbaColorForCSS);
-
-            // Update the display value for the opacity slider
-            const bgOpacityValue = document.getElementById('bg-opacity-value');
-            if (bgOpacityValue) {
-                bgOpacityValue.textContent = `${Math.round(opacity * 100)}%`;
-            }
-
-            // <<< ADD THIS LINE >>>
-            updateThemePreview(); // Update preview on bg color/opacity change
+        // Connect on Enter key in channel input
+        if (channelInput) {
+            channelInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') connectToChat();
+            });
         }
 
-        // Add event listeners to update the background color when either input changes
-        bgColorInput.addEventListener('input', updateBgColor);
-        bgOpacityInput.addEventListener('input', updateBgColor); // Add listener for opacity slider
+        // Background color + opacity handling
+        function updateBgColor() {
+            if (!bgColorInput || !bgOpacityInput) return; // Safety check
+            const hexColor = bgColorInput.value;
+            const opacity = parseInt(bgOpacityInput.value) / 100;
+            const rgbaColorForCSS = hexToRgba(hexColor, opacity);
+            document.documentElement.style.setProperty('--chat-bg-color', rgbaColorForCSS);
+            document.documentElement.style.setProperty('--popup-bg-color', rgbaColorForCSS); // Sync popup
+            if (bgOpacityValue) bgOpacityValue.textContent = `${Math.round(opacity * 100)}%`;
+            updateThemePreview();
+        }
+        bgColorInput?.addEventListener('input', updateBgColor);
+        bgOpacityInput?.addEventListener('input', updateBgColor);
 
         // Background image opacity handling
         const bgImageOpacityInput = document.getElementById('bg-image-opacity');
         const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
-        
         function updateBgImageOpacity() {
+            if (!bgImageOpacityInput) return;
             const opacity = parseInt(bgImageOpacityInput.value) / 100;
-            
-            // Set the image opacity
             document.documentElement.style.setProperty('--chat-bg-image-opacity', opacity);
-            document.documentElement.style.setProperty('--popup-bg-image-opacity', opacity);
-            
-            // Update the display value
-            if (bgImageOpacityValue) {
-                bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
-            }
-            
-            // <<< ADD THIS LINE >>>
-            updateThemePreview(); // Update preview on bg image opacity change
+            document.documentElement.style.setProperty('--popup-bg-image-opacity', opacity); // Sync popup
+            if (bgImageOpacityValue) bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
+            updateThemePreview();
         }
-        
-        if (bgImageOpacityInput) {
-            bgImageOpacityInput.addEventListener('input', updateBgImageOpacity);
-        }
-        
-        // Color button click handlers and styling
+        if (bgImageOpacityInput) bgImageOpacityInput.addEventListener('input', updateBgImageOpacity);
+
+        // Color preset button click handlers
         document.querySelectorAll('.color-btn').forEach(button => {
-            // Set initial background color of buttons to match their data-color
             const color = button.getAttribute('data-color');
-            button.style.backgroundColor = color;
-            
-            // For buttons with 'transparent' or very light colors, add a border
-            if (color === 'transparent' || color === '#ffffff' || color === '#ffdeec' || color === '#f5f2e6') {
+            if (color) button.style.backgroundColor = color; // Set button background
+
+            // Add border for light/transparent buttons
+            if (color === 'transparent' || ['#ffffff', '#ffdeec', '#f5f2e6'].includes(color)) {
                 button.style.border = '1px solid #888';
             }
-            
-            // Make text color contrasting so it's readable
-            if (color === '#000000' || color === '#121212' || color === '#1a1a1a' || color === '#0c0c28' || color === '#4e3629') {
+            // Set contrasting text color for button label
+            if (['#000000', '#121212', '#1a1a1a', '#0c0c28', '#4e3629'].includes(color)) {
                 button.style.color = 'white';
             } else {
                 button.style.color = 'black';
             }
-            
+
             button.addEventListener('click', (e) => {
-                const colorAttr = e.target.getAttribute('data-color');
-                const color = colorAttr;
+                const color = e.target.getAttribute('data-color');
                 const target = e.target.getAttribute('data-target');
-                
-                // Mark this button as active and remove active class from sibling buttons
-                const allButtonsForTarget = document.querySelectorAll(`.color-btn[data-target="${target}"]`);
-                allButtonsForTarget.forEach(btn => btn.classList.remove('active'));
+                if (!target || !color) return;
+
+                // Update active state for siblings
+                document.querySelectorAll(`.color-btn[data-target="${target}"]`).forEach(btn => btn.classList.remove('active'));
                 e.target.classList.add('active');
-                
-                // Set the appropriate color input based on target
-                if (target === 'bg') {
-                    // Special handling for the transparent button
-                    if (color === 'transparent') {
-                        bgColorInput.value = '#000000'; // Set base color to black for transparent
-                        if (bgOpacityInput) {
-                            bgOpacityInput.value = 0; // Force opacity slider to 0
+
+                // Apply color based on target type
+                switch (target) {
+                    case 'bg':
+                        if (color === 'transparent') {
+                            if(bgColorInput) bgColorInput.value = '#000000'; // Use black base for transparent
+                            if (bgOpacityInput) bgOpacityInput.value = 0; // Set opacity to 0
+                        } else {
+                            if(bgColorInput) bgColorInput.value = color;
+                            // Optionally reset opacity to default? For now, let it keep current value.
                         }
-                        updateBgColor(); // Apply black bg with 0 opacity
-                    } else {
-                        bgColorInput.value = color;
-                        // Optionally reset opacity slider to default when a solid color is chosen?
-                        // if (bgOpacityInput) bgOpacityInput.value = 85;
-                        updateBgColor(); // Apply selected color with current/default opacity
-                    }
-                } else if (target === 'border') {
-                    // For border, handle "transparent" specially
-                    if (color === 'transparent') {
-                        // Don't try to set 'transparent' on color input - it's not supported
-                        // Instead, just set the CSS variables and track the transparent state
-                        document.documentElement.style.setProperty('--chat-border-color', 'transparent');
-                        document.documentElement.style.setProperty('--popup-border-color', 'transparent');
-                        // Store the active state on the button itself for tracking
-                        document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
-                            if (btn.getAttribute('data-color') === 'transparent') {
-                                btn.setAttribute('data-is-transparent', 'true');
-                            }
-                        });
-                    } else {
-                        borderColorInput.value = color;
-                        document.documentElement.style.setProperty('--chat-border-color', color);
-                        document.documentElement.style.setProperty('--popup-border-color', color);
-                        // Clear transparent flag
-                        document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
-                            btn.removeAttribute('data-is-transparent');
-                        });
-                    }
-                } else if (target === 'text') {
-                    textColorInput.value = color;
-                    document.documentElement.style.setProperty('--chat-text-color', color);
-                    document.documentElement.style.setProperty('--popup-text-color', color);
-                } else if (target === 'username') {
-                    usernameColorInput.value = color;
-                    document.documentElement.style.setProperty('--username-color', color);
-                    document.documentElement.style.setProperty('--popup-username-color', color);
+                        updateBgColor(); // Update visual background
+                        break;
+                    case 'border':
+                        if (color === 'transparent') {
+                            document.documentElement.style.setProperty('--chat-border-color', 'transparent');
+                            document.documentElement.style.setProperty('--popup-border-color', 'transparent');
+                        } else {
+                            if (borderColorInput) borderColorInput.value = color;
+                            document.documentElement.style.setProperty('--chat-border-color', color);
+                            document.documentElement.style.setProperty('--popup-border-color', color);
+                        }
+                        break;
+                    case 'text':
+                        if (textColorInput) textColorInput.value = color;
+                        document.documentElement.style.setProperty('--chat-text-color', color);
+                        document.documentElement.style.setProperty('--popup-text-color', color);
+                        break;
+                    case 'username':
+                        if (usernameColorInput) usernameColorInput.value = color;
+                        document.documentElement.style.setProperty('--username-color', color);
+                        document.documentElement.style.setProperty('--popup-username-color', color);
+                        break;
                 }
-                
-                // Update color previews
-                updateColorPreviews();
-                // updatePreviewFromCurrentSettings(); // REMOVED CALL
+                updateColorPreviews(); // Update highlights and preview
             });
         });
-        
-        // Update border color
-        borderColorInput.addEventListener('input', () => {
-            // Special handling for transparent border
-            if (borderColorInput.value === 'transparent') {
-                document.documentElement.style.setProperty('--chat-border-color', 'transparent');
-                document.documentElement.style.setProperty('--popup-border-color', 'transparent');
-            } else {
-                document.documentElement.style.setProperty('--chat-border-color', borderColorInput.value);
-                document.documentElement.style.setProperty('--popup-border-color', borderColorInput.value);
-            }
+
+        // Update colors directly from input fields
+        borderColorInput?.addEventListener('input', () => {
+            const value = borderColorInput.value;
+            const finalColor = value === 'transparent' ? 'transparent' : value; // Allow 'transparent' keyword
+            document.documentElement.style.setProperty('--chat-border-color', finalColor);
+            document.documentElement.style.setProperty('--popup-border-color', finalColor);
             updateColorPreviews();
-            updatePreviewFromCurrentSettings();
+            updateThemePreview();
         });
-        
-        textColorInput.addEventListener('input', () => {
+        textColorInput?.addEventListener('input', () => {
             document.documentElement.style.setProperty('--chat-text-color', textColorInput.value);
             document.documentElement.style.setProperty('--popup-text-color', textColorInput.value);
             updateColorPreviews();
-            updatePreviewFromCurrentSettings();
+            updateThemePreview();
         });
-        
-        usernameColorInput.addEventListener('input', () => {
+        usernameColorInput?.addEventListener('input', () => {
             document.documentElement.style.setProperty('--username-color', usernameColorInput.value);
             document.documentElement.style.setProperty('--popup-username-color', usernameColorInput.value);
             updateColorPreviews();
-            updatePreviewFromCurrentSettings();
+            updateThemePreview();
         });
-        
-        // Font size slider
-        fontSizeSlider.addEventListener('input', () => {
-            const value = fontSizeSlider.value;
-            fontSizeValue.textContent = `${value}px`;
-            
-            // Set CSS variable for live update of main chat
-            document.documentElement.style.setProperty('--font-size', `${value}px`);
-            
-            // Update config immediately so preview gets the right size
-            config.fontSize = parseInt(value, 10);
 
-            // Update the preview immediately
-            const currentThemeObject = window.availableThemes[currentThemeIndex];
-            if (currentThemeObject) {
-                updateThemePreview(currentThemeObject);
-            } else {
-                console.warn("Could not find current theme object to update preview for font size change.");
-            }
+        // Font size slider
+        fontSizeSlider?.addEventListener('input', () => {
+            const value = fontSizeSlider.value;
+            if (fontSizeValue) fontSizeValue.textContent = `${value}px`;
+            document.documentElement.style.setProperty('--font-size', `${value}px`);
+            config.fontSize = parseInt(value, 10);
+            updateThemePreview(); // Update preview immediately
         });
-        
+
         // Chat width slider
-        chatWidthInput.addEventListener('input', () => {
+        chatWidthInput?.addEventListener('input', () => {
             const value = chatWidthInput.value;
-            chatWidthValue.textContent = `${value}%`;
-            
+            if (chatWidthValue) chatWidthValue.textContent = `${value}%`;
             document.documentElement.style.setProperty('--chat-width', `${value}%`);
         });
-        
+
         // Chat height slider
-        chatHeightInput.addEventListener('input', () => {
+        chatHeightInput?.addEventListener('input', () => {
             const value = chatHeightInput.value;
-            chatHeightValue.textContent = `${value}%`; // Use %
-            
-            document.documentElement.style.setProperty('--chat-height', `${value}%`); // Use %
+            if (chatHeightValue) chatHeightValue.textContent = `${value}%`;
+            document.documentElement.style.setProperty('--chat-height', `${value}%`);
         });
-        
+
         // Open settings panel function
         function openSettingsPanel() {
-            // Clear any potential stale state first
-            initialConfigBeforeEdit = null; 
-            console.log("Opening settings panel...");
-            // Store the current config state BEFORE showing the panel
+            if (!configPanel) return;
+            initialConfigBeforeEdit = null; // Clear previous state
             try {
-                 initialConfigBeforeEdit = JSON.parse(JSON.stringify(config));
-                 console.log("Stored initial config:", initialConfigBeforeEdit);
+                 initialConfigBeforeEdit = JSON.parse(JSON.stringify(config)); // Store current state
             } catch (error) {
-                 console.error("Error stringifying config for initial state:", error);
-                 // Handle error, maybe notify user or disable cancel?
+                 console.error("Error storing config state for revert:", error);
                  addSystemMessage("Error: Could not store settings state for revert.");
-                 initialConfigBeforeEdit = null; // Ensure it's null on error
             }
 
-            // Panel opened: Ensure correct connection control is visible inside the panel
+            // Update connection controls visibility inside panel
             const isConnected = socket && socket.readyState === WebSocket.OPEN;
             if (channelForm) channelForm.style.display = isConnected ? 'none' : 'flex';
-            if (disconnectBtn) disconnectBtn.style.display = isConnected ? 'block' : 'none';
-            if (isConnected && disconnectBtn) disconnectBtn.textContent = `Disconnect from ${channel}`; // Ensure text is correct
-            
-            updateConfigPanelFromConfig(); // Populate panel controls with current config
+            if (disconnectBtn) {
+                disconnectBtn.style.display = isConnected ? 'block' : 'none';
+                if (isConnected) disconnectBtn.textContent = `Disconnect from ${channel}`;
+            }
+
+            updateConfigPanelFromConfig(); // Populate controls
             configPanel.classList.add('visible');
-            configPanel.style.display = 'block';
-            // Initial theme preview update when panel opens
-            // updatePreviewFromCurrentSettings(); // REMOVED CALL
+            configPanel.style.display = 'block'; // Ensure it's visible
         }
-        
-        // Settings button handlers
-        if (settingsBtn) {
-            settingsBtn.addEventListener('click', (e) => {
-                console.log('Settings button clicked');
-                if (e) e.preventDefault();
-                openSettingsPanel();
-            });
+
+        // Settings button listeners (ensure only attached once)
+        if (settingsBtn && !settingsBtn.dataset.listenerAttached) {
+            settingsBtn.addEventListener('click', (e) => { e?.preventDefault(); openSettingsPanel(); });
             settingsBtn.dataset.listenerAttached = 'true';
         }
-        
         const popupSettingsBtn = document.getElementById('popup-settings-btn');
-        if (popupSettingsBtn) {
-            popupSettingsBtn.addEventListener('click', (e) => {
-                console.log('Popup settings button clicked');
-                if (e) { e.preventDefault(); e.stopPropagation(); }
-                openSettingsPanel();
-            });
+        if (popupSettingsBtn && !popupSettingsBtn.dataset.listenerAttached) {
+            popupSettingsBtn.addEventListener('click', (e) => { e?.preventDefault(); e?.stopPropagation(); openSettingsPanel(); });
             popupSettingsBtn.dataset.listenerAttached = 'true';
         }
 
         // Save Button
-        if (saveConfigBtn) {
-            saveConfigBtn.addEventListener('click', (e) => {
-                console.log('Save button clicked');
-                if (e) e.preventDefault();
-                saveConfiguration(); 
-            });
+        if (saveConfigBtn && !saveConfigBtn.dataset.listenerAttached) {
+            saveConfigBtn.addEventListener('click', (e) => { e?.preventDefault(); saveConfiguration(); });
             saveConfigBtn.dataset.listenerAttached = 'true';
         }
-        
-        // Cancel Button - IMPORTANT: Only attach this listener once
-        if (cancelConfigBtn) {
-            cancelConfigBtn.addEventListener('click', () => {
-                console.log('Cancel button clicked'); // Should only log ONCE now
-                closeConfigPanel(true); // Close and REVERT
-            });
-            cancelConfigBtn.dataset.listenerAttached = 'true'; 
+
+        // Cancel Button
+        if (cancelConfigBtn && !cancelConfigBtn.dataset.listenerAttached) {
+            cancelConfigBtn.addEventListener('click', () => closeConfigPanel(true)); // Close and REVERT
+            cancelConfigBtn.dataset.listenerAttached = 'true';
         }
 
         // Reset Button
-        if (resetConfigBtn) {
+        if (resetConfigBtn && !resetConfigBtn.dataset.listenerAttached) {
              resetConfigBtn.addEventListener('click', () => {
-                 console.log("Reset button clicked");
                  applyDefaultSettings(); // Reset config object
                  applyConfiguration(config); // Apply defaults visually
                  updateConfigPanelFromConfig(); // Update panel controls
@@ -1230,598 +829,359 @@
         // Close settings panel function
         function closeConfigPanel(shouldRevert = false) {
             if (shouldRevert && initialConfigBeforeEdit) {
-                console.log("--- Reverting Changes ---");
-                console.log("Current config (before revert):", JSON.stringify(config));
-                console.log("Stored initial state:", JSON.stringify(initialConfigBeforeEdit));
                 try {
-                    // 1. Restore the config object
-                    config = JSON.parse(JSON.stringify(initialConfigBeforeEdit));
-                    console.log("Config object restored. Theme:", config.theme, "BG Color:", config.bgColor);
-
-                    // 2. Apply the restored configuration visually
-                    console.log("Applying restored config visually...");
-                    applyConfiguration(config); // This function should log its actions internally if needed
-                    console.log("Visual application complete. Current document BG var:", document.documentElement.style.getPropertyValue('--chat-bg-color'));
-
-                    // 3. Update the panel controls to MATCH the restored state
-                    console.log("Updating panel controls...");
-                    updateConfigPanelFromConfig();
-                    console.log("Panel controls updated. BG Input value:", bgColorInput.value);
-                    console.log("--- Revert Complete ---");
-
+                    config = JSON.parse(JSON.stringify(initialConfigBeforeEdit)); // Restore object
+                    applyConfiguration(config); // Apply restored visuals
+                    updateConfigPanelFromConfig(); // Update controls to match
                 } catch (error) {
                      console.error("Error during revert:", error);
                      addSystemMessage("Error: Could not revert settings.");
                 }
-                } else {
-                 console.log("Closing panel without reverting.");
             }
-            initialConfigBeforeEdit = null;
-            configPanel.classList.remove('visible');
-            configPanel.style.display = 'none';
-            console.log("Config panel closed.");
+            initialConfigBeforeEdit = null; // Clear stored state
+            if (configPanel) {
+                configPanel.classList.remove('visible');
+                configPanel.style.display = 'none';
+            }
         }
-        
-        // Update theme preview based on current color settings
+
+        // Update theme preview and color button highlights
         function updateColorPreviews() {
-            // The color preview swatches have been removed
-            // Now we only highlight the active color buttons and update the theme preview
-            
-            // Highlight the active color buttons based on current values
             highlightActiveColorButtons();
-            
-            // Update the main theme preview to keep everything in sync
-            updateThemePreview(); // Update preview based on config
+            updateThemePreview();
         }
-        
+
         // Helper function to highlight the active color buttons based on current values
         function highlightActiveColorButtons() {
             // Background color
             const bgColorValue = bgColorInput?.value || '#121212';
-            const bgOpacityValue = bgOpacityInput ? parseInt(bgOpacityInput.value) : 85; // Get opacity value as number
-            const bgButtons = document.querySelectorAll('.color-btn[data-target="bg"]');
-            bgButtons.forEach(btn => {
+            const bgOpacityValue = bgOpacityInput ? parseInt(bgOpacityInput.value) : 85;
+            document.querySelectorAll('.color-btn[data-target="bg"]').forEach(btn => {
                 const btnColor = btn.getAttribute('data-color');
-                // Special case for transparent button
-                if (btnColor === 'transparent') {
-                    // Active if color is black AND opacity is 0
-                    if (bgColorValue === '#000000' && bgOpacityValue === 0) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                } else { // Normal buttons
-                    // Active if color matches AND opacity is NOT 0
-                    if (btnColor === bgColorValue && bgOpacityValue > 0) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                }
+                let isActive = (btnColor === 'transparent')
+                    ? (bgColorValue === '#000000' && bgOpacityValue === 0)
+                    : (btnColor === bgColorValue && bgOpacityValue > 0);
+                btn.classList.toggle('active', isActive);
             });
 
             // Border color
-            // Read both the input value and the current CSS value
             const currentBorderCSS = document.documentElement.style.getPropertyValue('--chat-border-color').trim();
-            const borderColorInputValue = borderColorInput.value || '#9147ff'; // Fallback for input
-            const borderButtons = document.querySelectorAll('.color-btn[data-target="border"]');
-
-            borderButtons.forEach(btn => {
+            const borderColorInputValue = borderColorInput?.value || '#9147ff';
+            document.querySelectorAll('.color-btn[data-target="border"]').forEach(btn => {
                 const btnColor = btn.getAttribute('data-color');
-                let isActive = false;
-
-                if (btnColor === 'transparent') {
-                    // The 'None' button is active if the CSS variable is literally 'transparent'
-                    isActive = (currentBorderCSS === 'transparent');
-                } else {
-                    // Other buttons are active if the CSS variable is NOT 'transparent'
-                    // AND the button's color matches the input value
-                    isActive = (currentBorderCSS !== 'transparent' && btnColor === borderColorInputValue);
-                }
-
-                if (isActive) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                let isActive = (btnColor === 'transparent')
+                    ? (currentBorderCSS === 'transparent')
+                    : (currentBorderCSS !== 'transparent' && btnColor === borderColorInputValue);
+                btn.classList.toggle('active', isActive);
             });
-            
+
             // Text color
-            const textColorValue = textColorInput.value || '#efeff1';
-            const textButtons = document.querySelectorAll('.color-btn[data-target="text"]');
-            textButtons.forEach(btn => {
-                if (btn.getAttribute('data-color') === textColorValue) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            
+            const textColorValue = textColorInput?.value || '#efeff1';
+            document.querySelectorAll('.color-btn[data-target="text"]')
+                    .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === textColorValue));
+
             // Username color
-            const usernameColorValue = usernameColorInput.value || '#9147ff';
-            const usernameButtons = document.querySelectorAll('.color-btn[data-target="username"]');
-            usernameButtons.forEach(btn => {
-                if (btn.getAttribute('data-color') === usernameColorValue) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
+            const usernameColorValue = usernameColorInput?.value || '#9147ff';
+            document.querySelectorAll('.color-btn[data-target="username"]')
+                    .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === usernameColorValue));
         }
-        
+
         // Toggle between window and popup modes
-        function switchChatMode(mode, applyConfig = true) { // Added applyConfig flag
+        function switchChatMode(mode, applyVisualsOnly = false) { // Flag determines if system messages/dummy content is added
             try {
-                console.log(`Switching chat mode to: ${mode}`);
                 config.chatMode = mode;
 
-                // Get references to containers
-                // const popupContainer = document.getElementById('popup-container'); // << REMOVED LOCAL DECLARATION
-                // const chatContainer = document.getElementById('chat-container'); // Already defined globally
-                // const chatWrapper = document.getElementById('chat-wrapper'); // Already defined globally
-
                 if (!popupContainer || !chatContainer || !chatWrapper) {
-                    console.error('Required containers (popup, chat, wrapper) not found in DOM');
+                    console.error('Required chat containers not found in DOM');
                     return;
                 }
 
-                // Clear popup messages container
                 const popupMessages = document.getElementById('popup-messages');
-                if (popupMessages) popupMessages.innerHTML = '';
+                if (popupMessages) popupMessages.innerHTML = ''; // Always clear popup messages
 
-                // Update visibility based on mode
-                if (mode === 'popup') {
-                    popupContainer.style.display = 'block'; // Show popup area
-                    chatWrapper.style.display = 'none'; // Hide the main chat window wrapper
+                const isPopup = (mode === 'popup');
+                popupContainer.style.display = isPopup ? 'block' : 'none';
+                chatWrapper.style.display = isPopup ? 'none' : 'block';
+                document.body.classList.toggle('popup-mode', isPopup);
+                document.body.classList.toggle('window-mode', !isPopup);
 
-                    document.body.classList.add('popup-mode');
-                    document.body.classList.remove('window-mode');
-
-                } else { // Window mode
-                    popupContainer.style.display = 'none'; // Hide popup area
-                    chatWrapper.style.display = 'block'; // Show the main chat window wrapper
-
-                    document.body.classList.add('window-mode');
-                    document.body.classList.remove('popup-mode');
+                // Update chat window content only if not just applying visuals
+                if (!applyVisualsOnly && chatMessages) {
+                    chatMessages.innerHTML = ''; // Clear window chat
+                    addSystemMessage(isPopup ? `Switched to popup mode.` : 'Switched to window mode.');
+                    addChatMessage({ username: 'System', message: 'Chat mode switched.', color: config.usernameColor });
                 }
 
-                // Clear main chat messages and add mode-specific info
-                if (chatMessages) {
-                    chatMessages.innerHTML = ''; // Clear existing messages from window view
-                    if (applyConfig) { // Only add messages if not just updating UI
-                         if (mode === 'popup') {
-                             addSystemMessage(`Switched to popup mode. Messages will appear temporarily.`);
-                         } else {
-                             addSystemMessage('Switched to window mode.');
-                         }
-                         // Add a dummy message to demonstrate the mode
-                         addChatMessage({
-                             username: 'ExampleUser',
-                             message: 'This is a sample message to demonstrate the current chat mode.',
-                             color: config.usernameColor || '#9147ff'
-                         });
-                    }
-                }
-
-                // Update popup message container position (only relevant if mode is popup)
-                if (mode === 'popup' && popupMessages && config.popup) {
+                // Update popup message container position based on config
+                if (isPopup && popupMessages && config.popup) {
                     const direction = config.popup.direction || 'from-bottom';
-                    const position = { top: null, bottom: null };
-                    switch(direction) {
-                        case 'from-top':
-                        case 'from-left':
-                        case 'from-right':
-                            position.top = '10px'; position.bottom = 'auto'; break;
-                        case 'from-bottom':
-                        default:
-                            position.bottom = '10px'; position.top = 'auto';
+                    const position = { top: 'auto', bottom: '10px' }; // Default bottom
+                    if (['from-top', 'from-left', 'from-right'].includes(direction)) {
+                        position.top = '10px'; position.bottom = 'auto';
                     }
-                    popupMessages.removeAttribute('style'); // Clear existing styles first
+                    popupMessages.removeAttribute('style'); // Clear first
                     popupMessages.style.top = position.top;
                     popupMessages.style.bottom = position.bottom;
                 }
 
-                // Update visibility of mode-specific settings in the panel
                 updateModeSpecificSettingsVisibility(mode);
 
             } catch (error) {
                 console.error('Error switching chat mode:', error);
-                addSystemMessage('Error switching chat mode. Please try refreshing the page.');
+                addSystemMessage('Error switching chat mode.');
             }
         }
 
-        // Helper function to show/hide settings based on mode
+        // Helper function to show/hide mode-specific settings in the panel
         function updateModeSpecificSettingsVisibility(mode) {
-            const popupSettings = document.querySelectorAll('.popup-setting');
-            const windowOnlySettings = document.querySelectorAll('.window-only-setting');
-
-            if (mode === 'popup') {
-                popupSettings.forEach(el => el.style.display = 'flex'); // Use flex for visibility
-                windowOnlySettings.forEach(el => el.style.display = 'none');
-            } else {
-                popupSettings.forEach(el => el.style.display = 'none');
-                windowOnlySettings.forEach(el => el.style.display = 'flex'); // Use flex for visibility
-            }
+            const isPopup = mode === 'popup';
+            document.querySelectorAll('.popup-setting').forEach(el => el.style.display = isPopup ? 'flex' : 'none');
+            document.querySelectorAll('.window-only-setting').forEach(el => el.style.display = isPopup ? 'none' : 'flex');
         }
-        
-        // Switch themes with the carousel
-        
+
+        // Apply a selected theme
         function applyTheme(themeName) {
-            console.log(`Applying theme: ${themeName}`);
-            
-            if (!window.availableThemes || window.availableThemes.length === 0) {
+            if (!window.availableThemes?.length) {
                 console.error('Available themes not initialized yet.');
                 return;
             }
-            
-            const theme = window.availableThemes.find(t => t.value === themeName || t.name === themeName);
-            
+            let theme = window.availableThemes.find(t => t.value === themeName || t.name === themeName);
             if (!theme) {
                 console.warn(`Theme "${themeName}" not found. Applying default.`);
-                const defaultTheme = window.availableThemes.find(t => t.value === 'default');
-                if (defaultTheme) applyTheme(defaultTheme.value);
-                return;
+                theme = window.availableThemes.find(t => t.value === 'default') || window.availableThemes[0]; // Fallback to default or first
+                if (!theme) return; // Cannot proceed if no themes exist
             }
-            
-            console.log('Theme object found:', theme);
 
-            // --- REMOVED reading current slider opacities --- 
-            // Logic that read bgOpacityInput.value and bgImageOpacityInput.value here is GONE.
-
-            // --- NEW: Parse theme background color and opacity --- START
-            let themeBgHex = '#121212'; // Default hex
-            let themeBgOpacity = 0.85; // Default opacity
-
+            // Parse theme background color and opacity, providing defaults
+            let themeBgHex = '#121212';
+            let themeBgOpacity = 0.85;
             if (theme.bgColor && typeof theme.bgColor === 'string') {
                 const bgColorLower = theme.bgColor.trim().toLowerCase();
                 if (bgColorLower.startsWith('rgba')) {
-                    try {
-                        // Extract values from rgba string, e.g., "rgba(153, 217, 234, 0.75)"
-                        const parts = bgColorLower.substring(bgColorLower.indexOf('(') + 1, bgColorLower.indexOf(')')).split(',');
+                    try { // Extract RGBA values
+                        const parts = bgColorLower.substring(5, bgColorLower.indexOf(')')).split(',');
                         if (parts.length === 4) {
                             const r = parseInt(parts[0].trim(), 10);
                             const g = parseInt(parts[1].trim(), 10);
                             const b = parseInt(parts[2].trim(), 10);
                             const a = parseFloat(parts[3].trim());
-
-                            // Convert rgb to hex
                             themeBgHex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).padStart(6, '0')}`;
-                            themeBgOpacity = !isNaN(a) ? Math.max(0, Math.min(1, a)) : 0.85; // Use parsed opacity
-                            console.log(`[applyTheme] Parsed rgba: Hex=${themeBgHex}, Opacity=${themeBgOpacity}`);
-                        } else {
-                             console.warn(`[applyTheme] Could not parse rgba: ${theme.bgColor}. Using defaults.`);
-                        }
-                    } catch (e) {
-                        console.error(`[applyTheme] Error parsing rgba string "${theme.bgColor}":`, e);
-                    }
-                } else if (bgColorLower.startsWith('#')) {
-                    // It's a hex color, use theme's opacity if defined, else default
+                            themeBgOpacity = !isNaN(a) ? Math.max(0, Math.min(1, a)) : 0.85;
+                        } else { console.warn(`[applyTheme] Could not parse rgba: ${theme.bgColor}.`); }
+                    } catch (e) { console.error(`[applyTheme] Error parsing rgba string "${theme.bgColor}":`, e); }
+                } else if (bgColorLower.startsWith('#')) { // Handle hex
                     themeBgHex = theme.bgColor;
-                    themeBgOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null)
-                                        ? theme.bgColorOpacity
-                                        : 0.85;
-                    console.log(`[applyTheme] Using hex ${themeBgHex} with opacity ${themeBgOpacity}`);
-                } else {
-                     console.warn(`[applyTheme] Unknown bgColor format: ${theme.bgColor}. Using defaults.`);
-                }
-            } else {
-                // No bg color defined in theme, use defaults
-                 themeBgOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null)
-                                     ? theme.bgColorOpacity
-                                     : 0.85;
-                 console.log(`[applyTheme] No theme bgColor defined. Using default hex ${themeBgHex} with opacity ${themeBgOpacity}`);
-            }
-            // --- NEW: Parse theme background color and opacity --- END
+                    themeBgOpacity = theme.bgColorOpacity ?? 0.85; // Use theme opacity or default
+                } else { console.warn(`[applyTheme] Unknown bgColor format: ${theme.bgColor}.`); }
+            } else { themeBgOpacity = theme.bgColorOpacity ?? 0.85; } // Use theme opacity if only that is provided
 
-
-            // Update config object with theme base settings first
+            // Update config object with theme base settings
             config.theme = theme.value;
-            config.bgColor = themeBgHex; // Store HEX color
-            config.bgColorOpacity = themeBgOpacity; // Store PARSED or THEME opacity
+            config.bgColor = themeBgHex;
+            config.bgColorOpacity = themeBgOpacity;
             config.borderColor = theme.borderColor === 'transparent' ? 'transparent' : (theme.borderColor || '#9147ff');
             config.textColor = theme.textColor || '#efeff1';
             config.usernameColor = theme.usernameColor || '#9147ff';
             config.borderRadius = theme.borderRadius || theme.borderRadiusValue || '8px';
             config.boxShadow = theme.boxShadow || theme.boxShadowValue || 'none';
-            config.bgImage = theme.backgroundImage || null; 
-
-            // *** CORRECT: USE THEME'S DEFINED OPACITY ***
-            // config.bgColorOpacity = (theme.bgColorOpacity !== undefined && theme.bgColorOpacity !== null) // <<< REMOVED THIS BLOCK - Handled above
-            //                                 ? theme.bgColorOpacity 
-            //                                 : 0.85; 
-            config.bgImageOpacity = (theme.bgImageOpacity !== undefined && theme.bgImageOpacity !== null)
-                                    ? theme.bgImageOpacity
-                                    : 0.55; 
-            // console.log(`[applyTheme] Using theme opacities - BG: ${config.bgColorOpacity}, Image: ${config.bgImageOpacity}`); // Log moved/changed
+            config.bgImage = theme.backgroundImage || null;
+            config.bgImageOpacity = theme.bgImageOpacity ?? 0.55;
 
             // Update font family from theme
             if (theme.fontFamily) {
-                let fontIndex = window.availableFonts.findIndex(f => {
-                   const themeFontTrimmedLower = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim().toLowerCase() : '';
-                   const fontNameTrimmedLower = f.name ? f.name.trim().toLowerCase() : null;
-                   const fontValueTrimmed = f.value ? f.value.trim() : null;
-                   const originalThemeFontTrimmed = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
-                   return (fontNameTrimmedLower !== null && fontNameTrimmedLower === themeFontTrimmedLower) || 
-                          (fontValueTrimmed !== null && fontValueTrimmed === originalThemeFontTrimmed);
-                });
+                let fontIndex = window.availableFonts?.findIndex(f => {
+                   const themeFont = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
+                   return (f.name?.trim().toLowerCase() === themeFont.toLowerCase()) || (f.value?.trim() === themeFont);
+                }) ?? -1;
 
-                if (fontIndex !== -1) {
-                    currentFontIndex = fontIndex;
-                    config.fontFamily = window.availableFonts[currentFontIndex].value;
-                } else {
-                    console.warn(`[applyTheme] Theme font "${theme.fontFamily}" not found. Using default.`); 
-                    const defaultFontIndex = window.availableFonts.findIndex(f => f.value && f.value.includes('Atkinson'));
-                    currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
-                    config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; 
+                if (fontIndex === -1) { // Fallback if font not found
+                    console.warn(`[applyTheme] Theme font "${theme.fontFamily}" not found. Using default.`);
+                    fontIndex = window.availableFonts?.findIndex(f => f.value?.includes('Atkinson')) ?? 0;
                 }
-                updateFontDisplay();
-            } else {
-                config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; 
+                currentFontIndex = fontIndex;
+                config.fontFamily = window.availableFonts[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif";
+                updateFontDisplay(); // Update UI immediately
+            } else { // If theme doesn't specify font, keep current or default
+                config.fontFamily = window.availableFonts?.[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif";
             }
-            
-            // Apply the configuration visually using the updated config object
+
+            // Apply the merged configuration visually
             applyConfiguration(config);
-            
-            // --- Update UI controls AFTER applying theme --- START
-            // Update color inputs and sliders
-            if (bgColorInput) {
-                bgColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.bgColor; // Use black for transparent input
-            }
+
+            // Update UI controls in the panel to reflect the applied theme
+            if (bgColorInput) bgColorInput.value = config.bgColor; // Set hex value
             if (bgOpacityInput && bgOpacityValue) {
                  const opacityPercent = Math.round(config.bgColorOpacity * 100);
                  bgOpacityInput.value = opacityPercent;
                  bgOpacityValue.textContent = `${opacityPercent}%`;
-                 console.log(`[applyTheme] Updated BG opacity slider to: ${opacityPercent}%`);
             }
-            if (borderColorInput) {
-                // Handle transparent border for the input
-                borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; 
-            }
-            if (textColorInput) {
-                textColorInput.value = config.textColor;
-            }
-            if (usernameColorInput) {
-                usernameColorInput.value = config.usernameColor;
-            }
+            if (borderColorInput) borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Input needs a color
+            if (textColorInput) textColorInput.value = config.textColor;
+            if (usernameColorInput) usernameColorInput.value = config.usernameColor;
             if (bgImageOpacityInput && bgImageOpacityValue) {
                  const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
                  bgImageOpacityInput.value = imageOpacityPercent;
                  bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
-                 console.log(`[applyTheme] Updated Image opacity slider to: ${imageOpacityPercent}%`);
             }
-            
+
             // Update preset button highlights
-            const effectiveBorderRadius = getBorderRadiusValue(config.borderRadius);
-            highlightBorderRadiusButton(effectiveBorderRadius);
-            const effectiveBoxShadow = getBoxShadowValue(config.boxShadow);
-            highlightBoxShadowButton(config.boxShadow); // Use original preset name for highlighting
-            
-            // Update color button highlights
-            highlightActiveColorButtons();
-            // --- Update UI controls AFTER applying theme --- END
+            highlightBorderRadiusButton(getBorderRadiusValue(config.borderRadius));
+            highlightBoxShadowButton(config.boxShadow); // Use preset name for highlight lookup
+            highlightActiveColorButtons(); // Update color button highlights
 
-            updateThemePreview();
-
-            lastAppliedThemeValue = theme.value;
-            
-            console.log(`Theme "${theme.name}" applied successfully.`); // Adjusted log message
+            updateThemePreview(); // Refresh preview
+            lastAppliedThemeValue = theme.value; // Track last applied theme
         }
-        
-        // Initialize font selection
+        window.applyTheme = applyTheme; // Expose globally
+
+        // Update font display in settings panel
         function updateFontDisplay() {
-            // Ensure window.availableFonts is available
-            if (!window.availableFonts || window.availableFonts.length === 0) {
+            if (!window.availableFonts?.length) {
                 console.error('Available fonts not initialized yet.');
-                currentFontDisplay.textContent = 'Error';
+                if(currentFontDisplay) currentFontDisplay.textContent = 'Error';
                 return;
             }
-            
-            // Validate currentFontIndex
+            // Ensure index is valid
             if (currentFontIndex < 0 || currentFontIndex >= window.availableFonts.length) {
                 console.warn(`Invalid currentFontIndex (${currentFontIndex}), resetting to 0.`);
                 currentFontIndex = 0;
             }
-            
             const currentFont = window.availableFonts[currentFontIndex];
-            currentFontDisplay.textContent = currentFont.name;
-            
-            // Apply the font immediately
-            config.fontFamily = currentFont.value;
-            document.documentElement.style.setProperty('--font-family', config.fontFamily);
-            
-            console.log(`Font updated to: ${currentFont.name} (${currentFont.value})`);
-            
-            // Update the theme preview to reflect the font change immediately
-            updateThemePreview(); // <<< ADD THIS CALL
+            if (!currentFont) { // Safety check if index somehow still invalid
+                console.error(`Could not find font at index ${currentFontIndex}`);
+                if (currentFontDisplay) currentFontDisplay.textContent = 'Error';
+                return;
+            }
+
+            if(currentFontDisplay) currentFontDisplay.textContent = currentFont.name;
+            config.fontFamily = currentFont.value; // Update config
+            document.documentElement.style.setProperty('--font-family', config.fontFamily); // Apply visually
+            updateThemePreview(); // Refresh preview
         }
-        
-        // Font selection carousel
+
+        // Font selection carousel listeners
         if (prevFontBtn && !prevFontBtn.dataset.listenerAttached) {
             prevFontBtn.addEventListener('click', () => {
-                currentFontIndex = (currentFontIndex - 1 + window.availableFonts.length) % window.availableFonts.length;
+                currentFontIndex = (currentFontIndex - 1 + (window.availableFonts?.length || 1)) % (window.availableFonts?.length || 1);
                 updateFontDisplay();
             });
             prevFontBtn.dataset.listenerAttached = 'true';
         }
-        
         if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) {
             nextFontBtn.addEventListener('click', () => {
-                currentFontIndex = (currentFontIndex + 1) % window.availableFonts.length;
+                currentFontIndex = (currentFontIndex + 1) % (window.availableFonts?.length || 1);
                 updateFontDisplay();
             });
             nextFontBtn.dataset.listenerAttached = 'true';
         }
-        
-        // Setting theme listeners only once
-        // REMOVED THEME LISTENERS - Handled by theme-carousel.js
-
-        // REMOVED updateThemeDisplay FUNCTION
-
-        window.applyTheme = applyTheme; // Keep applyTheme exposed globally
 
         /**
-         * Update the theme preview based on the currently selected theme in the carousel.
-         * NOW: Reads directly from config panel inputs for live updates.
+         * Update the theme preview display based on current controls/config.
          */
         function updateThemePreview() {
-            // No longer reads from theme object, reads from controls
-            if (!themePreview) {
-                console.error("Theme preview element not found!");
-                return;
-            }
+            if (!themePreview) return; // Element must exist
 
-            // Check if showTimestampsInput exists before reading its state
-            const showTimestamps = showTimestampsInput ? showTimestampsInput.checked : (config?.showTimestamps ?? true); // Read checkbox state safely, default true
-            console.log(`[updateThemePreview] Updating preview. showTimestamps: ${showTimestamps}`); // LOGGING
-
-            // --- Get current values from config panel controls --- 
+            // Gather current values from controls or config defaults
+            const showTimestamps = showTimestampsInput?.checked ?? config?.showTimestamps ?? true;
             const bgColor = bgColorInput?.value || '#1e1e1e';
-            const bgColorOpacity = (bgOpacityInput ? parseInt(bgOpacityInput.value) : 85) / 100.0;
+            const bgColorOpacity = (bgOpacityInput ? parseInt(bgOpacityInput.value) : (config?.bgColorOpacity ?? 0.85) * 100) / 100.0; // Prioritize slider, then config, then default
             const borderColor = borderColorInput?.value || '#444444';
             const textColor = textColorInput?.value || '#efeff1';
             const usernameColor = usernameColorInput?.value || '#9147ff';
-            const timestampColor = config?.timestampColor || '#adadb8';
-            const fontFamily = window.availableFonts[currentFontIndex]?.value || config?.fontFamily || "'Atkinson Hyperlegible', sans-serif";
+            const timestampColor = config?.timestampColor || '#adadb8'; // Assuming this might be configurable later
+            const fontFamily = window.availableFonts?.[currentFontIndex]?.value || config?.fontFamily || "'Atkinson Hyperlegible', sans-serif";
             const activeBorderRadiusBtn = borderRadiusPresets?.querySelector('.preset-btn.active');
-            const borderRadiusValue = activeBorderRadiusBtn ? activeBorderRadiusBtn.dataset.value : getBorderRadiusValue(config?.borderRadius || '8px');
+            const borderRadiusValue = activeBorderRadiusBtn?.dataset.value ?? config?.borderRadius ?? '8px';
             const borderRadius = getBorderRadiusValue(borderRadiusValue);
             const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
-            const boxShadowValue = activeBoxShadowBtn ? activeBoxShadowBtn.dataset.value : (config?.boxShadow || 'none');
+            const boxShadowValue = activeBoxShadowBtn?.dataset.value ?? config?.boxShadow ?? 'none';
             const boxShadow = getBoxShadowValue(boxShadowValue);
             const bgImage = config?.bgImage || 'none';
-            const bgImageOpacity = (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) : 55) / 100.0;
+            const bgImageOpacity = (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) : (config?.bgImageOpacity ?? 0.55) * 100) / 100.0;
 
-            // Handle transparent border specifically
+            // Determine final border color (handling 'transparent')
             const borderTransparentButton = document.querySelector('.color-btn[data-target="border"][data-color="transparent"]');
-            const finalBorderColor = (borderTransparentButton && borderTransparentButton.classList.contains('active')) 
-                                     ? 'transparent' 
-                                     : borderColor;
+            const finalBorderColor = (borderTransparentButton?.classList.contains('active')) ? 'transparent' : borderColor;
 
-            // --- Calculate background color with opacity --- 
+            // Determine final background color (handling 'transparent' button + opacity)
             let finalBgColor;
             const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
-            if (bgTransparentButton && bgTransparentButton.classList.contains('active')) {
-                 finalBgColor = 'transparent';
+            if (bgTransparentButton?.classList.contains('active')) {
+                 finalBgColor = 'transparent'; // If button active, force transparent regardless of opacity slider
             } else {
-                 try {
-                     finalBgColor = hexToRgba(bgColor, bgColorOpacity);
-                 } catch (e) {
+                 try { finalBgColor = hexToRgba(bgColor, bgColorOpacity); }
+                 catch (e) {
                      console.error(`Error converting hex ${bgColor} for preview:`, e);
-                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`;
+                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`; // Fallback
                  }
             }
 
-            // --- Set preview-specific CSS variables directly on the element --- 
-            themePreview.style.setProperty('--preview-bg-color', finalBgColor);
-            themePreview.style.setProperty('--preview-border-color', finalBorderColor);
-            themePreview.style.setProperty('--preview-text-color', textColor);
-            themePreview.style.setProperty('--preview-username-color', usernameColor);
-            themePreview.style.setProperty('--preview-timestamp-color', timestampColor);
-            themePreview.style.setProperty('--preview-font-family', fontFamily); 
-            themePreview.style.fontFamily = fontFamily;
-            themePreview.style.setProperty('--preview-border-radius', borderRadius);
-            themePreview.style.setProperty('--preview-box-shadow', boxShadow);
-            themePreview.style.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
-            themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
+            // Set preview-specific CSS variables on the preview element
+            const previewStyle = themePreview.style;
+            previewStyle.setProperty('--preview-bg-color', finalBgColor);
+            previewStyle.setProperty('--preview-border-color', finalBorderColor);
+            previewStyle.setProperty('--preview-text-color', textColor);
+            previewStyle.setProperty('--preview-username-color', usernameColor);
+            previewStyle.setProperty('--preview-timestamp-color', timestampColor);
+            previewStyle.setProperty('--preview-font-family', fontFamily);
+            previewStyle.fontFamily = fontFamily; // Apply directly too
+            previewStyle.setProperty('--preview-border-radius', borderRadius);
+            previewStyle.setProperty('--preview-box-shadow', boxShadow);
+            previewStyle.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
+            previewStyle.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
-            // --- Update the preview content --- 
-            // Conditionally create timestamp HTML
-            const timestampHtml = showTimestamps ? '<span class="timestamp">12:34 </span>' : ''; // Added space for potential visual spacing
-            const timestampHtml2 = showTimestamps ? '<span class="timestamp">12:35 </span>' : ''; // Added space
-
-            // Construct preview HTML ensuring timestamps are only included if showTimestamps is true
-            const previewHtml = `
+            // Update the preview content HTML
+            const ts1 = showTimestamps ? '<span class="timestamp">12:34 </span>' : '';
+            const ts2 = showTimestamps ? '<span class="timestamp">12:35 </span>' : '';
+            themePreview.innerHTML = `
                 <div class="preview-chat-message">
-                    ${timestampHtml}<span class="username" style="color: var(--preview-username-color);">Username:</span> <span>Example chat message</span>
+                    ${ts1}<span class="username" style="color: var(--preview-username-color);">Username:</span> <span>Example chat message</span>
                 </div>
                 <div class="preview-chat-message">
-                    ${timestampHtml2}<span class="username" style="color: var(--preview-username-color);">AnotherUser:</span> <span>This is how your chat will look</span>
+                    ${ts2}<span class="username" style="color: var(--preview-username-color);">AnotherUser:</span> <span>This is how your chat will look</span>
                 </div>
             `.trim();
-
-            console.log(`[updateThemePreview] Generated preview HTML (first line): ${previewHtml.split('\n')[0]}`); // LOGGING - check generated HTML
-            themePreview.innerHTML = previewHtml;
         }
+        window.updateThemePreview = updateThemePreview; // Expose globally
 
-        // Make updateThemePreview globally available if needed by other modules
-        window.updateThemePreview = updateThemePreview;
-
-        // Ensure updateThemePreview is called when the theme selection changes
+        // Event listeners for theme changes (from carousel or generator)
         document.addEventListener('theme-changed', () => updateThemePreview());
-        document.addEventListener('theme-carousel-ready', () => updateThemePreview()); // Call on initial load
+        document.addEventListener('theme-carousel-ready', () => updateThemePreview());
+        updateColorPreviews(); // Initial preview update on load
 
-        // Update the preview whenever colors or settings change
-        updateColorPreviews();
-
-        // Username color override toggle
-        overrideUsernameColorsInput.addEventListener('change', () => {
+        // Listener for username color override toggle
+        overrideUsernameColorsInput?.addEventListener('change', () => {
             const isChecked = overrideUsernameColorsInput.checked;
-            config.overrideUsernameColors = isChecked; // Update config
-            if (isChecked) {
-                document.documentElement.classList.add('override-username-colors');
-            } else {
-                document.documentElement.classList.remove('override-username-colors');
-            }
-            updateThemePreview(); // Update preview
+            config.overrideUsernameColors = isChecked;
+            document.documentElement.classList.toggle('override-username-colors', isChecked);
+            updateThemePreview(); // Refresh preview
         });
-        
-        // Chat mode radio buttons
+
+        // Listener for chat mode radio buttons
         document.querySelectorAll('input[name="chat-mode"]').forEach(input => {
             input.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    switchChatMode(e.target.value);
-                    
-                    // Show/hide mode-specific settings based on selected mode
-                    const popupSettings = document.querySelectorAll('.popup-setting');
-                    const windowOnlySettings = document.querySelectorAll('.window-only-setting');
-                    
-                    if (e.target.value === 'popup') {
-                        // Show popup settings, hide window-only settings
-                        popupSettings.forEach(el => el.style.display = 'flex');
-                        windowOnlySettings.forEach(el => el.style.display = 'none');
-                    } else {
-                        // Hide popup settings, show window-only settings
-                        popupSettings.forEach(el => el.style.display = 'none');
-                        windowOnlySettings.forEach(el => el.style.display = 'flex');
-                    }
+                    switchChatMode(e.target.value, false); // Apply fully (with messages)
+                    updateModeSpecificSettingsVisibility(e.target.value);
                 }
             });
         });
-        
-        // Popup animation direction
+
+        // Listener for popup animation direction
         document.querySelectorAll('input[name="popup-direction"]').forEach(input => {
             input.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    config.popup.direction = e.target.value;
-                    
-                    // Immediately update popup position when direction is changed
+                    if(config.popup) config.popup.direction = e.target.value;
+                    // Immediately update popup position if in popup mode
                     if (config.chatMode === 'popup') {
                         const popupMessages = document.getElementById('popup-messages');
-                        if (popupMessages) {
-                            // Get direction
-                            const direction = config.popup.direction;
-                            
-                            // Create a simplified positioning object
-                            const position = {
-                                top: null,
-                                bottom: null
-                            };
-                            
-                            // Set position based on direction
-                            switch(direction) {
-                                case 'from-top':
-                                case 'from-left':
-                                case 'from-right':
-                                    position.top = '10px'; position.bottom = 'auto'; break;
-                                case 'from-bottom':
-                                default:
-                                    position.bottom = '10px'; position.top = 'auto';
+                        if (popupMessages && config.popup) {
+                            const direction = config.popup.direction || 'from-bottom';
+                            const position = { top: 'auto', bottom: '10px' }; // Default bottom
+                            if (['from-top', 'from-left', 'from-right'].includes(direction)) {
+                                position.top = '10px'; position.bottom = 'auto';
                             }
-                            
-                            // Clear the style completely first
-                            popupMessages.removeAttribute('style');
-                            
-                            // Apply new styles, only setting vertical position
+                            popupMessages.removeAttribute('style'); // Clear first
                             popupMessages.style.top = position.top;
                             popupMessages.style.bottom = position.bottom;
                         }
@@ -1829,408 +1189,237 @@
                 }
             });
         });
-        
-        // Popup duration
-        document.getElementById('popup-duration').addEventListener('input', (e) => {
-            config.popup.duration = parseInt(e.target.value);
-            document.getElementById('popup-duration-value').textContent = `${config.popup.duration}s`;
+
+        // Listener for popup duration slider
+        document.getElementById('popup-duration')?.addEventListener('input', (e) => {
+            if(config.popup) config.popup.duration = parseInt(e.target.value);
+            const valueDisplay = document.getElementById('popup-duration-value');
+            if(valueDisplay && config.popup) valueDisplay.textContent = `${config.popup.duration}s`;
         });
-        
-        // Popup max messages
-        document.getElementById('popup-max-messages').addEventListener('change', (e) => {
-            config.popup.maxMessages = parseInt(e.target.value);
+
+        // Listener for popup max messages input
+        document.getElementById('popup-max-messages')?.addEventListener('change', (e) => {
+            if(config.popup) config.popup.maxMessages = parseInt(e.target.value);
         });
-        
+
         /**
          * Save current settings from the panel to the config object and local storage.
          */
         function saveConfiguration() {
-            console.log("Attempting to save configuration...");
-            
             try {
-                // Helper function to get values safely (keep existing)
+                // Helper to get form values safely
                 const getValue = (element, defaultValue, isNumber = false, isBool = false, isOpacity = false) => {
                     if (!element) return defaultValue;
                     if (isBool) return element.checked;
                     let value = element.value;
                     if (isNumber) return parseInt(value, 10) || defaultValue;
-                     if (isOpacity) return parseFloat(value) / 100.0; // Convert percentage string/number to 0-1 float
+                    if (isOpacity) return !isNaN(parseFloat(value)) ? parseFloat(value) / 100.0 : defaultValue;
                     return value || defaultValue;
                 };
-                
-                // Helper to get color (keep existing) - REVISED AGAIN FOR BACKGROUND
+                // Helper to get color, considering active buttons and inputs
                 const getColor = (inputElement, buttonSelector, defaultColor) => {
-                     const targetType = buttonSelector.includes('data-target="bg"') ? 'bg' :
-                                        buttonSelector.includes('data-target="border"') ? 'border' :
-                                        buttonSelector.includes('data-target="text"') ? 'text' : 'username';
+                    const targetType = buttonSelector.includes('bg') ? 'bg' : buttonSelector.includes('border') ? 'border' : buttonSelector.includes('text') ? 'text' : 'username';
+                    const activeButton = document.querySelector(`${buttonSelector}.active`);
+                    const activeColor = activeButton?.dataset.color;
 
-                     const activeButton = document.querySelector(`${buttonSelector}.active`);
-                     const activeColor = activeButton?.dataset.color;
+                    if (targetType === 'bg') {
+                        const hexFromInput = inputElement?.value;
+                        const isTransparentActive = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]')?.classList.contains('active');
+                        const currentOpacity = getOpacity(bgOpacityInput, -1); // Get current opacity
+                        // If transparent button is active AND opacity slider is 0, save as black hex
+                        if (isTransparentActive && currentOpacity === 0) return '#000000';
+                        // Otherwise, trust the hex value in the input field
+                        if (hexFromInput) return hexFromInput;
+                        console.warn("[getColor/bg] Background color input was empty, falling back.");
+                        return defaultColor; // Fallback
+                    } else { // Border, Text, Username
+                        if (activeButton) {
+                            // Handle transparent border button specifically
+                            if (targetType === 'border' && activeColor === 'transparent') return 'transparent';
+                            return activeColor; // Use active button color
+                        }
+                        // Fallback to input value or default if no button is active
+                        return inputElement?.value || defaultColor;
+                    }
+                };
+                // Helper to get opacity (0-1 range) from slider
+                const getOpacity = (element, defaultValue) => {
+                    if (!element) return defaultValue;
+                    const parsedValue = parseFloat(element.value);
+                    return !isNaN(parsedValue) ? parsedValue / 100.0 : defaultValue;
+                };
 
-                     // --- Background Color Logic --- START
-                     if (targetType === 'bg') {
-                         // Always read the hex value directly from the input field first.
-                         // This input field should be updated correctly by applyTheme/updateConfigPanel.
-                         const hexFromInput = inputElement?.value;
+                // Read current state from UI controls
+                const currentFontValue = window.availableFonts?.[currentFontIndex]?.value || config.fontFamily;
+                const currentThemeValue = lastAppliedThemeValue; // Use tracked value
+                const bgImageOpacityValue = getOpacity(bgImageOpacityInput, config.bgImageOpacity ?? 0.55);
+                const currentBgColorHex = getColor(bgColorInput, '.color-buttons [data-target="bg"]', config.bgColor || '#121212');
+                const currentBgOpacity = getOpacity(bgOpacityInput, config.bgColorOpacity ?? 0.85);
+                const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {}; // Find matching theme object
 
-                         // Check the transparent button state specifically in conjunction with opacity
-                         const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
-                         const isTransparentActive = bgTransparentButton?.classList.contains('active');
-                         const currentOpacity = getOpacity(bgOpacityInput, -1); // Get opacity, -1 if slider missing
-
-                         // If transparent button is active AND opacity is truly 0, save as black hex.
-                         if (isTransparentActive && currentOpacity === 0) {
-                              console.log("[getColor/bg] Saving black hex due to active transparent button and 0 opacity.");
-                              return '#000000';
-                         }
-
-                         // Otherwise (normal colors or transparent button active but opacity > 0),
-                         // trust the hex value that's currently in the input field.
-                         if (hexFromInput) {
-                            // console.log(`[getColor/bg] Using hex from input: ${hexFromInput}`);
-                            return hexFromInput;
-                         }
-
-                         // Fallback if input is somehow empty (shouldn't normally happen)
-                         console.warn("[getColor/bg] Background color input was empty, falling back to default.");
-                         return defaultColor;
-                     }
-                     // --- Background Color Logic --- END
-
-                     // --- Other Color Types (Border, Text, Username) --- START
-                     // For other types, the previous logic (active button or input fallback) is fine.
-                     if (activeButton) {
-                         // Handle transparent border button
-                         if (targetType === 'border' && activeColor === 'transparent') {
-                             return 'transparent'; // Keep 'transparent' string
-                         }
-                         // Return the button's color if active
-                         return activeColor;
-                     }
-
-                     // If NO button is active for border/text/username, use the input value or default
-                     return inputElement?.value || defaultColor;
-                     // --- Other Color Types (Border, Text, Username) --- END
-                 };
-
-                 // Helper to get opacity (0-1 range) from the slider
-                  const getOpacity = (element, defaultValue) => {
-                      if (!element) return defaultValue;
-                       // Make sure to handle potential NaN
-                       const parsedValue = parseFloat(element.value);
-                       return !isNaN(parsedValue) ? parsedValue / 100.0 : defaultValue; 
-                  };
-
-                // --- Read current state from UI controls ---
-                const currentFontValue = window.availableFonts[currentFontIndex]?.value || config.fontFamily;
-                const currentThemeValue = lastAppliedThemeValue; // USE tracked value instead of index
-                const bgImageOpacityValue = getOpacity(bgImageOpacityInput, 0.55);
-                const currentBgColorHex = getColor(bgColorInput, '.color-buttons [data-target="bg"]', '#121212', true); // Gets HEX
-                const currentBgOpacity = getOpacity(bgOpacityInput, 0.85); // Gets OPACITY 0-1
-
-                // Find the full theme object matching the current theme value (used for theme name and potentially image)
-                const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
-
-                // --- Create new config object from UI values ---
-                // PRIORITIZE UI control values using helpers
+                // Create new config object from UI values, preserving lastChannel
                 const newConfig = {
-                    theme: currentThemeValue, // Still store the last *selected* theme name
-                    fontFamily: currentFontValue, // Read from font carousel state
-                    fontSize: getValue(fontSizeSlider, 14, true), // Reads from slider
-
-                    // Save background color (hex) and opacity (0-1) separately
-                    bgColor: currentBgColorHex, // Save the HEX value from UI/helper
-                    bgColorOpacity: currentBgOpacity, // Save the OPACITY value from UI/helper
-
-                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', '#444444'), // Default dark grey
-                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', '#efeff1'),
-                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', '#9147ff'),
-                    
-                    // Override username colors based on checkbox
-                    overrideUsernameColors: getValue(overrideUsernameColorsInput, false, false, true),
-                    
-                    // Background Image: Use theme's default ONLY if no specific image is set/saved
-                    // This logic might need refinement if users can *upload* images later.
-                    // For now, if a theme *has* an image, keep it unless explicitly changed?
-                    // Let's keep it simple: if theme has image, use it. Assume UI doesn't change this yet.
-                    bgImage: currentFullTheme.backgroundImage || null,
-                    // Image opacity always read from slider
-                    bgImageOpacity: bgImageOpacityValue, 
-                    
-                    // Appearance: Read from active preset buttons or fallback to current config
+                    theme: currentThemeValue,
+                    fontFamily: currentFontValue,
+                    fontSize: getValue(fontSizeSlider, config.fontSize || 14, true),
+                    bgColor: currentBgColorHex,
+                    bgColorOpacity: currentBgOpacity,
+                    borderColor: getColor(borderColorInput, '.color-buttons [data-target="border"]', config.borderColor || '#444444'),
+                    textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', config.textColor || '#efeff1'),
+                    usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', config.usernameColor || '#9147ff'),
+                    overrideUsernameColors: getValue(overrideUsernameColorsInput, config.overrideUsernameColors || false, false, true),
+                    bgImage: currentFullTheme.backgroundImage || config.bgImage || null, // Prioritize theme's image if set
+                    bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
-                    
-                    // Rest of the settings from UI controls
-                    chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || 'window',
-                    chatWidth: getValue(chatWidthInput, 95, true), // Correct fallback
-                    chatHeight: getValue(chatHeightInput, 95, true), // Correct fallback
-                    maxMessages: getValue(maxMessagesInput, 50, true),
-                    showTimestamps: getValue(showTimestampsInput, true, false, true),
+                    chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || config.chatMode || 'window',
+                    chatWidth: getValue(chatWidthInput, config.chatWidth || 95, true),
+                    chatHeight: getValue(chatHeightInput, config.chatHeight || 95, true),
+                    maxMessages: getValue(maxMessagesInput, config.maxMessages || 50, true),
+                    showTimestamps: getValue(showTimestampsInput, config.showTimestamps ?? true, false, true),
                     popup: {
-                        direction: document.querySelector('input[name="popup-direction"]:checked')?.value || 'from-bottom',
-                        duration: getValue(document.getElementById('popup-duration'), 5, true),
-                        maxMessages: getValue(document.getElementById('popup-max-messages'), 3, true)
+                        direction: document.querySelector('input[name="popup-direction"]:checked')?.value || config.popup?.direction || 'from-bottom',
+                        duration: getValue(document.getElementById('popup-duration'), config.popup?.duration || 5, true),
+                        maxMessages: getValue(document.getElementById('popup-max-messages'), config.popup?.maxMessages || 3, true)
                     },
                     lastChannel: config.lastChannel // Preserve last connected channel
                 };
 
-                // --- Apply & Save ---
-                config = newConfig; // Update the global config state
-                console.log("[saveConfiguration] Applying saved configuration visually...");
+                // Apply & Save
+                config = newConfig; // Update global config state
                 applyConfiguration(config); // Apply the new config visually
-                console.log("[saveConfiguration] Visual application complete.");
-
-                // === CRITICAL LOGGING: Check values JUST BEFORE saving ===
-                console.log(`[saveConfiguration] >> Preparing to save - bgColor (hex): ${newConfig.bgColor}, bgColorOpacity (0-1): ${newConfig.bgColorOpacity}`);
 
                 const scene = getUrlParameter('scene') || 'default';
-                // Use hyphen to match loadSavedConfig
-                localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config)); 
-                console.log(`Configuration saved for scene '${scene}':`, config);
-                
-                closeConfigPanel(false); // Close without reverting
-                // addSystemMessage("Settings saved successfully."); // Keep console cleaner
-                
+                localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config)); // Save to localStorage
+                closeConfigPanel(false); // Close panel without reverting
+
             } catch (error) {
                 console.error("Error saving configuration:", error);
-                 addSystemMessage("Error saving settings. Check console for details.");
+                 addSystemMessage("Error saving settings. Check console.");
             }
         }
-        
-        // Load saved config on page load
-        // [OBSOLETE loadSavedConfig function definition removed]
 
-        // Apply default settings when no saved config or on error
+        // Apply default settings
         function applyDefaultSettings() {
-            console.log("Applying default settings...");
-            // Reset config object to defaults (adjust defaults as needed)
+            // Reset config object to initial defaults
             config = {
-                chatMode: 'window',
-                // Store default background as RGBA
-                bgColor: '#121212', 
-                bgColorOpacity: 0.85, 
-                bgImage: null,
-                bgImageOpacity: 0.55,
-                borderColor: '#9147ff',
-                textColor: '#efeff1',
-                usernameColor: '#9147ff',
-                fontSize: 14,
-                fontFamily: "'Atkinson Hyperlegible', sans-serif", // <<< CHANGE DEFAULT
-                chatWidth: 95, // Correct default
-                chatHeight: 95, // Correct default
-                maxMessages: 50,
-                showTimestamps: true,
-                overrideUsernameColors: false,
-                borderRadius: '8px', // Use CSS value
-                boxShadow: 'soft', // Use preset name
-                theme: 'default',
-                lastChannel: '',
-                popup: {
-                    direction: 'from-bottom',
-                    duration: 5,
-                    maxMessages: 3
-                }
+                chatMode: 'window', bgColor: '#121212', bgColorOpacity: 0.85,
+                bgImage: null, bgImageOpacity: 0.55, borderColor: '#9147ff',
+                textColor: '#efeff1', usernameColor: '#9147ff', fontSize: 14,
+                fontFamily: "'Atkinson Hyperlegible', sans-serif", // Updated default font
+                chatWidth: 95, chatHeight: 95, maxMessages: 50, showTimestamps: true,
+                overrideUsernameColors: false, borderRadius: '8px', boxShadow: 'soft', // Use preset name
+                theme: 'default', lastChannel: '',
+                popup: { direction: 'from-bottom', duration: 5, maxMessages: 3 }
             };
-             // Apply the default config visually
-             applyConfiguration(config);
-             
-            // If no saved config, initialize the theme preview and set default mode
-            // updateThemePreview(availableThemes[currentThemeIndex]); // applyConfiguration handles this now
-            // switchChatMode('window'); // applyConfiguration handles this now
-
-            // Hide popup settings by default (applyConfiguration handles this too)
-            // const popupSettings = document.querySelectorAll('.popup-setting');
-            // popupSettings.forEach(el => el.style.display = 'none');
-            console.log("Default settings applied.");
+             // applyConfiguration(config); // This will be called by the reset button handler after this function
         }
-        
-        /**
-         * Apply border radius to chat container
-         */
+
+        // Apply border radius visually and update config
         function applyBorderRadius(value) {
-             // Ensure we have a valid CSS value (e.g., '8px')
-             const cssValue = window.getBorderRadiusValue(value); // Use global helper
+             const cssValue = window.getBorderRadiusValue(value); // Get CSS value ('8px')
              if (!cssValue) return;
              document.documentElement.style.setProperty('--chat-border-radius', cssValue);
-             config.borderRadius = cssValue; 
-             highlightBorderRadiusButton(cssValue); // Now DEFINITELY defined
-             updateThemePreview(); // Update preview based on config
+             config.borderRadius = value; // Store the original value/preset name in config
+             highlightBorderRadiusButton(cssValue); // Highlight based on CSS value
+             updateThemePreview();
         }
-        
-        /**
-         * Apply box shadow to chat container
-         */
+
+        // Apply box shadow visually and update config
         function applyBoxShadow(preset) {
-             // Ensure we have a valid CSS value (e.g., 'rgba(...) ...')
-             const cssValue = window.getBoxShadowValue(preset); // Use global helper
+             const cssValue = window.getBoxShadowValue(preset); // Get CSS value ('rgba(...)')
              if (!cssValue) return;
              document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
              config.boxShadow = preset; // Store the preset name in config
-             highlightBoxShadowButton(preset); 
-             updateThemePreview(); // Update preview based on config
+             highlightBoxShadowButton(preset); // Highlight based on preset name
+             updateThemePreview();
         }
 
-        // Add listeners to preset buttons
-         if (borderRadiusPresets) {
-             borderRadiusPresets.querySelectorAll('.preset-btn').forEach(btn => {
-                 btn.addEventListener('click', () => applyBorderRadius(btn.dataset.value));
-             });
-         }
-         if (boxShadowPresets) {
-             boxShadowPresets.querySelectorAll('.preset-btn').forEach(btn => {
-                 btn.addEventListener('click', () => applyBoxShadow(btn.dataset.value));
-             });
-         }
-        
+        // Add listeners to preset buttons (if they exist)
+        borderRadiusPresets?.querySelectorAll('.preset-btn')
+            .forEach(btn => btn.addEventListener('click', () => applyBorderRadius(btn.dataset.value)));
+        boxShadowPresets?.querySelectorAll('.preset-btn')
+            .forEach(btn => btn.addEventListener('click', () => applyBoxShadow(btn.dataset.value)));
+
         /**
          * Update all config panel controls to match the current config object.
-         * Called after reverting or applying a theme.
          */
         function updateConfigPanelFromConfig() {
-            // --- Update Background Color Controls --- START
-            // Always use config.bgColor directly (hex) and config.bgColorOpacity directly (float)
-            const hexColor = (config.bgColor && typeof config.bgColor === 'string' && config.bgColor.startsWith('#')) 
-                ? config.bgColor  // Use stored hex color
-                : '#121212';      // Fallback to default dark
-            
-            // Convert opacity (0-1) to percentage for UI
-            const opacityPercent = (config.bgColorOpacity !== undefined && typeof config.bgColorOpacity === 'number') // Changed to let
-                 ? Math.round(config.bgColorOpacity * 100)  // Convert stored opacity to percentage
-                 : 85;                                      // Fallback to default 85%
-             
-            // Special handling for transparent theme - already handled by applyTheme setting config correctly
-            // if (config.theme === 'transparent-theme') { // <<< REMOVED this special case
-            //     // Force opacity to 0 for transparent theme
-            //     opacityPercent = 0;
-            // }
+            if (!configPanel) return; // Don't run if panel doesn't exist
 
-            // Update the UI elements
+            // Background Color & Opacity
+            const hexColor = config.bgColor || '#121212';
+            const opacityPercent = Math.round((config.bgColorOpacity ?? 0.85) * 100);
             if (bgColorInput) bgColorInput.value = hexColor;
             if (bgOpacityInput && bgOpacityValue) {
                 bgOpacityInput.value = opacityPercent;
                 bgOpacityValue.textContent = `${opacityPercent}%`;
             }
-            // --- Update Background Color Controls --- END
 
-            // Update Border/Text/Username Color Inputs (Simplified)
-            borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Use black for transparent input
-            textColorInput.value = config.textColor || '#efeff1';
-            usernameColorInput.value = config.usernameColor || '#9147ff';
-            highlightActiveColorButtons(); // Highlight buttons based on config
+            // Other Colors
+            if(borderColorInput) borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Input needs a value
+            if(textColorInput) textColorInput.value = config.textColor || '#efeff1';
+            if(usernameColorInput) usernameColorInput.value = config.usernameColor || '#9147ff';
+            highlightActiveColorButtons(); // Update button highlights
 
-            // Update Appearance            
-            const effectiveBorderRadius = getBorderRadiusValue(config.borderRadius);
-            highlightBorderRadiusButton(effectiveBorderRadius);
-            
-            const effectiveBoxShadow = getBoxShadowValue(config.boxShadow);
-            highlightBoxShadowButton(config.boxShadow); // Use original preset name for highlighting
-            
-            // Update Settings
-            overrideUsernameColorsInput.checked = config.overrideUsernameColors;
-            
-            // Find the current font index based on config.fontFamily
-            // console.log(`[updateConfigPanel] Checking font: config.fontFamily = "${config.fontFamily}" (Type: ${typeof config.fontFamily})`); // REMOVE LOG
-            const fontIndex = window.availableFonts.findIndex(f => {
-                // console.log(`[updateConfigPanel] Comparing with availableFont: f.value = "${f.value}" (Type: ${typeof f.value})`); // REMOVE LOG
-                // Ensure both values are strings before trimming
-                const fValue = typeof f.value === 'string' ? f.value.trim() : f.value;
-                const cfgFontFamily = typeof config.fontFamily === 'string' ? config.fontFamily.trim() : config.fontFamily;
-                return fValue === cfgFontFamily; // KEEP TRIMMED COMPARISON
-            });
-            
-            if (fontIndex !== -1) {
-                // console.log(`[updateConfigPanel] Font index found: ${fontIndex}`); // REMOVE LOG
-                currentFontIndex = fontIndex;
-            } else {
-                 // console.warn(`[updateConfigPanel] Font index NOT found for "${config.fontFamily}". Attempting fallback.`); // REMOVE LOG
-                 const defaultFontIndex = window.availableFonts.findIndex(f => typeof f.value === 'string' && f.value.includes('Atkinson')); // Add type check
-                 currentFontIndex = defaultFontIndex !== -1 ? defaultFontIndex : 0;
-                 // Check if availableFonts[currentFontIndex] exists before accessing value
-                 if (window.availableFonts && window.availableFonts[currentFontIndex]) {
-                    config.fontFamily = window.availableFonts[currentFontIndex].value; // Ensure config is updated
-                 } else {
-                    console.error("[updateConfigPanel] Fallback font index invalid or availableFonts is empty.");
-                    // Handle error appropriately, maybe set a very basic default
-                    config.fontFamily = "sans-serif"; 
-                 }
-                 console.warn(`Font from config ("${config.fontFamily}") not found, defaulting.`); // Keep this useful warning
-            }
-            updateFontDisplay();
-            
-            fontSizeSlider.value = config.fontSize;
-            fontSizeValue.textContent = `${config.fontSize}px`;
-            chatWidthInput.value = config.chatWidth;
-            chatWidthValue.textContent = `${config.chatWidth}%`;
-            chatHeightInput.value = config.chatHeight;
-            chatHeightValue.textContent = `${config.chatHeight}%`;
-            maxMessagesInput.value = config.maxMessages;
-            showTimestampsInput.checked = config.showTimestamps;
-            
-            // Update Theme Carousel
-            const themeIndex = window.availableThemes.findIndex(t => t.value === config.theme);
-            if (themeIndex !== -1) {
-                currentThemeIndex = themeIndex;
-            } else {
-                // If theme not found, default to 'default' theme or index 0
-                const defaultThemeIndex = window.availableThemes.findIndex(t => t.value === 'default');
-                currentThemeIndex = defaultThemeIndex !== -1 ? defaultThemeIndex : 0;
-                config.theme = window.availableThemes[currentThemeIndex].value; // Ensure config is updated
-                console.warn(`Theme from config ("${config.theme}") not found, defaulting.`);
-            }
-            // updateThemeDisplay(); // Update carousel UI - REMOVED RECURSIVE CALL
-            // updateThemeDisplay(); // <<< ADD THIS LINE to update the display text // <<< REMOVE THIS OLD COMMENT
-            // <<< REPLACE updateThemeDisplay() call with these two lines: >>>
-            if (typeof window.updateThemeDetails === 'function') {
-                window.updateThemeDetails(window.availableThemes[currentThemeIndex]);
-            }
-            if (typeof window.highlightActiveCard === 'function') {
-                window.highlightActiveCard(window.availableThemes[currentThemeIndex]?.value);
-            }
-            updateThemePreview(); // Update preview
+            // Appearance Presets
+            highlightBorderRadiusButton(getBorderRadiusValue(config.borderRadius));
+            highlightBoxShadowButton(config.boxShadow); // Highlight based on stored preset name
 
-            // Update Connection status
-            channelInput.value = config.lastChannel || '';
-            // updateConnectionUI(socket && socket.readyState === WebSocket.OPEN);
-            // --- BEGIN REPLACEMENT for updateConnectionUI ---
+            // Settings Toggles/Inputs
+            if(overrideUsernameColorsInput) overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+            if(fontSizeSlider) fontSizeSlider.value = config.fontSize;
+            if(fontSizeValue) fontSizeValue.textContent = `${config.fontSize}px`;
+            if(chatWidthInput) chatWidthInput.value = config.chatWidth;
+            if(chatWidthValue) chatWidthValue.textContent = `${config.chatWidth}%`;
+            if(chatHeightInput) chatHeightInput.value = config.chatHeight;
+            if(chatHeightValue) chatHeightValue.textContent = `${config.chatHeight}%`;
+            if(maxMessagesInput) maxMessagesInput.value = config.maxMessages;
+            if(showTimestampsInput) showTimestampsInput.checked = config.showTimestamps;
+
+            // Font Selection
+            const fontIndex = window.availableFonts?.findIndex(f => f.value === config.fontFamily) ?? -1;
+            currentFontIndex = (fontIndex !== -1) ? fontIndex : (window.availableFonts?.findIndex(f => f.value?.includes('Atkinson')) ?? 0);
+            if (fontIndex === -1 && config.fontFamily !== window.availableFonts?.[currentFontIndex]?.value) {
+                 console.warn(`Font from config ("${config.fontFamily}") not found or mismatch, defaulting.`);
+                 config.fontFamily = window.availableFonts?.[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; // Ensure config matches default
+            }
+            updateFontDisplay(); // Update dropdown display
+
+            // Theme Carousel
+            const themeIndex = window.availableThemes?.findIndex(t => t.value === config.theme) ?? -1;
+            const currentThemeIdx = (themeIndex !== -1) ? themeIndex : (window.availableThemes?.findIndex(t => t.value === 'default') ?? 0);
+            if (themeIndex === -1 && config.theme !== window.availableThemes?.[currentThemeIdx]?.value) {
+                console.warn(`Theme from config ("${config.theme}") not found or mismatch, defaulting.`);
+                config.theme = window.availableThemes?.[currentThemeIdx]?.value || 'default'; // Ensure config matches default
+            }
+            // Update theme carousel display (assuming global functions exist)
+            if (typeof window.updateThemeDetails === 'function') window.updateThemeDetails(window.availableThemes?.[currentThemeIdx]);
+            if (typeof window.highlightActiveCard === 'function') window.highlightActiveCard(window.availableThemes?.[currentThemeIdx]?.value);
+            // updateThemePreview(); // updateFontDisplay already calls this
+
+            // Connection Status UI within Panel
+            if(channelInput) channelInput.value = config.lastChannel || '';
             const isConnected = socket && socket.readyState === WebSocket.OPEN;
-            if (channelForm) {
-                channelForm.style.display = isConnected ? 'none' : 'flex'; // Use 'flex' for visibility
-            }
+            if (channelForm) channelForm.style.display = isConnected ? 'none' : 'flex';
             if (disconnectBtn) {
                 disconnectBtn.style.display = isConnected ? 'block' : 'none';
-                if (isConnected) {
-                    disconnectBtn.textContent = `Disconnect from ${channel || config.lastChannel}`; // Ensure channel name is shown
-                }
+                if (isConnected) disconnectBtn.textContent = `Disconnect from ${channel || config.lastChannel}`;
             }
-            // --- END REPLACEMENT ---
-            
-            // --- Update Chat Mode Radio Buttons --- START
-            const currentMode = config.chatMode || 'window'; // Default to window if undefined
-            const modeRadioButtons = document.querySelectorAll('input[name="chat-mode"]');
-            modeRadioButtons.forEach(radio => {
-                if (radio.value === currentMode) {
-                    radio.checked = true;
-                } else {
-                    radio.checked = false;
-                }
-            });
-            updateModeSpecificSettingsVisibility(currentMode); // Also update settings visibility
-            // --- Update Chat Mode Radio Buttons --- END
-            
-            // --- Update Popup Direction --- START
-            const currentPopupDirection = config.popup?.direction || 'from-bottom';
-            const directionRadioButtons = document.querySelectorAll('input[name="popup-direction"]');
-            directionRadioButtons.forEach(radio => {
-                 radio.checked = (radio.value === currentPopupDirection);
-            });
-            // --- Update Popup Direction --- END
 
-            // --- Update Popup Duration/Max Messages --- START
+            // Chat Mode Radio Buttons
+            const currentMode = config.chatMode || 'window';
+            document.querySelectorAll('input[name="chat-mode"]').forEach(radio => radio.checked = (radio.value === currentMode));
+            updateModeSpecificSettingsVisibility(currentMode);
+
+            // Popup Direction Radio Buttons
+            const currentPopupDirection = config.popup?.direction || 'from-bottom';
+            document.querySelectorAll('input[name="popup-direction"]').forEach(radio => radio.checked = (radio.value === currentPopupDirection));
+
+            // Popup Duration/Max Messages Inputs
             const popupDurationInput = document.getElementById('popup-duration');
             const popupDurationValue = document.getElementById('popup-duration-value');
             const popupMaxMessagesInput = document.getElementById('popup-max-messages');
-
             if (popupDurationInput && popupDurationValue) {
                 const duration = config.popup?.duration || 5;
                 popupDurationInput.value = duration;
@@ -2239,468 +1428,260 @@
             if (popupMaxMessagesInput) {
                 popupMaxMessagesInput.value = config.popup?.maxMessages || 3;
             }
-            // --- Update Popup Duration/Max Messages --- END
-
-            console.log("Config panel updated.");
         }
 
-        // ... (rest of event listeners: disconnect, reset, save, enter key) ...
-        
         // Initialize the application
-        updateFontDisplay();  // Helpers are defined before this now
-        // REMOVED Initial updateThemeDisplay() call, applyConfiguration handles initial theme
-        loadSavedConfig();    // Helpers are defined before this now
-        
-        // Listen for newly generated themes being added
+        // updateFontDisplay(); // Called by loadSavedConfig -> applyConfiguration -> updateConfigPanelFromConfig
+        loadSavedConfig(); // Load, apply, and update panel
+
+        // Listen for newly generated themes (from theme-generator.js)
         document.addEventListener('theme-generated-and-added', (event) => {
-            if (event.detail && event.detail.themeValue) {
-                const newThemeValue = event.detail.themeValue;
-                console.log(`[Event Listener] Received theme-generated-and-added event for: ${newThemeValue}`);
-                // Apply the theme visuals first
-                // The theme application will now be handled by the applyAndScrollToTheme call in theme-generator.js
-            } else {
-                console.warn("[Event Listener] Received theme-generated-and-added event without valid themeValue in detail.");
+            if (!(event.detail && event.detail.themeValue)) {
+                console.warn("[Event Listener] Received theme-generated-and-added event without valid themeValue.");
             }
+            // Theme application/scrolling is handled by theme-generator.js
         });
-        
-        // Ensure channel form is visible and disconnect button is hidden initially
-        if (channelForm) channelForm.style.display = 'flex';
-        
-        // Disconnect button
-        disconnectBtn.addEventListener('click', () => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close();
-                console.log('Disconnected via button.');
-            }
-            // No need to explicitly call updateStatus(false) or addSystemMessage here,
-            // as the socket.onclose event handler already does that.
-            
-            // Reset button text, hide disconnect btn, show channel form
-            disconnectBtn.textContent = 'Disconnect'; 
-            if (disconnectBtn) disconnectBtn.style.display = 'none';
-            if (channelForm) channelForm.style.display = 'flex';
-            
-            // Show the connection form again
-            // No longer needed, handled by showing channelForm above
-            
-            // Clear the last channel from config
-            if (config) {
-                config.lastChannel = null;
-                // Optionally save the config change immediately
-                // saveConfiguration(); // Consider if this is desired UX
-            }
-        });
-        
-        // Reset to defaults button
-        resetConfigBtn.addEventListener('click', () => {
-             // ... (implementation exists) ...
-        });
-        
-        // Save button handler
-        if (saveConfigBtn) {
-            saveConfigBtn.addEventListener('click', (e) => {
-                console.log('Save button clicked');
-                if (e) e.preventDefault();
-                saveConfiguration();
-            });
-            saveConfigBtn.dataset.listenerAttached = 'true';
-        }
-        
-        // Add generate theme button click handler
-        // This is now handled by theme-generator.js
-        // if (generateThemeBtn) { ... } // Removed original listener
-        
-        // Add prompt input enter key handler
-        // This is now handled by theme-generator.js
-        // if (themePromptInput) { ... } // Removed original listener
+
+        // Ensure initial visibility of connection form if not auto-connecting
+        // (Handled within loadSavedConfig's connection logic)
+
+        // Disconnect button listener (already attached in panel setup)
+
+        // --- Core Application Logic ---
 
         /**
          * Apply a full configuration object to the chat overlay UI.
-         * Centralizes the application of various settings.
-         * @param {object} cfg - The configuration object to apply.
+         * This is the central function for visually updating the overlay based on `config`.
          */
         function applyConfiguration(cfg) {
-            console.log("Applying configuration:", JSON.parse(JSON.stringify(cfg)));
-            
-            // --- Update lastAppliedThemeValue --- NEW
-            if (cfg.theme) {
-                lastAppliedThemeValue = cfg.theme;
-                console.log(`[applyConfiguration] Updated lastAppliedThemeValue to: ${lastAppliedThemeValue}`);
-            }
+            if (!cfg) { console.error("applyConfiguration called with invalid config"); return; }
 
-            // --- Get base color and opacity separately --- // NEW BLOCK
-            const baseBgColor = cfg.bgColor || '#121212'; // Should always be hex now
-            const bgOpacity = cfg.bgColorOpacity !== undefined ? cfg.bgColorOpacity : 0.85; // Should be 0-1 float
-            
-            // Generate the final rgba color string using the hex and opacity
+            // Track the theme value being applied
+            if (cfg.theme) lastAppliedThemeValue = cfg.theme;
+
+            // Determine final background RGBA color
+            const baseBgColor = cfg.bgColor || '#121212';
+            const bgOpacity = cfg.bgColorOpacity ?? 0.85;
             let finalRgbaColor;
-            try {
-                finalRgbaColor = hexToRgba(baseBgColor, bgOpacity);
-            } catch (e) {
+            try { finalRgbaColor = hexToRgba(baseBgColor, bgOpacity); }
+            catch (e) {
                  console.error(`[applyConfiguration] Error converting hex ${baseBgColor} with opacity ${bgOpacity}:`, e);
-                 finalRgbaColor = `rgba(18, 18, 18, ${bgOpacity.toFixed(2)})`; // Fallback to default dark + opacity
+                 finalRgbaColor = `rgba(18, 18, 18, ${bgOpacity.toFixed(2)})`; // Fallback
             }
-            console.log(`[applyConfiguration] Applying background: ${finalRgbaColor} (from hex: ${baseBgColor}, opacity: ${bgOpacity})`);
-  
-              // --- Apply Core CSS Variables ---
-              // Set the combined RGBA value for the background color variable
-              document.documentElement.style.setProperty('--chat-bg-color', finalRgbaColor);
-              // REMOVE setting --chat-bg-opacity
-  
-              document.documentElement.style.setProperty('--chat-border-color', cfg.borderColor || '#444444');
-              document.documentElement.style.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
-              document.documentElement.style.setProperty('--username-color', cfg.usernameColor || '#9147ff');
-              document.documentElement.style.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8'); // Add if you have this var
-              document.documentElement.style.setProperty('--font-size', `${cfg.fontSize || 14}px`);
-              document.documentElement.style.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
-              document.documentElement.style.setProperty('--chat-width', `${cfg.chatWidth || 95}%`); // Correct fallback
-              document.documentElement.style.setProperty('--chat-height', `${cfg.chatHeight || 95}%`); // Correct fallback
-              document.documentElement.style.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
-              document.documentElement.style.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
-              // document.documentElement.style.setProperty('--override-username-colors', cfg.overrideUsernameColors ? 1 : 0); // Better handled by class
 
-               // Background Image (Opacity is handled separately)
-               const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
-               document.documentElement.style.setProperty('--chat-bg-image', bgImageURL);
-               document.documentElement.style.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
+            // Apply Core CSS Variables to :root
+            const rootStyle = document.documentElement.style;
+            rootStyle.setProperty('--chat-bg-color', finalRgbaColor);
+            rootStyle.setProperty('--chat-border-color', cfg.borderColor || '#444444');
+            rootStyle.setProperty('--chat-text-color', cfg.textColor || '#efeff1');
+            rootStyle.setProperty('--username-color', cfg.usernameColor || '#9147ff');
+            rootStyle.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8');
+            rootStyle.setProperty('--font-size', `${cfg.fontSize || 14}px`);
+            rootStyle.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
+            rootStyle.setProperty('--chat-width', `${cfg.chatWidth || 95}%`);
+            rootStyle.setProperty('--chat-height', `${cfg.chatHeight || 95}%`);
+            rootStyle.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
+            rootStyle.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
 
-               // Popup styles (mirror chat styles)
-               // Set the combined RGBA value for the popup background color variable
-               document.documentElement.style.setProperty('--popup-bg-color', finalRgbaColor);
-               // REMOVE setting --popup-bg-opacity
+            // Background Image CSS Variables
+            const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
+            rootStyle.setProperty('--chat-bg-image', bgImageURL);
+            rootStyle.setProperty('--chat-bg-image-opacity', cfg.bgImageOpacity ?? 0.55);
 
-               document.documentElement.style.setProperty('--popup-border-color', cfg.borderColor || '#444444'); // Ensure this is set
-               document.documentElement.style.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
-               document.documentElement.style.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
-               document.documentElement.style.setProperty('--popup-bg-image', bgImageURL);
-               document.documentElement.style.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity !== undefined ? cfg.bgImageOpacity : 0.55);
+            // Popup styles (mirror chat styles)
+            rootStyle.setProperty('--popup-bg-color', finalRgbaColor);
+            rootStyle.setProperty('--popup-border-color', cfg.borderColor || '#444444');
+            rootStyle.setProperty('--popup-text-color', cfg.textColor || '#efeff1');
+            rootStyle.setProperty('--popup-username-color', cfg.usernameColor || '#9147ff');
+            rootStyle.setProperty('--popup-bg-image', bgImageURL);
+            rootStyle.setProperty('--popup-bg-image-opacity', cfg.bgImageOpacity ?? 0.55);
 
-              // --- Apply Font Size to Theme Preview Directly --- NEW
-              if (themePreview) {
-                themePreview.style.fontSize = `${cfg.fontSize || 14}px`;
-              }
+            // Apply Font Size directly to Theme Preview element
+            if (themePreview) themePreview.style.fontSize = `${cfg.fontSize || 14}px`;
 
-              // --- Apply Theme Class & Override Class ---
-              // Remove all potential theme classes first
-              document.documentElement.classList.remove(
-                  'light-theme', 
-                  'natural-theme', 
-                  'transparent-theme', 
-                  'pink-theme', 
-                  'cyberpunk-theme'
-                  // Add any other theme-specific classes here dynamically later if needed
-                  // Or better, rely purely on CSS variables set below
-              );
-              // Dynamically remove potential generated theme classes as well
-              const classList = document.documentElement.classList;
-              for (let i = classList.length - 1; i >= 0; i--) {
-                  const className = classList[i];
-                  if (className.endsWith('-theme') && className !== 'default-theme') { // Assuming 'default' doesn't use a class
-                      classList.remove(className);
-                  }
-              }
-
-              // Apply the theme class regardless of whether it's predefined or generated
-              if (cfg.theme && cfg.theme !== 'default') {
-                  document.documentElement.classList.add(cfg.theme); // Add class based on cfg.theme value
-              }
-
-              // Special class for override? (If CSS uses it)
-              if (cfg.overrideUsernameColors) {
-                   document.documentElement.classList.add('override-username-colors');
-              } else {
-                   document.documentElement.classList.remove('override-username-colors');
-              }
-
-              // --- Update UI State ---
-              // Apply timestamp visibility class (if CSS uses it)
-              if (cfg.showTimestamps) {
-                  document.documentElement.classList.remove('hide-timestamps');
-              } else {
-                  document.documentElement.classList.add('hide-timestamps');
-              }
-              // Maybe force redraw of existing messages if needed? (Less critical now)
-
-              // Update chat mode display (Handles showing/hiding containers)
-              console.log("[applyConfiguration] Switching chat mode based on config...");
-              switchChatMode(cfg.chatMode || 'window', false); // Pass false to prevent adding messages
-              console.log("[applyConfiguration] Mode switch complete.");
-
-              // Ensure visual previews reflect the applied config
-              updateColorPreviews(); // Update color button highlights
-              // updatePreviewFromCurrentSettings(); // REMOVED CALL
-              // Ensure theme preview updates based on the applied config's theme
-              const appliedThemeObj = window.availableThemes.find(t => t.value === cfg.theme) || window.availableThemes[0];
-              if (appliedThemeObj) {
-                  updateThemePreview(appliedThemeObj);
-              }
-
-              console.log("Configuration applied.");
-          }
-
-        // Event listeners for config panel inputs
-        if (fontSizeSlider) {
-            fontSizeSlider.addEventListener('input', (e) => {
-                const newSize = e.target.value;
-                if (fontSizeValue) {
-                    fontSizeValue.textContent = `${newSize}px`;
-                }
-                document.documentElement.style.setProperty('--chat-font-size', `${newSize}px`);
-                
-                // Apply font size to theme preview as well
-                if (themePreview) {
-                    themePreview.style.fontSize = `${newSize}px`; 
+            // Apply Theme Class & Override Class to <html> element
+            const rootClassList = document.documentElement.classList;
+            // Remove existing theme classes first
+            const themeClasses = ['light-theme', 'natural-theme', 'transparent-theme', 'pink-theme', 'cyberpunk-theme'];
+            // Add any dynamically generated theme classes (ending in -theme) to the removal list
+            Array.from(rootClassList).forEach(cls => {
+                if (cls.endsWith('-theme') && !themeClasses.includes(cls)) {
+                    themeClasses.push(cls);
                 }
             });
+            rootClassList.remove(...themeClasses);
+            // Add current theme class if it's not 'default'
+            if (cfg.theme && cfg.theme !== 'default') rootClassList.add(cfg.theme);
+            // Toggle username color override class
+            rootClassList.toggle('override-username-colors', !!cfg.overrideUsernameColors);
+
+            // Update Global UI State based on config
+            rootClassList.toggle('hide-timestamps', !cfg.showTimestamps); // Toggle timestamp visibility class
+            switchChatMode(cfg.chatMode || 'window', true); // Update display mode (visuals only)
+
+            // Ensure Previews are Updated
+            updateColorPreviews(); // Updates button highlights & calls updateThemePreview
         }
 
-        // Add listener for timestamp toggle to update preview
+        // Listener for timestamp toggle (directly updates preview)
         if (showTimestampsInput) {
-            // Check if listener already exists to prevent duplicates (optional but good practice)
-            if (!showTimestampsInput.dataset.listenerAttachedPreview) { 
+            if (!showTimestampsInput.dataset.listenerAttachedPreview) {
                 showTimestampsInput.addEventListener('change', () => {
-                    console.log('[Timestamp Checkbox] Change event triggered.'); // LOGGING
-                    // Update config immediately ONLY if needed elsewhere, 
-                    // otherwise updateThemePreview reads directly from checkbox state
-                    config.showTimestamps = showTimestampsInput.checked; 
+                    // Update config immediately if other parts of the app need the live value
+                    config.showTimestamps = showTimestampsInput.checked;
                     updateThemePreview(); // Update preview when toggled
                 });
-                showTimestampsInput.dataset.listenerAttachedPreview = 'true'; // Mark listener as attached
+                showTimestampsInput.dataset.listenerAttachedPreview = 'true';
             }
-        } else {
-            console.warn("Show Timestamps checkbox element not found during listener setup.");
-        }
+        } else { console.warn("Show Timestamps checkbox element not found."); }
 
         /**
-         * Updates the UI based on connection status.
-         * Shows/hides the initial connection prompt vs. the main chat UI.
-         * @param {boolean} isConnected - True if connected, false otherwise.
+         * Updates the main UI visibility based on connection status and chat mode.
          */
         function updateConnectionStateUI(isConnected) {
-            if (isConnected) {
-                // Hide prompt
-                if (initialConnectionPrompt) initialConnectionPrompt.style.display = 'none';
-
-                // Show correct main container based on mode
-                if (config.chatMode === 'popup') {
-                    if (popupContainer) popupContainer.style.display = 'block';
-                    if (chatWrapper) chatWrapper.style.display = 'none';
-                } else { // window mode
-                    if (popupContainer) popupContainer.style.display = 'none';
-                    if (chatWrapper) chatWrapper.style.display = 'block';
-                }
-
-                document.body.classList.remove('disconnected');
-
-            } else { // Disconnected
-                // Show prompt
-                if (initialConnectionPrompt) initialConnectionPrompt.style.display = 'flex';
-
-                // --- REMOVE HIDING of main containers ---
-                // if (popupContainer) popupContainer.style.display = 'none';
-                // if (chatWrapper) chatWrapper.style.display = 'none';
-
-                document.body.classList.add('disconnected');
-            }
-            updateStatus(isConnected); // Also update the small status indicator if it exists
+            const isPopupMode = config.chatMode === 'popup';
+            // Toggle initial prompt visibility
+            if (initialConnectionPrompt) initialConnectionPrompt.style.display = isConnected ? 'none' : 'flex';
+            // Toggle main containers based on connection AND mode
+            if (popupContainer) popupContainer.style.display = isConnected && isPopupMode ? 'block' : 'none';
+            if (chatWrapper) chatWrapper.style.display = isConnected && !isPopupMode ? 'block' : 'none';
+            // Toggle body class for global styling hooks
+            document.body.classList.toggle('disconnected', !isConnected);
+            // Update small status indicator dot
+            updateStatus(isConnected);
         }
 
         // Initial Connection Prompt Listeners
-        if (initialConnectBtn) {
+        if (initialConnectBtn && initialChannelInput) {
             initialConnectBtn.addEventListener('click', () => {
-                // Sync value from prompt input to main input before connecting
-                if (initialChannelInput && channelInput) {
-                    channelInput.value = initialChannelInput.value;
-                }
-                connectToChat(); // Attempt connection
+                if (channelInput) channelInput.value = initialChannelInput.value; // Sync value
+                connectToChat();
             });
-        }
-
-        if (initialChannelInput) {
-            // Allow Enter key to trigger connection from prompt input
-            initialChannelInput.addEventListener('keypress', (e) => {
+            initialChannelInput.addEventListener('keypress', (e) => { // Enter key listener
                 if (e.key === 'Enter') {
-                    // Sync value from prompt input to main input before connecting
-                    if (channelInput) {
-                         channelInput.value = initialChannelInput.value;
-                    }
+                    if (channelInput) channelInput.value = initialChannelInput.value; // Sync value
                     connectToChat();
                 }
             });
-            // Sync prompt input TO settings input
-            initialChannelInput.addEventListener('input', () => {
+            initialChannelInput.addEventListener('input', () => { // Sync prompt -> settings input live
                  if (channelInput) channelInput.value = initialChannelInput.value;
             });
-        }
+        } else { console.error("Initial connection prompt elements not found."); }
 
-        if (openSettingsFromPromptBtn) {
-            openSettingsFromPromptBtn.addEventListener('click', () => {
-                // Sync channel name from prompt to settings panel input when opening
-                if (initialChannelInput && channelInput) {
-                    channelInput.value = initialChannelInput.value;
-                }
-                openSettingsPanel();
-            });
-        }
+        // "Open Settings" button from initial prompt
+        if (openSettingsFromPromptBtn && configPanel) {
+             openSettingsFromPromptBtn.addEventListener('click', () => {
+                 if (initialChannelInput && channelInput) channelInput.value = initialChannelInput.value; // Sync channel before opening
+                 openSettingsPanel();
+             });
+         }
 
-
-        // Existing Listeners (Ensure they interact correctly)
-        if (connectBtn) { // Button inside settings panel
-            // Use a flag to prevent multiple attachments if initApp runs multiple times
-            if (!connectBtn.dataset.listenerAttachedPanel) { 
-                let panelConnectClicks = 0; // Add counter
-                connectBtn.addEventListener('click', () => { // <<< RE-ENABLE LISTENER >>>
-                    panelConnectClicks++;
-                    console.log(`[Panel Connect Btn] Click detected (${panelConnectClicks}). Calling connectToChat...`); // Add log
-                    connectToChat();
-                });
-                connectBtn.dataset.listenerAttachedPanel = 'true'; // Mark as attached
+        // Settings Panel Listeners (Connect Button)
+        if (connectBtn && channelInput) { // Ensure both exist
+            if (!connectBtn.dataset.listenerAttachedPanel) { // Prevent multiple listeners
+                connectBtn.addEventListener('click', connectToChat);
+                connectBtn.dataset.listenerAttachedPanel = 'true';
             }
-        }
-
-        if (channelInput) { // Input inside settings panel
-             // Allow Enter key to trigger connection from settings input
-             channelInput.addEventListener('keydown', (e) => { // Changed to keydown
+            // Enter key listener for the panel input
+             channelInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent default form submission/action
-                    e.stopPropagation(); // <<< ADD stopPropagation >>>
-                    console.log('[Panel Input Enter] Keydown detected (prevented/stopped). Calling connectToChat...'); // Updated log
+                    e.preventDefault(); e.stopPropagation(); // Prevent form submission/bubbling
                     connectToChat();
                 }
              });
-             // Sync settings input TO prompt input
+             // Sync settings input -> prompt input live
              channelInput.addEventListener('input', () => {
                 if (initialChannelInput) initialChannelInput.value = channelInput.value;
              });
         }
 
-
-        if (disconnectBtn) {
-            disconnectBtn.addEventListener('click', () => {
-                if (socket) {
-                    socket.close(); // This will trigger the onclose handler
-                }
-                // The onclose handler now calls updateConnectionStateUI(false)
-                // So no need to call it directly here.
-                channel = ''; // Clear channel variable immediately
-                // Optionally clear the input fields
-                 // channelInput.value = '';
-                 // if (initialChannelInput) initialChannelInput.value = '';
-                // config.lastChannel = ''; // Also decide if disconnect clears saved channel
-                // saveConfiguration();
-            });
+        // Settings Panel Listener (Disconnect Button)
+        if (disconnectBtn) { // Listener attached in setup, using disconnectChat
+             disconnectBtn.addEventListener('click', disconnectChat);
         }
 
-        // Load saved config or apply defaults
+        // Load saved config or apply defaults on initial load
         function loadSavedConfig() {
             try {
                 const sceneName = getUrlParameter('scene') || 'default';
                 const savedConfig = localStorage.getItem(`chatConfig-${sceneName}`);
-                let loadedConfig = null;
-
                 if (savedConfig) {
-                    loadedConfig = JSON.parse(savedConfig);
-                    console.log(`Loaded configuration for scene '${sceneName}':`, loadedConfig);
-                    // Merge loaded config with defaults to ensure all keys exist
+                    const loadedConfig = JSON.parse(savedConfig);
+                    // Merge defaults with loaded config to ensure all keys exist
                     config = { ...config, ...loadedConfig };
                 } else {
-                    console.log(`No saved config found for scene '${sceneName}', applying defaults.`);
-                    applyDefaultSettings(); // Apply defaults if nothing is saved
-                    loadedConfig = config; // Use defaults as the loaded config for initial apply
+                    // No saved config, apply defaults (config object is already default)
+                    // applyDefaultSettings(); // No need, config already holds defaults initially
                 }
 
-                // Apply the loaded or default configuration
+                // Apply the final configuration (loaded or default)
                 applyConfiguration(config);
-
-                // Update the panel to reflect the finally loaded/applied state
+                // Update the panel controls to reflect the applied state
                 updateConfigPanelFromConfig();
 
-                 // --- Initial Connection Logic ---
+                 // Initial Connection Attempt Logic
                  if (config.lastChannel) {
-                     console.log(`Attempting to auto-connect to last channel: ${config.lastChannel}`);
-                     // Populate both input fields
-                     channelInput.value = config.lastChannel;
+                     // Pre-fill inputs
+                     if (channelInput) channelInput.value = config.lastChannel;
                      if (initialChannelInput) initialChannelInput.value = config.lastChannel;
-                     connectToChat(); // Attempt connection
-                     // UI state (prompt vs chat) will be handled by socket.onopen/onerror
+                     connectToChat(); // Attempt auto-connection
                  } else {
-                     console.log('No last channel found in config. Showing connection prompt.');
-                     // Explicitly set UI to disconnected state to show prompt
+                     // No last channel, ensure UI shows disconnected state (prompt)
                      updateConnectionStateUI(false);
-                     // Sync empty value to inputs
-                     channelInput.value = '';
-                      if (initialChannelInput) initialChannelInput.value = '';
+                     if (channelInput) channelInput.value = '';
+                     if (initialChannelInput) initialChannelInput.value = '';
                  }
-                 // --- End Initial Connection Logic ---
 
             } catch (e) {
                 console.error("Error loading or parsing configuration:", e);
                 applyDefaultSettings(); // Fallback to defaults on error
-                applyConfiguration(config);
-                updateConfigPanelFromConfig();
-                // Show prompt on error loading config as well
-                updateConnectionStateUI(false);
-                 channelInput.value = '';
+                applyConfiguration(config); // Apply them
+                updateConfigPanelFromConfig(); // Update panel
+                updateConnectionStateUI(false); // Show prompt
+                 if (channelInput) channelInput.value = '';
                  if (initialChannelInput) initialChannelInput.value = '';
             }
         }
 
         /**
          * Saves only the lastChannel property to localStorage, preserving other settings.
+         * Called on successful connection.
          */
         function saveLastChannelOnly(channelToSave) {
-            console.log(`[saveLastChannelOnly] Attempting to save channel: ${channelToSave}`); // <<< ADD LOG
             if (!channelToSave) {
-                console.warn("[saveLastChannelOnly] Channel is empty, returning early."); // <<< ADD LOG
-                return; // Don't save empty channel
+                console.warn("[saveLastChannelOnly] Attempted to save empty channel.");
+                return;
             }
-
             try {
                 const scene = getUrlParameter('scene') || 'default';
                 const configKey = `chatConfig-${scene}`;
                 let currentFullConfig = {};
-                try {
+                try { // Load existing config safely
                     const saved = localStorage.getItem(configKey);
-                    if (saved) {
-                        currentFullConfig = JSON.parse(saved);
-                         console.log("[saveLastChannelOnly] Parsed existing config:", currentFullConfig); // <<< ADD LOG
-                    } else {
-                        console.log("[saveLastChannelOnly] No existing config found in localStorage."); // <<< ADD LOG
-                    }
-                } catch (parseError) {
-                    console.error("[saveLastChannelOnly] Error parsing existing config:", parseError);
-                    // Continue with potentially empty config object
-                }
+                    if (saved) currentFullConfig = JSON.parse(saved);
+                } catch (parseError) { console.error("[saveLastChannelOnly] Error parsing existing config:", parseError); }
 
                 // Update only the lastChannel property
                 currentFullConfig.lastChannel = channelToSave;
-
-                // Save the modified config back to localStorage
-                console.log(`[saveLastChannelOnly] Preparing to set localStorage item for key '${configKey}' with config:`, currentFullConfig); // <<< ADD LOG
+                // Save the modified config back
                 localStorage.setItem(configKey, JSON.stringify(currentFullConfig));
-                console.log(`[saveLastChannelOnly] Saved lastChannel '${channelToSave}' for scene '${scene}'`);
-
                 // Also update the global config object in memory
                 config.lastChannel = channelToSave;
-
             } catch (storageError) {
-                console.error("[saveLastChannelOnly] Error saving lastChannel to localStorage:", storageError);
+                console.error("[saveLastChannelOnly] Error saving lastChannel:", storageError);
             }
         }
 
-        // Function to handle explicit user disconnection
+        // Function to handle explicit user disconnection via button
         function disconnectChat() {
             if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-                console.log("User initiated disconnect.");
-                isExplicitDisconnect = true; // Set the flag *before* closing
-                clearTimeout(reconnectTimer); // Cancel any pending reconnect attempts
+                isExplicitDisconnect = true; // Set flag *before* closing
+                clearTimeout(reconnectTimer); // Cancel any pending reconnects
                 reconnectTimer = null;
                 reconnectAttempts = 0;
-                socket.close();
-                // UI updates and state clearing will happen in socket.onclose
+                socket.close(); // Triggers socket.onclose for UI updates
             } else {
-                console.log("Disconnect requested but socket is not open or connecting.");
-                // Still ensure UI is in disconnected state if somehow out of sync
+                 // If socket wasn't open, ensure UI is in disconnected state anyway
                  updateConnectionStateUI(false);
                  if (disconnectBtn) disconnectBtn.style.display = 'none';
                  if (channelForm) channelForm.style.display = 'flex';
@@ -2711,44 +1692,31 @@
         // Function to schedule reconnection attempts with exponential backoff
         function scheduleReconnect(channelToReconnect) {
             if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-                console.log("Max reconnect attempts reached. Giving up.");
                 addSystemMessage("Failed to reconnect after multiple attempts.");
-                updateConnectionStateUI(false); // Show the initial connection prompt
-                // Optionally clear chat messages here if desired upon giving up
-                // if (chatMessages) chatMessages.innerHTML = '';
+                updateConnectionStateUI(false); // Show connection prompt
                 reconnectAttempts = 0; // Reset for future manual connections
-                 if (initialChannelInput) initialChannelInput.value = channelToReconnect || config.lastChannel || ''; // Pre-fill prompt with last channel
+                 // Pre-fill prompt with the channel we failed to connect to
+                 if (initialChannelInput) initialChannelInput.value = channelToReconnect || config.lastChannel || '';
                 return;
             }
 
-            // Calculate delay: initial * 2^attempts, capped at max delay
+            // Calculate delay: initial * 2^attempts, capped at max
             let delay = INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttempts);
             delay = Math.min(delay, MAX_RECONNECT_DELAY);
-
             reconnectAttempts++;
-            console.log(`Scheduling reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay / 1000}s for channel: ${channelToReconnect}`);
             addSystemMessage(`Reconnecting in ${Math.round(delay / 1000)}s... (Attempt ${reconnectAttempts})`);
 
-             // Pre-fill the channel input *before* attempting to connect
-             // This ensures connectToChat() picks up the correct channel
-             if (channelInput) {
-                 channelInput.value = channelToReconnect;
-             }
-             if (initialChannelInput) { // Keep prompt input synced too
-                 initialChannelInput.value = channelToReconnect;
-             }
-
+             // Pre-fill channel inputs before the timer starts
+             if (channelInput) channelInput.value = channelToReconnect;
+             if (initialChannelInput) initialChannelInput.value = channelToReconnect;
 
             // Clear previous timer just in case
             clearTimeout(reconnectTimer);
 
             reconnectTimer = setTimeout(() => {
-                console.log(`Executing reconnect attempt ${reconnectAttempts}`);
-                // Important: Ensure the channel input still holds the correct value before connecting
-                // connectToChat() will read from channelInput or initialChannelInput
+                // Re-verify inputs haven't been manually changed during delay; use original channel for this attempt
                  if (channelInput && channelInput.value !== channelToReconnect) {
-                    console.warn(`Channel input changed during reconnect delay. Using: ${channelInput.value}`);
-                    // Decide policy: use new value or stick to original? Sticking for now.
+                    console.warn(`Channel input changed during reconnect delay. Using original: ${channelToReconnect}`);
                     channelInput.value = channelToReconnect;
                  }
                  if (initialChannelInput && initialChannelInput.value !== channelToReconnect) {
@@ -2758,52 +1726,5 @@
             }, delay);
         }
 
-        // --- EVENT LISTENERS ---
-
-        // Initial prompt connect button
-        if (initialConnectBtn && initialChannelInput) {
-            initialConnectBtn.addEventListener('click', () => {
-                // Sync value to main input and trigger connection
-                if (channelInput) {
-                     channelInput.value = initialChannelInput.value;
-                }
-                connectToChat();
-            });
-            // Allow Enter key to connect from initial prompt input
-            initialChannelInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    initialConnectBtn.click(); // Trigger button click
-                }
-            });
-        } else {
-             console.error("Initial connection prompt elements not found.");
-        }
-
-        // Open Settings from initial prompt
-         if (openSettingsFromPromptBtn && configPanel) {
-             openSettingsFromPromptBtn.addEventListener('click', () => {
-                 openSettingsPanel();
-                 // Optionally pre-fill channel from prompt to settings input
-                 if (initialChannelInput && channelInput) {
-                     channelInput.value = initialChannelInput.value;
-                 }
-             });
-         }
-
-        // Settings panel connect/disconnect
-        if (connectBtn && channelInput) {
-            connectBtn.addEventListener('click', connectToChat);
-            // Allow Enter key to connect from settings panel input
-            channelInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                     connectBtn.click();
-                 }
-            });
-        }
-        if (disconnectBtn) {
-            // Use the new dedicated disconnect function
-            disconnectBtn.addEventListener('click', disconnectChat);
-        }
-
     } // End of initApp
-})(); // Ensure closing IIFE is correct
+})(); // End of IIFE
