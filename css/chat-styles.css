@@ -208,7 +208,6 @@ html, body {
     max-width: 95vw;
     height: 100vh;
     background-color: var(--config-bg-color);
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
     padding: 20px 10px 0 10px; /* Keep top padding, add 10px sides padding */
     box-sizing: border-box;
     color: var(--config-text-color);
@@ -225,6 +224,7 @@ html, body {
 
 #config-panel.visible {
     transform: translateX(0);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #config-panel h3 {
