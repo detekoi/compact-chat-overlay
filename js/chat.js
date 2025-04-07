@@ -11,6 +11,12 @@
     function initApp() {
         console.log('DOM is fully loaded, initializing application...');
         
+        // Initial Connection Prompt Elements (Moved to top)
+        const initialConnectionPrompt = document.getElementById('initial-connection-prompt');
+        const initialChannelInput = document.getElementById('initial-channel-input');
+        const initialConnectBtn = document.getElementById('initial-connect-btn');
+        const openSettingsFromPromptBtn = document.getElementById('open-settings-from-prompt');
+        
         // --- HELPER FUNCTIONS (Defined Early) ---
 
         /**
@@ -93,6 +99,7 @@
         // DOM elements
         const chatContainer = document.getElementById('chat-container');
         const chatWrapper = document.getElementById('chat-wrapper'); // Get reference to the wrapper
+        const popupContainer = document.getElementById('popup-container'); // << ADDED HERE
         const chatMessages = document.getElementById('chat-messages');
         const scrollArea = document.getElementById('chat-scroll-area');
         // Create status indicator if it doesn't exist
@@ -627,89 +634,118 @@
         // Connect to Twitch chat
         function connectToChat() {
             if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.close();
+                socket.close(); // Close existing connection if any
             }
-            
-            channel = channelInput.value.trim().toLowerCase();
-            
+
+            // Prioritize channel input from the main settings panel IF it has a value,
+            // otherwise use the initial prompt's value if it's visible.
+            // This handles connecting from either the prompt or the settings panel.
+            let channelToConnect = channelInput.value.trim().toLowerCase();
+            if (!channelToConnect && initialConnectionPrompt.style.display !== 'none' && initialChannelInput.value) {
+                 channelToConnect = initialChannelInput.value.trim().toLowerCase();
+                 // Sync back to main input for consistency if using prompt input
+                 channelInput.value = channelToConnect;
+            }
+
+            // Update the global channel variable
+            channel = channelToConnect;
+
             if (!channel) {
-                addSystemMessage('Please enter a valid channel name in the settings panel'); // Updated message
+                // Show error within the prompt if it's visible
+                if (initialConnectionPrompt.style.display !== 'none') {
+                     // Maybe add an error message area to the prompt later
+                     console.error('Please enter a channel name in the prompt.');
+                     initialChannelInput.focus();
+                } else {
+                     // Otherwise, show system message in chat area (if connected or trying from settings)
+                     addSystemMessage('Please enter a valid channel name in the settings panel');
+                }
                 return;
             }
-            
-            // Hide the channel form and show connecting message
-            // No longer need to hide the form in the main area, it's in the panel now.
-            // We will hide it in the panel on successful connection (in onopen).
-            
+
+            // Display connecting message
             addSystemMessage(`Connecting to ${channel}'s chat...`);
-            
+            // You could also add a status message within the initial prompt if desired
+
             // Connect to Twitch IRC via WebSocket
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-            
+
             socket.onopen = function() {
                 console.log('WebSocket connection opened');
-                // Check if socket is in OPEN state before sending
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
                     socket.send(`PASS SCHMOOPIIE`);
                     socket.send(`NICK justinfan${Math.floor(Math.random() * 999999)}`);
                     socket.send(`JOIN #${channel}`);
-                    
-                    // Update connection status
-                    updateStatus(true);
-                    
+
+                    // ** Update UI State: Connected **
+                    updateConnectionStateUI(true); // Hide prompt, show chat
+
                     // Save the channel name in config
                     config.lastChannel = channel;
-                    
-                    // Hide channel form, show disconnect button in panel
+                    saveConfiguration(); // Save immediately after successful connection
+
+                    // Update UI elements within the settings panel
                     if (channelForm) channelForm.style.display = 'none';
                     if (disconnectBtn) {
                         disconnectBtn.textContent = `Disconnect from ${channel}`;
                         disconnectBtn.style.display = 'block';
                     }
-                    
+
                     // Add connected message
                     addSystemMessage(`Connected to ${channel}'s chat`);
                 }
             };
-            
+
             socket.onclose = function() {
                 console.log('WebSocket connection closed');
-                updateStatus(false);
-                addSystemMessage('Disconnected from chat');
-                
-                // Hide channel actions and show channel form
-                // Hide disconnect button, show channel form in panel
+                 // ** Update UI State: Disconnected **
+                 updateConnectionStateUI(false); // Show prompt, hide chat
+                 // addSystemMessage('Disconnected from chat'); // Message not visible if prompt is shown
+
+                // Reset UI elements within the settings panel
                 if (disconnectBtn) {
                     disconnectBtn.style.display = 'none';
                     disconnectBtn.textContent = 'Disconnect'; // Reset text
                 }
+                // Re-show the channel form inside the settings panel
                 if (channelForm) {
-                    channelForm.style.display = 'block';
+                    // Use flex display based on HTML structure
+                    channelForm.style.display = 'flex';
                 }
-                
-                // Reset disconnect button text
-                const disconnectButton = document.getElementById('disconnect-btn');
-                if (disconnectButton) {
-                    disconnectButton.textContent = 'Disconnect';
-                }
+
+                socket = null; // Clear socket reference
+                channel = ''; // Clear channel
+                config.lastChannel = ''; // Clear last channel on explicit disconnect? Maybe not.
+                // saveConfiguration(); // Decide if disconnect should clear saved channel
+
+                 // Ensure prompt input reflects the cleared state or last attempted channel
+                 if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
             };
-            
+
             socket.onerror = function(error) {
                 console.error('WebSocket error:', error);
-                updateStatus(false);
-                addSystemMessage('Error connecting to chat');
-                
-                // Hide channel actions on error too
+                // ** Update UI State: Disconnected (due to error) **
+                updateConnectionStateUI(false); // Show prompt, hide chat
+                // addSystemMessage('Error connecting to chat'); // Message not visible if prompt shown
+
+                // Reset UI elements within the settings panel
                 if (disconnectBtn) {
                     disconnectBtn.style.display = 'none';
                     disconnectBtn.textContent = 'Disconnect'; // Reset text
                 }
-                if (channelForm) {
-                    channelForm.style.display = 'block';
-                }
+                 // Re-show the channel form inside the settings panel
+                 if (channelForm) {
+                     // Use flex display based on HTML structure
+                     channelForm.style.display = 'flex';
+                 }
+
+                socket = null; // Clear socket reference
+                // Don't clear 'channel' here as the user might want to retry the same channel
+                // Ensure prompt input reflects the attempted channel
+                if (initialChannelInput) initialChannelInput.value = channelInput.value; // Keep synced
             };
-            
+
             socket.onmessage = function(event) {
                 const messages = event.data.split('\r\n');
                 
@@ -1325,7 +1361,7 @@
                 config.chatMode = mode;
 
                 // Get references to containers
-                const popupContainer = document.getElementById('popup-container');
+                // const popupContainer = document.getElementById('popup-container'); // << REMOVED LOCAL DECLARATION
                 // const chatContainer = document.getElementById('chat-container'); // Already defined globally
                 // const chatWrapper = document.getElementById('chat-wrapper'); // Already defined globally
 
@@ -1345,10 +1381,6 @@
 
                     document.body.classList.add('popup-mode');
                     document.body.classList.remove('window-mode');
-
-                    // Show popup settings button
-                    // const popupSettingsBtn = document.getElementById('popup-settings-btn');
-                    // if (popupSettingsBtn) popupSettingsBtn.style.opacity = '0.7'; // REMOVED - CSS handles this now
 
                 } else { // Window mode
                     popupContainer.style.display = 'none'; // Hide popup area
@@ -2541,6 +2573,168 @@
             }
         } else {
             console.warn("Show Timestamps checkbox element not found during listener setup.");
+        }
+
+        /**
+         * Updates the UI based on connection status.
+         * Shows/hides the initial connection prompt vs. the main chat UI.
+         * @param {boolean} isConnected - True if connected, false otherwise.
+         */
+        function updateConnectionStateUI(isConnected) {
+            if (isConnected) {
+                // Hide prompt
+                if (initialConnectionPrompt) initialConnectionPrompt.style.display = 'none';
+
+                // Show correct main container based on mode
+                if (config.chatMode === 'popup') {
+                    if (popupContainer) popupContainer.style.display = 'block';
+                    if (chatWrapper) chatWrapper.style.display = 'none';
+                } else { // window mode
+                    if (popupContainer) popupContainer.style.display = 'none';
+                    if (chatWrapper) chatWrapper.style.display = 'block';
+                }
+
+                document.body.classList.remove('disconnected');
+
+            } else { // Disconnected
+                // Show prompt
+                if (initialConnectionPrompt) initialConnectionPrompt.style.display = 'flex';
+
+                // Hide both main containers
+                if (popupContainer) popupContainer.style.display = 'none';
+                if (chatWrapper) chatWrapper.style.display = 'none';
+
+                document.body.classList.add('disconnected');
+            }
+            updateStatus(isConnected); // Also update the small status indicator if it exists
+        }
+
+        // Initial Connection Prompt Listeners
+        if (initialConnectBtn) {
+            initialConnectBtn.addEventListener('click', () => {
+                // Sync value from prompt input to main input before connecting
+                if (initialChannelInput && channelInput) {
+                    channelInput.value = initialChannelInput.value;
+                }
+                connectToChat(); // Attempt connection
+            });
+        }
+
+        if (initialChannelInput) {
+            // Allow Enter key to trigger connection from prompt input
+            initialChannelInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    // Sync value from prompt input to main input before connecting
+                    if (channelInput) {
+                         channelInput.value = initialChannelInput.value;
+                    }
+                    connectToChat();
+                }
+            });
+            // Sync prompt input TO settings input
+            initialChannelInput.addEventListener('input', () => {
+                 if (channelInput) channelInput.value = initialChannelInput.value;
+            });
+        }
+
+        if (openSettingsFromPromptBtn) {
+            openSettingsFromPromptBtn.addEventListener('click', () => {
+                // Sync channel name from prompt to settings panel input when opening
+                if (initialChannelInput && channelInput) {
+                    channelInput.value = initialChannelInput.value;
+                }
+                openSettingsPanel();
+            });
+        }
+
+
+        // Existing Listeners (Ensure they interact correctly)
+        if (connectBtn) { // Button inside settings panel
+            connectBtn.addEventListener('click', connectToChat);
+        }
+
+        if (channelInput) { // Input inside settings panel
+             // Allow Enter key to trigger connection from settings input
+             channelInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    connectToChat();
+                }
+             });
+             // Sync settings input TO prompt input
+             channelInput.addEventListener('input', () => {
+                if (initialChannelInput) initialChannelInput.value = channelInput.value;
+             });
+        }
+
+
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', () => {
+                if (socket) {
+                    socket.close(); // This will trigger the onclose handler
+                }
+                // The onclose handler now calls updateConnectionStateUI(false)
+                // So no need to call it directly here.
+                channel = ''; // Clear channel variable immediately
+                // Optionally clear the input fields
+                 // channelInput.value = '';
+                 // if (initialChannelInput) initialChannelInput.value = '';
+                // config.lastChannel = ''; // Also decide if disconnect clears saved channel
+                // saveConfiguration();
+            });
+        }
+
+        // Load saved config or apply defaults
+        function loadSavedConfig() {
+            try {
+                const sceneName = getUrlParameter('scene') || 'default';
+                const savedConfig = localStorage.getItem(`chatConfig-${sceneName}`);
+                let loadedConfig = null;
+
+                if (savedConfig) {
+                    loadedConfig = JSON.parse(savedConfig);
+                    console.log(`Loaded configuration for scene '${sceneName}':`, loadedConfig);
+                    // Merge loaded config with defaults to ensure all keys exist
+                    config = { ...config, ...loadedConfig };
+                } else {
+                    console.log(`No saved config found for scene '${sceneName}', applying defaults.`);
+                    applyDefaultSettings(); // Apply defaults if nothing is saved
+                    loadedConfig = config; // Use defaults as the loaded config for initial apply
+                }
+
+                // Apply the loaded or default configuration
+                applyConfiguration(config);
+
+                // Update the panel to reflect the finally loaded/applied state
+                updateConfigPanelFromConfig();
+
+                 // --- Initial Connection Logic ---
+                 if (config.lastChannel) {
+                     console.log(`Attempting to auto-connect to last channel: ${config.lastChannel}`);
+                     // Populate both input fields
+                     channelInput.value = config.lastChannel;
+                     if (initialChannelInput) initialChannelInput.value = config.lastChannel;
+                     connectToChat(); // Attempt connection
+                     // UI state (prompt vs chat) will be handled by socket.onopen/onerror
+                 } else {
+                     console.log('No last channel found in config. Showing connection prompt.');
+                     // Explicitly set UI to disconnected state to show prompt
+                     updateConnectionStateUI(false);
+                     // Sync empty value to inputs
+                     channelInput.value = '';
+                      if (initialChannelInput) initialChannelInput.value = '';
+                 }
+                 // --- End Initial Connection Logic ---
+
+            } catch (e) {
+                console.error("Error loading or parsing configuration:", e);
+                applyDefaultSettings(); // Fallback to defaults on error
+                applyConfiguration(config);
+                updateConfigPanelFromConfig();
+                // Show prompt on error loading config as well
+                updateConnectionStateUI(false);
+                 channelInput.value = '';
+                 if (initialChannelInput) initialChannelInput.value = '';
+            }
         }
 
     } // End of initApp
