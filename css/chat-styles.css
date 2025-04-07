@@ -1047,17 +1047,18 @@ body.chat-page:hover #popup-settings-btn {
     align-items: center;
     padding: 0; /* Remove outer padding */
     box-sizing: border-box;
+    max-width: 98%; /* Take up most of the viewport width */
 }
 
 #initial-connection-prompt .prompt-content {
     background-color: var(--panel-bg-color, #2a2a2e);
-    padding: 10px 10px; /* Reduced padding */
+    padding: 10px 8px; /* Reduced horizontal padding */
     border-radius: var(--panel-border-radius, 4px); /* Smaller radius */
     box-shadow: var(--panel-box-shadow, 0 1px 4px rgba(0,0,0,0.3)); /* Minimal shadow */
     text-align: center;
     color: var(--panel-text-color, #efeff1);
     max-width: 250px;
-    width: 90%;
+    width: 98%;
     border: 1px solid var(--panel-border-color, #444);
     display: flex;
     flex-direction: column;
