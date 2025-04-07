@@ -209,7 +209,7 @@ html, body {
     height: 100vh;
     background-color: var(--config-bg-color);
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.5);
-    padding: 20px 0 0 0; /* Keep top padding, remove sides/bottom */
+    padding: 20px 10px 0 10px; /* Keep top padding, add 10px sides padding */
     box-sizing: border-box;
     color: var(--config-text-color);
     font-family: var(--config-font-family);
@@ -1121,7 +1121,10 @@ body.chat-page:hover #popup-settings-btn {
     padding: 0; /* Remove padding from sticky container */
     box-sizing: border-box;
     z-index: 10; /* Ensure it's above scrolling content */
-    border-top: 1px solid var(--config-border-color, #6c757d); /* Add separator line */
+    border-left: 1px solid var(--config-border-color, #6c757d); /* Left border */
+    border-right: 1px solid var(--config-border-color, #6c757d); /* Right border */
+    border-top: 1px solid var(--config-border-color, #6c757d); /* Top border */
+    border-radius: 3px; /* Added corner radius */
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
 }
 
