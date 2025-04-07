@@ -1056,7 +1056,7 @@ body.chat-page:hover #popup-settings-btn {
     box-shadow: var(--panel-box-shadow, 0 1px 4px rgba(0,0,0,0.3)); /* Minimal shadow */
     text-align: center;
     color: var(--panel-text-color, #efeff1);
-    max-width: 180px;
+    max-width: 250px;
     width: 90%;
     border: 1px solid var(--panel-border-color, #444);
     display: flex;
