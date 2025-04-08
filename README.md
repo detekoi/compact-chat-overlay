@@ -26,10 +26,10 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
 
 ## Features
 
-- **AI Theme Generator**: Create unique, perfectly coordinated themes with background images from a simple text prompt
-- **Theme Carousel**: Visually browse through themes with intuitive navigation controls
+- **AI Theme Generator**: Create unique, perfectly coordinated themes with background images from a simple text prompt.
+- **Theme Carousel**: Visually browse through themes with intuitive navigation controls.
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
-- **Initial Connection Prompt**: User-friendly setup guide for first-time users
+- **Initial Connection Prompt**: User-friendly setup guide for first-time users.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
 - **Emote Support**: Displays Twitch emotes in chat.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
@@ -37,17 +37,17 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
 - **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
 - **Font Customization**: Choose from multiple font options including gaming-style pixel fonts, accessible fonts, and variable fonts.
 - **Customizable Appearance**:
-  - Background color & opacity with precise percentage control
-  - Optional background images that match your theme with adjustable opacity
-  - Border color with expanded preset options
-  - Text color with new theme-specific options
-  - Border radius presets (Sharp, Subtle, Rounded, Pill)
-  - Box shadow presets (None, Soft, Simple 3D, Intense 3D, Sharp)
-  - Font selection and size
-  - Window width and height
-  - Usernames - use original Twitch colors or pick a custom color
-  - Show/hide timestamps
-- **Accessibility Options**: Disable background images for high contrast and better readability
+  - Background color & opacity with precise percentage control.
+  - Optional background images that match your theme with adjustable opacity.
+  - Border color with expanded preset options.
+  - Text color with new theme-specific options.
+  - Border radius presets (Sharp, Subtle, Rounded, Pill).
+  - Box shadow presets (None, Soft, Simple 3D, Intense 3D, Sharp).
+  - Font selection and size.
+  - Window width and height.
+  - Usernames - use original Twitch colors or pick a custom color.
+  - Show/hide timestamps.
+- **Accessibility Options**: Disable background images for high contrast and better readability.
 - **Simple Interface**: Clean design that integrates well with OBS and other broadcasting software.
 - **Auto-Connect**: Remembers your channel and automatically connects on startup.
 - **No Authentication Required**: Works anonymously without needing Twitch credentials.
