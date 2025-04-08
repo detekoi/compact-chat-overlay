@@ -16,7 +16,7 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 - **Initial Connection Guide**: Streamlined first-time setup with a helpful connection prompt.
 - **Accessibility Considerations**: Disable background images for high contrast and better readability.
 
-Simply describe any game, aesthetic, or mood (like "Minecraft," "cyberpunk night city," or "cozy forest vibes"), and the AI will generate a complete theme with perfectly matched colors, fonts, and background image!
+Simply describe any game, aesthetic, or mood (like `Minecraft`, `cyberpunk night city`, or `cozy forest vibes`), and the AI will generate a complete theme with perfectly matched colors, fonts, and background image!
 
 ## Try It Now
 
@@ -59,7 +59,7 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
 1. **Visit the online version** at [detekoi.github.io/compact-chat-overlay](https://detekoi.github.io/compact-chat-overlay/)
 2. **Use the Chat Scene Creator** to easily set up and manage your chat scenes.
 3. **Create your first chat scene** by clicking the "New Chat Scene" button.
-4. **Give it a name** such as "Gaming", "Just Chatting", or "Stream Starting."
+4. **Give it a name** such as `Gaming`, `Just Chatting`, or `Stream Starting`.
 5. **Copy the generated URL** for adding to OBS.
 6. **Add to OBS** following the provided instructions.
 
@@ -75,7 +75,7 @@ If you prefer to run everything locally:
 ### Setting Up in OBS
 
 1. In OBS Studio, right-click in the Sources panel and select **Add** → **Browser**.
-2. Name your source (e.g., "Twitch Chat - Gaming").
+2. Name your source (e.g., `Twitch Chat - Gaming`).
 3. Paste the URL copied from the Chat Scene Creator into the URL field.
 4. **IF YOU CAN'T PASTE:** Uncheck "Local file" option even though you're using a local file.
 5. Set Width: 320 and Height: 600 (recommended size).
@@ -85,7 +85,7 @@ If you prefer to run everything locally:
 
 1. In StreamElements OBS.Live, navigate to the **Overlay Editor**.
 2. Click the **+ Add Widget** button and select **Static/Custom** → **Custom Widget**.
-3. Name your widget (e.g., "Twitch Chat Overlay").
+3. Name your widget (e.g., `Twitch Chat Overlay`).
 4. In the Custom Widget settings, select the **Settings** tab.
 5. Find the **Custom URL** option and paste your chat overlay URL.
 6. Set the Width to 320 and Height to 600 (recommended size).
@@ -95,7 +95,7 @@ If you prefer to run everything locally:
 
 1. In Streamlabs Desktop, click the **+** button in the **Sources** panel.
 2. Select **Browser Source** from the list of available sources.
-3. Name your source (e.g., "Twitch Chat Overlay").
+3. Name your source (e.g., `Twitch Chat Overlay`).
 4. In the Browser Source Properties:
    - Paste the URL from the Chat Scene Creator in the **URL** field.
    - Set Width to 320 and Height to 600 (recommended size).
@@ -148,7 +148,7 @@ Browse through available themes with a visual interface:
 
 ### AI Theme Generator
 Create a completely custom theme by entering a prompt describing any game, mood, or aesthetic using Google Gemini 2.0 Flash Image Generation.
-- Example prompts: "Minecraft dungeons", "80s synthwave", "pastel kawaii", "dark fantasy RPG"
+- Example prompts: `Minecraft dungeons`, `80s synthwave`, `pastel kawaii`, `dark fantasy RPG`
 - AI automatically generates coordinated colors, fonts, and background images.
 - Background images are optimized for chat overlay usage.
 - Option to disable background image generation for accessibility or preference.
@@ -225,11 +225,11 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ### AI Theme Generator Tips
 - **Be specific with your prompts**: The more detailed your description, the better the theme will match your vision.
-- **Game-inspired themes**: Try entering game titles like "Stardew Valley," "Elden Ring," or "Valorant".
-- **Aesthetic-based themes**: Try prompts like "vaporwave," "cottagecore," "cyberpunk noir," or "lofi coffee shop".
-- **Seasonal themes**: Create themes for holidays with prompts like "Halloween spooky," "winter wonderland," or "summer beach vibes".
+- **Game-inspired themes**: Try entering game titles like `Stardew Valley`, `Elden Ring`, or `Valorant`.
+- **Aesthetic-based themes**: Try prompts like `vaporwave`, `cottagecore`, `cyberpunk noir`, or `lofi coffee shop`
+- **Seasonal themes**: Create themes for holidays with prompts like `Halloween spooky`, `winter wonderland`, or `summer beach vibes`.
 - **Community themes**: Create themes that match your community's inside jokes or channel memes.
-- **Experiment with variations**: If you like a generated theme but want tweaks, try adding adjectives like "darker," "pastel," or "vibrant" to your prompt.
+- **Experiment with variations**: If you like a generated theme but want tweaks, try adding adjectives like `darker`, `pastel`, or `vibrant` to your prompt.
 
 ### Background Image Tips
 - For best results with background images, keep your chat overlay width between 320-400px.
