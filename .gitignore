@@ -26,3 +26,5 @@ yarn-error.log*
 *.swo
 *~
 .aider*
+
+.env
