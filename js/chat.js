@@ -1097,7 +1097,24 @@
             const boxShadowValue = activeBoxShadowBtn?.dataset.value ?? config?.boxShadow ?? 'none';
             const boxShadow = getBoxShadowValue(boxShadowValue);
             const bgImage = config?.bgImage || 'none';
-            const bgImageOpacity = (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value) : (config?.bgImageOpacity ?? 0.55) * 100) / 100.0;
+
+            // --- Background Image Opacity Logic ---
+            // 1. Check if --preview-bg-image-opacity is already set (by the slider handler)
+            let currentPreviewOpacity = themePreview.style.getPropertyValue('--preview-bg-image-opacity');
+            let bgImageOpacity;
+            if (currentPreviewOpacity !== '' && !isNaN(parseFloat(currentPreviewOpacity))) {
+                // 2. If set and valid, use that value directly
+                bgImageOpacity = parseFloat(currentPreviewOpacity);
+            } else {
+                // 3. Otherwise (initial load or invalid), get from config or slider or default
+                const bgImageOpacityValueFromConfig = config?.bgImageOpacity;
+                bgImageOpacity = bgImageOpacityValueFromConfig !== undefined && bgImageOpacityValueFromConfig !== null
+                    ? bgImageOpacityValueFromConfig
+                    : (bgImageOpacityInput ? parseInt(bgImageOpacityInput.value, 10) / 100.0 : 0.55);
+            }
+            // Ensure the final value is set on the preview (handles initial load case)
+            themePreview.style.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
+            // --- End Background Image Opacity Logic ---
 
             // Determine final border color (handling 'transparent')
             const borderTransparentButton = document.querySelector('.color-btn[data-target="border"][data-color="transparent"]');
@@ -1128,7 +1145,6 @@
             previewStyle.setProperty('--preview-border-radius', borderRadius);
             previewStyle.setProperty('--preview-box-shadow', boxShadow);
             previewStyle.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
-            previewStyle.setProperty('--preview-bg-image-opacity', bgImageOpacity.toFixed(2));
 
             // Apply Font Size directly to Theme Preview element
             const fontSize = fontSizeSlider?.value || config?.fontSize || 14; // Prioritize slider value

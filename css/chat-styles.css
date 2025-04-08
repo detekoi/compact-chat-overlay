@@ -696,10 +696,6 @@ body.chat-page:hover #popup-settings-btn {
     overflow: hidden; /* Prevent long lines from breaking layout */
     position: relative; /* For background image positioning */
     z-index: 0; /* Ensure preview content is above potential background layers */
-    background-image: var(--preview-bg-image, none);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
 .theme-preview::before { /* For Background IMAGE */

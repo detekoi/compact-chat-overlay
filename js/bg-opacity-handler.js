@@ -31,9 +31,10 @@
                 bgImageOpacityValue.textContent = `${bgImageOpacityInput.value}%`;
             }
 
-            // Update the theme preview
-            if (typeof window.updatePreviewFromCurrentSettings === 'function') {
-                window.updatePreviewFromCurrentSettings();
+            // Update the theme preview's specific CSS variable
+            const themePreview = document.getElementById('theme-preview');
+            if (themePreview) {
+                themePreview.style.setProperty('--preview-bg-image-opacity', value);
             }
             
             console.log(`Updated background image opacity: ${value}`);
