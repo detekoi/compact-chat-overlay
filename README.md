@@ -277,7 +277,7 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ## License
 
-MIT License - Feel free to modify and use as needed.
+This project is licensed under the BSD 2-clause license. You are free to use, modify, and distribute this software, provided that the original copyright notice and this license are retained in all copies or substantial portions of the software. 
 
 ## Support & Contributions
 
