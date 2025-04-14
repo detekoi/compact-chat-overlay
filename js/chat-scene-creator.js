@@ -205,14 +205,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Create a new chat scene
             createInstance() {
-                const name = this.modalInstanceName.value.trim();
+                let name = this.modalInstanceName.value.trim();
                 
+                // If no name is provided, generate a default one like "Scene N"
                 if (!name) {
-                    this.showNotification('Error', 'Please enter a name for your chat scene.', 'error');
-                    return;
+                    let sceneCounter = 1;
+                    let defaultName = `Scene ${sceneCounter}`;
+                    // Check if an instance with the default name already exists
+                    while (Object.values(this.instances).some(instance => instance.name === defaultName)) {
+                        sceneCounter++;
+                        defaultName = `Scene ${sceneCounter}`;
+                    }
+                    name = defaultName; // Use the generated name
                 }
                 
-                // Generate ID from name
+                // Generate ID from name (use the potentially generated name)
                 let id = this.generateInstanceId(name);
                 
                 // Make sure ID is URL-friendly
