@@ -109,20 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.showEmptyState();
                     // Automatically open the create instance modal if no instances exist
                     this.showCreateInstanceModal();
-                        }
-                    } catch (error) {
-                        console.error('Error loading instances:', error);
-                        this.showNotification('Error', 'Failed to load saved instances.', 'error');
-                        this.instances = {};
-                        this.showEmptyState();
-                    }
-                } else {
-                    this.showEmptyState();
-                    // Automatically open the create instance modal if no instances exist
-                    this.showCreateInstanceModal();
                 }
             }
-            
             // Save instances and their order to localStorage
             saveInstances() {
                 try {
