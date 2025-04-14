@@ -236,8 +236,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     header.parentNode.replaceChild(newHeader, header);
                     
                     newHeader.addEventListener('click', () => {
-                        const accordion = header.parentElement;
-                        accordion.classList.toggle('active');
+                        // Use newHeader's parentElement to find the accordion container
+                        const accordion = newHeader.parentElement; 
+                        if (accordion) { // Add a check to ensure accordion exists
+                           accordion.classList.toggle('active');
+                        } else {
+                            console.error("Could not find parent accordion element for header:", newHeader);
+                        }
                     });
                 });
             }
