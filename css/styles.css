@@ -239,6 +239,18 @@ header p {
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all 0.2s ease;
+    user-select: none; /* Prevent text selection during drag */
+}
+
+/* Style for the item being dragged */
+.instance-item.dragging {
+    opacity: 0.5;
+    background-color: rgba(145, 71, 255, 0.2); /* Highlight while dragging */
+}
+
+/* Style for potential drop targets */
+.instance-item.drag-over {
+    border-top: 2px solid var(--primary-color); /* Indicate drop position */
 }
 
 .instance-item:hover {

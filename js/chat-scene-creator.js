@@ -2,8 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Main Chat Scene Creator class
         class ChatSceneCreator {
             constructor() {
-                this.instances = {};
+                this.instances = {}; // Stores instance data { id: { name, config, ... } }
+                this.instanceOrder = []; // Stores the ordered list of instance IDs [id1, id2, ...]
                 this.currentInstanceId = null;
+                this.draggedItemId = null; // To keep track of the item being dragged
                 this.initializeDOM();
                 this.loadInstances();
                 this.setupEventListeners();
@@ -54,20 +56,59 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Load instances from localStorage
             loadInstances() {
-                // Get all keys from localStorage
+                // Load the instance data
                 const instanceRegistry = localStorage.getItem('twitch-chat-overlay-instances');
-                
                 if (instanceRegistry) {
                     try {
                         this.instances = JSON.parse(instanceRegistry);
-                        this.renderInstanceList();
+                    } catch (error) {
+                        console.error('Error loading instances:', error);
+                        this.showNotification('Error', 'Failed to load saved instance data.', 'error');
+                        this.instances = {};
+                    }
+                }
+                
+                // Load the instance order
+                const savedOrder = localStorage.getItem('twitch-chat-overlay-instanceOrder');
+                if (savedOrder) {
+                    try {
+                        this.instanceOrder = JSON.parse(savedOrder);
+                        // Validate order: ensure all ordered IDs exist in instances and vice-versa
+                        const instanceIds = Object.keys(this.instances);
+                        this.instanceOrder = this.instanceOrder.filter(id => instanceIds.includes(id));
+                        instanceIds.forEach(id => {
+                            if (!this.instanceOrder.includes(id)) {
+                                this.instanceOrder.push(id); // Add missing instances to the end
+                            }
+                        });
                         
-                        // If there are instances, show empty state or load the first one
-                        if (Object.keys(this.instances).length > 0) {
-                            const firstInstanceId = Object.keys(this.instances)[0];
-                            this.selectInstance(firstInstanceId);
-                        } else {
-                            this.showEmptyState();
+                    } catch (error) {
+                        console.error('Error loading instance order:', error);
+                        this.showNotification('Error', 'Failed to load instance order. Resetting order.', 'warning');
+                        // If order is corrupt, generate from instances
+                        this.instanceOrder = Object.keys(this.instances);
+                    }
+                } else {
+                    // If no order saved, generate from instances
+                    this.instanceOrder = Object.keys(this.instances);
+                }
+                
+                // Initial render and selection
+                this.renderInstanceList();
+                
+                if (this.instanceOrder.length > 0) {
+                    // Select the first instance based on the loaded order
+                    const firstInstanceId = this.instanceOrder[0];
+                    if (this.instances[firstInstanceId]) {
+                        this.selectInstance(firstInstanceId);
+                    } else {
+                        // Handle case where the first ordered ID might be invalid (though validation should prevent this)
+                        this.showEmptyState();
+                    }
+                } else {
+                    this.showEmptyState();
+                    // Automatically open the create instance modal if no instances exist
+                    this.showCreateInstanceModal();
                         }
                     } catch (error) {
                         console.error('Error loading instances:', error);
@@ -82,39 +123,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // Save instances to localStorage
+            // Save instances and their order to localStorage
             saveInstances() {
                 try {
                     localStorage.setItem('twitch-chat-overlay-instances', JSON.stringify(this.instances));
+                    localStorage.setItem('twitch-chat-overlay-instanceOrder', JSON.stringify(this.instanceOrder));
                 } catch (error) {
-                    console.error('Error saving instances:', error);
-                    this.showNotification('Error', 'Failed to save instances. LocalStorage may be full.', 'error');
+                    console.error('Error saving instances or order:', error);
+                    this.showNotification('Error', 'Failed to save data. LocalStorage may be full.', 'error');
                 }
             }
             
             // Render the instance list
             renderInstanceList() {
-                this.instanceList.innerHTML = '';
+                this.instanceList.innerHTML = ''; // Clear existing list
                 
-                Object.keys(this.instances).forEach(instanceId => {
+                // Render based on the instanceOrder array
+                this.instanceOrder.forEach(instanceId => {
                     const instance = this.instances[instanceId];
+                    if (!instance) {
+                        console.warn(`Instance data missing for ordered ID: ${instanceId}. Skipping render.`);
+                        return; // Skip if data is somehow missing
+                    }
+                    
                     const instanceItem = document.createElement('div');
                     instanceItem.className = `instance-item ${instanceId === this.currentInstanceId ? 'active' : ''}`;
                     instanceItem.dataset.id = instanceId;
+                    instanceItem.draggable = true; // Make the item draggable
                     
                     instanceItem.innerHTML = `
-                        <div class="instance-details">
+                        <div class="instance-details" style="pointer-events: none;"> <!-- Prevent details from interfering with drag -->
                             <div class="instance-name">${instance.name}</div>
                             <div class="instance-meta">ID: ${instanceId}</div>
                         </div>
                     `;
                     
+                    // Click event to select the instance
                     instanceItem.addEventListener('click', () => {
                         this.selectInstance(instanceId);
                     });
                     
+                    // Drag and Drop Event Listeners for each item
+                    instanceItem.addEventListener('dragstart', this.handleDragStart.bind(this));
+                    instanceItem.addEventListener('dragend', this.handleDragEnd.bind(this));
+                    
                     this.instanceList.appendChild(instanceItem);
                 });
+                
+                // Add dragover listeners to the container (needed for drop)
+                this.instanceList.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.instanceList.addEventListener('dragenter', this.handleDragEnter.bind(this));
+                this.instanceList.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                this.instanceList.addEventListener('drop', this.handleDrop.bind(this));
             }
             
             // Methods for thumbnail rendering removed, since we now use a generic chat icon
@@ -173,9 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Form input events
                 this.setupFormEvents();
                 
-                // Accordion sections (excluding the removed browser settings one)
-                document.querySelectorAll('.accordion:not(#browserSettingsAccordion) .accordion-header').forEach(header => {
-                    header.addEventListener('click', () => {
+                // Accordion sections
+                document.querySelectorAll('.accordion .accordion-header').forEach(header => {
+                    // Remove previous listener if any to prevent duplicates after re-render
+                    const newHeader = header.cloneNode(true);
+                    header.parentNode.replaceChild(newHeader, header);
+                    
+                    newHeader.addEventListener('click', () => {
                         const accordion = header.parentElement;
                         accordion.classList.toggle('active');
                     });
@@ -241,8 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     config: this.getDefaultConfig()
                 };
                 
-                // Save the instance
+                // Save the instance and update order
                 this.instances[id] = newInstance;
+                this.instanceOrder.push(id); // Add new instance to the end of the order
                 this.saveInstances();
                 
                 // Update the UI
@@ -372,8 +437,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     config: JSON.parse(JSON.stringify(sourceInstance.config))
                 };
                 
-                // Save the new instance
+                // Save the new instance and update order
                 this.instances[newId] = newInstance;
+                // Add the duplicated instance right after the original in the order
+                const originalIndex = this.instanceOrder.indexOf(this.currentInstanceId);
+                if (originalIndex > -1) {
+                    this.instanceOrder.splice(originalIndex + 1, 0, newId);
+                } else {
+                    this.instanceOrder.push(newId); // Fallback: add to end
+                }
                 this.saveInstances();
                 
                 // Update UI
@@ -396,18 +468,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Also remove from instance-specific storage
                     localStorage.removeItem(`twitch-chat-overlay-config-${this.currentInstanceId}`);
                     
-                    // Remove from our registry
-                    delete this.instances[this.currentInstanceId];
+                    // Remove from our registry and order
+                    const deletedId = this.currentInstanceId;
+                    delete this.instances[deletedId];
+                    this.instanceOrder = this.instanceOrder.filter(id => id !== deletedId);
                     this.saveInstances();
                     
                     // Update UI
-                    this.currentInstanceId = null;
-                    this.renderInstanceList();
+                    this.currentInstanceId = null; // Deselect
+                    this.renderInstanceList(); // Re-render the list
                     
                     // Select another instance or show empty state
-                    const remainingIds = Object.keys(this.instances);
-                    if (remainingIds.length > 0) {
-                        this.selectInstance(remainingIds[0]);
+                    if (this.instanceOrder.length > 0) {
+                        // Try to select the next item, or the previous if it was the last
+                        let newIndex = this.instanceOrder.findIndex(id => id === deletedId); // Find where it *was*
+                        if (newIndex >= this.instanceOrder.length) { // If it was last
+                            newIndex = this.instanceOrder.length - 1;
+                        }
+                        if (newIndex < 0) newIndex = 0; // Fallback to first
+                        
+                        this.selectInstance(this.instanceOrder[newIndex]);
                     } else {
                         this.showEmptyState();
                     }
@@ -502,36 +582,44 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 }
                                 
-                                // Import the instance but sanitize the config to only include relevant properties
+                                // Import the instance but sanitize the config
                                 const instance = importedInstances[id];
-                                
-                                // Create a clean version with only the properties we need
                                 this.instances[id] = {
-                                    name: instance.name,
+                                    name: instance.name || `Imported Scene ${id}`, // Ensure name exists
                                     createdAt: instance.createdAt || new Date().toISOString(),
                                     lastModified: instance.lastModified || new Date().toISOString(),
-                                    // Sanitize config on import - keep it empty for now
-                                    config: {} 
+                                    config: {} // Keep config empty as per previous logic
                                 };
+                                
+                                // Add to order if it wasn't skipped and isn't already there
+                                if (!this.instanceOrder.includes(id)) {
+                                    this.instanceOrder.push(id);
+                                }
                                 importCount++;
                             });
                             
                             // Save and update UI
-                            this.saveInstances();
-                            this.renderInstanceList();
+                            this.saveInstances(); // Saves both instances and the potentially updated order
+                            this.renderInstanceList(); // Re-render with new order/items
                             
                             if (importCount > 0) {
-                                // If we were in empty state, select the first imported instance
-                                if (!this.currentInstanceId) {
-                                    const firstId = Object.keys(importedInstances)[0];
-                                    if (this.instances[firstId]) {
-                                        this.selectInstance(firstId);
+                                // If we were in empty state or no instance selected, select the first imported one
+                                if (!this.currentInstanceId && this.instanceOrder.length > 0) {
+                                    // Find the first ID from the imported set that exists in our final order
+                                    const firstImportedIdInOrder = this.instanceOrder.find(orderedId => importedInstances[orderedId]);
+                                    if (firstImportedIdInOrder) {
+                                        this.selectInstance(firstImportedIdInOrder);
+                                    } else if (this.instanceOrder.length > 0) {
+                                        // Fallback: select the very first item in the list
+                                        this.selectInstance(this.instanceOrder[0]);
                                     }
                                 }
                                 
-                                this.showNotification('Success', `${importCount} instance(s) imported successfully.${skipCount ? ` ${skipCount} skipped.` : ''}`, 'success');
+                                this.showNotification('Success', `${importCount} instance(s) imported/updated.${skipCount ? ` ${skipCount} skipped.` : ''}`, 'success');
+                            } else if (skipCount > 0) {
+                                this.showNotification('Info', `Import finished. ${skipCount} instance(s) skipped.`, 'info');
                             } else {
-                                this.showNotification('Info', 'No instances were imported.', 'info');
+                                this.showNotification('Info', 'No new instances were imported.', 'info');
                             }
                             
                         } catch (error) {
@@ -612,6 +700,125 @@ document.addEventListener('DOMContentLoaded', () => {
                         notification.parentNode.removeChild(notification);
                     }
                 }, 300);
+            }
+            
+            // --- Drag and Drop Handlers ---
+            
+            handleDragStart(e) {
+                this.draggedItemId = e.target.dataset.id;
+                e.dataTransfer.effectAllowed = 'move';
+                // Optionally add data to transfer (though not strictly needed if using this.draggedItemId)
+                e.dataTransfer.setData('text/plain', this.draggedItemId);
+                
+                // Add styling to the dragged item
+                setTimeout(() => { // Timeout ensures style applies after drag starts
+                    e.target.classList.add('dragging');
+                }, 0);
+            }
+            
+            handleDragEnd(e) {
+                // Clean up styling
+                e.target.classList.remove('dragging');
+                // Remove any lingering drag-over styles from potential targets
+                this.instanceList.querySelectorAll('.instance-item.drag-over').forEach(item => {
+                    item.classList.remove('drag-over');
+                });
+                this.draggedItemId = null; // Clear dragged item ID
+            }
+            
+            handleDragOver(e) {
+                e.preventDefault(); // Necessary to allow dropping
+                e.dataTransfer.dropEffect = 'move';
+                
+                const targetItem = e.target.closest('.instance-item');
+                if (targetItem && targetItem.dataset.id !== this.draggedItemId) {
+                    // Remove previous drag-over class
+                    this.instanceList.querySelectorAll('.instance-item.drag-over').forEach(item => {
+                        if (item !== targetItem) {
+                            item.classList.remove('drag-over');
+                        }
+                    });
+                    // Add class to current target
+                    targetItem.classList.add('drag-over');
+                }
+            }
+            
+            handleDragEnter(e) {
+                e.preventDefault();
+                const targetItem = e.target.closest('.instance-item');
+                if (targetItem && targetItem.dataset.id !== this.draggedItemId) {
+                    // Could add temporary highlight on enter if desired
+                }
+            }
+            
+            handleDragLeave(e) {
+                const targetItem = e.target.closest('.instance-item');
+                // Only remove drag-over if leaving the item itself, not just child elements
+                if (targetItem && !targetItem.contains(e.relatedTarget)) {
+                    targetItem.classList.remove('drag-over');
+                }
+                // If leaving the list container entirely
+                if (e.target === this.instanceList && !this.instanceList.contains(e.relatedTarget)) {
+                     this.instanceList.querySelectorAll('.instance-item.drag-over').forEach(item => {
+                        item.classList.remove('drag-over');
+                    });
+                }
+            }
+            
+            handleDrop(e) {
+                e.preventDefault(); // Prevent default drop behavior (like opening link)
+                
+                const targetItem = e.target.closest('.instance-item');
+                const droppedOnId = targetItem ? targetItem.dataset.id : null;
+                
+                // Remove visual cues
+                if (targetItem) targetItem.classList.remove('drag-over');
+                this.instanceList.querySelectorAll('.instance-item.dragging').forEach(item => {
+                    item.classList.remove('dragging');
+                });
+                
+                if (!this.draggedItemId || this.draggedItemId === droppedOnId) {
+                    // Dropped on itself or invalid drag, do nothing
+                    this.draggedItemId = null;
+                    return;
+                }
+                
+                // Find original index of dragged item
+                const originalIndex = this.instanceOrder.indexOf(this.draggedItemId);
+                if (originalIndex === -1) {
+                    console.error("Dragged item ID not found in order array!");
+                    this.draggedItemId = null;
+                    return; // Should not happen
+                }
+                
+                // Remove item from its original position
+                this.instanceOrder.splice(originalIndex, 1);
+                
+                // Find index of the item it was dropped on
+                const targetIndex = droppedOnId ? this.instanceOrder.indexOf(droppedOnId) : -1;
+                
+                if (targetIndex > -1) {
+                    // Insert before the target item
+                    this.instanceOrder.splice(targetIndex, 0, this.draggedItemId);
+                } else {
+                    // If dropped on the container but not on an item, add to the end
+                    this.instanceOrder.push(this.draggedItemId);
+                }
+                
+                // Save the new order and re-render the list
+                this.saveInstances();
+                this.renderInstanceList(); // Re-render maintains selection if possible
+                
+                // Ensure the currently selected item remains visually selected after re-render
+                if (this.currentInstanceId) {
+                    const selectedElement = this.instanceList.querySelector(`.instance-item[data-id="${this.currentInstanceId}"]`);
+                    if (selectedElement) {
+                        selectedElement.classList.add('active');
+                    }
+                }
+                
+                this.draggedItemId = null; // Clear dragged item ID
+                this.showNotification('Success', 'Chat scene order updated.', 'success');
             }
         }
         
