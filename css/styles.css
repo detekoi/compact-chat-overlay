@@ -1009,7 +1009,7 @@ input:checked + .toggle-slider:before {
     .notification-error { border-left-color: var(--danger-color); }
     .notification-warning { border-left-color: var(--warning-color); }
     .notification-info { border-left-color: var(--info-color); }
-}
+} /* End of main dark mode media query */
 
 /* Index page card */
 .card {
