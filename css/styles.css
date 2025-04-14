@@ -931,6 +931,27 @@ input:checked + .toggle-slider:before {
     .btn-secondary:hover {
         background-color: #404040;
     }
+    
+    /* Dark mode notifications */
+    .notification {
+        background-color: var(--panel-color); /* Use dark panel color */
+        color: var(--text-color); /* Use dark text color */
+        box-shadow: var(--shadow-md); /* Keep shadow, maybe adjust if needed */
+    }
+    
+    .notification-close {
+        color: #aaa; /* Lighter close button for dark background */
+    }
+    
+    .notification-close:hover {
+        color: #fff;
+    }
+    
+    /* Keep the colored borders */
+    .notification-success { border-left-color: var(--success-color); }
+    .notification-error { border-left-color: var(--danger-color); }
+    .notification-warning { border-left-color: var(--warning-color); }
+    .notification-info { border-left-color: var(--info-color); }
 }
 
 /* Index page card */
