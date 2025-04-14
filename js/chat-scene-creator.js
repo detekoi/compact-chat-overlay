@@ -56,18 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Load instances from localStorage
             loadInstances() {
-                // Load the instance data
-                const instanceRegistry = localStorage.getItem('twitch-chat-overlay-instances');
-                if (instanceRegistry) {
-                    try {
+                try { // Wrap initial instance loading in try...catch
+                    const instanceRegistry = localStorage.getItem('twitch-chat-overlay-instances');
+                    if (instanceRegistry) {
                         this.instances = JSON.parse(instanceRegistry);
-                    } catch (error) {
-                        console.error('Error loading instances:', error);
-                        this.showNotification('Error', 'Failed to load saved instance data.', 'error');
-                        this.instances = {};
+                    } else {
+                        this.instances = {}; // Initialize if nothing saved
                     }
+                } catch (error) {
+                    console.error('Error loading instances:', error);
+                    this.showNotification('Error', 'Failed to load saved instance data.', 'error');
+                    this.instances = {}; // Reset on error
                 }
-                
+
                 // Load the instance order
                 const savedOrder = localStorage.getItem('twitch-chat-overlay-instanceOrder');
                 if (savedOrder) {
@@ -76,41 +77,48 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Validate order: ensure all ordered IDs exist in instances and vice-versa
                         const instanceIds = Object.keys(this.instances);
                         this.instanceOrder = this.instanceOrder.filter(id => instanceIds.includes(id));
+                        // Add any instances found in data but missing from order (e.g., older format)
                         instanceIds.forEach(id => {
                             if (!this.instanceOrder.includes(id)) {
-                                this.instanceOrder.push(id); // Add missing instances to the end
+                                console.warn(`Instance ${id} found but missing from order. Adding to end.`);
+                                this.instanceOrder.push(id);
                             }
                         });
-                        
+
                     } catch (error) {
                         console.error('Error loading instance order:', error);
                         this.showNotification('Error', 'Failed to load instance order. Resetting order.', 'warning');
-                        // If order is corrupt, generate from instances
+                        // If order is corrupt, generate from the loaded instances
                         this.instanceOrder = Object.keys(this.instances);
                     }
                 } else {
-                    // If no order saved, generate from instances
+                    // If no order saved, generate from the loaded instances
                     this.instanceOrder = Object.keys(this.instances);
                 }
-                
+
                 // Initial render and selection
-                this.renderInstanceList();
-                
+                this.renderInstanceList(); // Render based on potentially corrected/generated order
+
                 if (this.instanceOrder.length > 0) {
-                    // Select the first instance based on the loaded order
+                    // Select the first instance based on the potentially corrected order
                     const firstInstanceId = this.instanceOrder[0];
                     if (this.instances[firstInstanceId]) {
                         this.selectInstance(firstInstanceId);
                     } else {
-                        // Handle case where the first ordered ID might be invalid (though validation should prevent this)
+                        // Handle case where the first ordered ID might be invalid even after validation (should be rare)
+                        console.warn(`First instance ID in order (${firstInstanceId}) not found in loaded instances after validation.`);
                         this.showEmptyState();
                     }
                 } else {
+                    // Show empty state if no instances exist after loading/validation
                     this.showEmptyState();
-                    // Automatically open the create instance modal if no instances exist
-                    this.showCreateInstanceModal();
+                    // Only show create modal if there are truly no instances
+                    if (Object.keys(this.instances).length === 0) {
+                         this.showCreateInstanceModal();
+                    }
                 }
             }
+
             // Save instances and their order to localStorage
             saveInstances() {
                 try {
