@@ -85,26 +85,31 @@
                             <h3>Chat Scene URL</h3>
                             <p>Copy this URL to use in your OBS Browser Source:</p>
                             <div class="url-display">
-                                <div class="url-text" id="instanceUrlConfig">file:///path/to/chat.html?instance=example</div>
+                                <div class="url-text" id="instanceUrlConfig">file:///path/to/chat.html?scene=example</div>
                                 <button class="copy-btn" id="copyUrlBtnConfig">Copy</button>
                             </div>
                             <div class="obs-tips-box">
-                                <p><strong>Important:</strong> When adding to OBS, you need to:</p>
+                                <p><strong>OBS Setup Steps:</strong></p>
                                 <ol style="margin-left: 20px; margin-top: 5px;">
-                                    <li>In OBS, add a Browser Source.</li>
-                                    <li><strong>Uncheck "Local file"</strong> option.</li>
+                                    <li>In OBS, add a <strong>Browser Source</strong>.</li>
                                     <li>Paste the URL above into the URL field.</li>
-                                    <li>Set width: 320px and height: 600px (recommended).</li>
+                                    <li><strong>IF YOU CAN'T PASTE:</strong> Uncheck "Local file" option.</li>
+                                    <li>Set Width: 320px and Height: 600px (recommended).</li>
+                                    <li>Click "OK".</li>
                                 </ol>
                             </div>
                             
                             <div class="obs-info-box">
-                                <p><strong>⚠️ Settings in OBS:</strong> The configuration you save here (channel name, timestamps, etc.) will <strong>not automatically transfer to OBS</strong>. When you add this to OBS:</p>
+                                <p><strong>⚙️ Configuring in OBS:</strong> This creator only manages the scene's URL. All chat settings (channel, theme, colors, fonts, etc.) are configured <strong>inside OBS</strong>:</p>
                                 <ol style="margin-left: 20px; margin-top: 5px;">
-                                    <li>Right-click the browser source and select <strong>"Interact"</strong>.</li>
-                                    <li>Enter your channel name and connect.</li>
-                                    <li>Click the settings gear (⚙️) to customize colors, themes, and other appearance options.</li>
-                                    <li>These settings will save separately within your OBS browser cache.</li>
+                                    <li>Right-click the Browser Source in OBS and select <strong>"Interact"</strong>.</li>
+                                    <li>In the interaction window:
+                                        <ul>
+                                            <li>Enter your Twitch channel name and click "Connect".</li>
+                                            <li>Hover over the chat and click the settings gear (⚙️) to customize appearance (themes, colors, fonts, etc.).</li>
+                                        </ul>
+                                    </li>
+                                    <li>Settings are saved automatically within OBS for that specific source.</li>
                                 </ol>
                             </div>
                         </div>
@@ -129,13 +134,13 @@
                 
                 <!-- OBS Setup Section -->
                 <div class="obs-setup" id="obsSetup" style="display: none;">
-                    <h2>OBS Setup Instructions</h2>
+                    <h2>OBS Setup & Configuration</h2>
                     
                     <div class="url-generator">
-                        <h3>Instance URL</h3>
+                        <h3>Chat Scene URL</h3>
                         <p>Copy this URL to use in your OBS Browser Source:</p>
                         <div class="url-display">
-                            <div class="url-text" id="instanceUrlSetup">file:///path/to/chat.html?instance=example</div>
+                            <div class="url-text" id="instanceUrlSetup">file:///path/to/chat.html?scene=example</div>
                             <button class="copy-btn" id="copyUrlBtnSetup">Copy</button>
                         </div>
                     </div>
@@ -146,21 +151,26 @@
                             <li>In OBS Studio, right-click in the Sources panel and select <strong>Add</strong> → <strong>Browser</strong>.</li>
                             <li>Name your source (e.g., "Twitch Chat - Gaming").</li>
                             <li>Paste the URL copied above into the URL field.</li>
-                            <li><strong>IF YOU CAN'T PASTE:</strong> Uncheck "Local file" option even though you're using a local file.</li>
-                            <li>Adjust the file path in the URL to match where you saved this overlay on your computer.</li>
-                            <li>Set Width: 320 and Height: 600 (this is just a recommendation, you can change it to whatever size you want).</li>
+                            <li><strong>IF YOU CAN'T PASTE:</strong> Uncheck "Local file" option.</li>
+                            <li>If running locally, adjust the file path in the URL to match where you saved this overlay on your computer.</li>
+                            <li>Set Width: 320 and Height: 600 (recommended, adjust as needed).</li>
                             <li>Click "OK" to add the browser source.</li>
                             <li>Position and resize the chat overlay as needed in your scene.</li>
                         </ol>
                     </div>
                     
                     <div class="setup-steps">
-                        <h3>Interacting With Your Chat Overlay:</h3>
+                        <h3>Configuring Your Chat Overlay in OBS:</h3>
                         <ol>
-                            <li>To access settings once added to OBS: right-click the browser source and select <strong>Interact</strong> or click the Interact button with the browser source selected in the monitor/preview.</li>
-                            <li>In the interaction window, hover over the chat to reveal the settings gear icon (⚙️).</li>
-                            <li>When first connecting, enter your Twitch channel name and click "Connect."</li>
-                            <li>The overlay will remember your settings and channel between OBS sessions.</li>
+                            <li>To connect and customize the overlay: Right-click the Browser Source in OBS and select <strong>Interact</strong>.</li>
+                            <li>In the interaction window:
+                                <ul>
+                                    <li>Enter your Twitch channel name and click "Connect".</li>
+                                    <li>Hover over the chat area and click the settings gear icon (⚙️) in the top-right corner.</li>
+                                    <li>Use the settings panel to select themes, customize colors, fonts, opacity, display mode (window/popup), and other options.</li>
+                                </ul>
+                            </li>
+                            <li>Settings are saved automatically within OBS for that specific browser source.</li>
                         </ol>
                     </div>
                     
@@ -171,11 +181,11 @@
                         </div>
                         <div class="accordion-content">
                             <ul>
-                                <li><strong>Chat not connecting:</strong> Make sure you entered the channel name correctly and have an internet connection.</li>
-                                <li><strong>Settings not saving:</strong> Ensure your browser allows local storage for the page.</li>
-                                <li><strong>Text too small/large:</strong> Adjust the font size in settings or scale the browser source in OBS.</li>
-                                <li><strong>Empty overlay:</strong> Right-click the browser source in OBS and select "Interact" to enter a channel name.</li>
-                                <li><strong>Chat not refreshing:</strong> Try refreshing the browser source in OBS or recreating it.</li>
+                                <li><strong>Chat not connecting:</strong> In the OBS "Interact" window, double-check the channel name and ensure you have an internet connection.</li>
+                                <li><strong>Settings not saving:</strong> Settings are saved in OBS's browser cache. Ensure OBS has permissions to write cache files. Clearing OBS cache might reset settings.</li>
+                                <li><strong>Text too small/large:</strong> Adjust the font size in the overlay's settings (via "Interact") or scale the Browser Source itself in OBS.</li>
+                                <li><strong>Empty overlay:</strong> Right-click the Browser Source in OBS, select "Interact", and enter your channel name to connect.</li>
+                                <li><strong>Chat not refreshing:</strong> Try right-clicking the Browser Source in OBS and selecting "Refresh". If issues persist, try recreating the source.</li>
                             </ul>
                         </div>
                     </div>
