@@ -274,6 +274,7 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - The overlay requires an internet connection to function.
 - Very high chat volume might cause performance issues on older systems.
 - Some custom/BTTV/FFZ emotes are not supported (only standard Twitch emotes).
+- Badges are not yet supported.
 
 ## License
 
