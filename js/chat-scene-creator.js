@@ -33,9 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Form elements
                 this.instanceName = document.getElementById('instanceName');
                 this.instanceId = document.getElementById('instanceId');
-                this.maxMessages = document.getElementById('maxMessages');
-                this.showTimestamps = document.getElementById('showTimestamps');
-                this.defaultChannel = document.getElementById('defaultChannel');
+                // Removed: maxMessages, showTimestamps, defaultChannel
                 this.saveSettingsBtn = document.getElementById('saveSettingsBtn');
                 
                 // Preview section removed
@@ -175,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Form input events
                 this.setupFormEvents();
                 
-                // Accordion sections
-                document.querySelectorAll('.accordion-header').forEach(header => {
+                // Accordion sections (excluding the removed browser settings one)
+                document.querySelectorAll('.accordion:not(#browserSettingsAccordion) .accordion-header').forEach(header => {
                     header.addEventListener('click', () => {
                         const accordion = header.parentElement;
                         accordion.classList.toggle('active');
@@ -266,11 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Get default configuration for new instances
             getDefaultConfig() {
-                return {
-                    maxMessages: 50,
-                    showTimestamps: true,
-                    lastChannel: ''
-                };
+                // Removed: maxMessages, showTimestamps, lastChannel
+                return {}; // Return an empty object or adjust if other defaults are needed later
             }
             
             // Select and load an instance
@@ -308,12 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.instanceName.value = instance.name;
                 this.instanceId.value = this.currentInstanceId;
                 
-                // Basic settings
-                this.maxMessages.value = config.maxMessages || 50;
-                this.showTimestamps.checked = config.showTimestamps !== undefined ? config.showTimestamps : true;
-                
-                // Default channel
-                this.defaultChannel.value = config.lastChannel || '';
+                // Removed population for: maxMessages, showTimestamps, defaultChannel
             }
             
             // Save the current instance
@@ -329,12 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 instance.name = this.instanceName.value.trim();
                 instance.lastModified = new Date().toISOString();
                 
-                // Create a new simplified config object with only the relevant properties
-                const updatedConfig = {
-                    maxMessages: parseInt(this.maxMessages.value),
-                    showTimestamps: this.showTimestamps.checked,
-                    lastChannel: this.defaultChannel.value.trim()
-                };
+                // Config object is now simpler, only containing what's necessary
+                // If other settings are added later, they would go here.
+                const updatedConfig = {}; // Currently empty as no settings are saved
                 
                 // Update the instance config
                 instance.config = updatedConfig;
@@ -516,12 +503,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     name: instance.name,
                                     createdAt: instance.createdAt || new Date().toISOString(),
                                     lastModified: instance.lastModified || new Date().toISOString(),
-                                    config: {
-                                        maxMessages: instance.config.maxMessages || 50,
-                                        showTimestamps: instance.config.showTimestamps !== undefined ? 
-                                            instance.config.showTimestamps : true,
-                                        lastChannel: instance.config.lastChannel || ''
-                                    }
+                                    // Sanitize config on import - keep it empty for now
+                                    config: {} 
                                 };
                                 importCount++;
                             });
@@ -660,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
             browserSettingsHeader.addEventListener('click', () => {
                 const isVisible = browserSettingsContent.style.display !== 'none';
                 browserSettingsContent.style.display = isVisible ? 'none' : 'block';
-                browserSettingsIcon.textContent = isVisible ? '▼' : '▲';
+                // Removed logic for browser settings accordion toggle
             });
         }
 });
