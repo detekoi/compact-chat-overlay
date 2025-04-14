@@ -1066,6 +1066,8 @@ input:checked + .toggle-slider:before {
 @media (prefers-color-scheme: dark) {
     .card .button.secondary:hover {
         background-color: #404040;
+    }
+}
 /* Responsive Design */
 @media (max-width: 1100px) {
     .config-layout {
