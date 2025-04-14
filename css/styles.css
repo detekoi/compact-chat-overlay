@@ -931,6 +931,26 @@ input:checked + .toggle-slider:before {
     .btn-secondary:hover {
         background-color: #404040;
     }
+
+    /* Dark mode for info/tips boxes */
+    .obs-tips-box {
+        background-color: var(--secondary-color); /* Use a slightly darker grey */
+        color: var(--text-color);
+    }
+
+    .obs-info-box {
+        background-color: #1e3a1e; /* Darker green */
+        color: #c8e6c9; /* Lighter green text */
+        border-left-color: var(--success-color); /* Keep the success border */
+    }
+
+    .preview-info-box {
+        background-color: var(--secondary-color); /* Match tips box */
+    }
+
+    .preview-info-box p {
+        color: #aaa; /* Keep the lighter grey text */
+    }
     
     /* Dark mode notifications */
     .notification {
