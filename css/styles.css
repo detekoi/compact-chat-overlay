@@ -931,26 +931,6 @@ input:checked + .toggle-slider:before {
     .btn-secondary:hover {
         background-color: #404040;
     }
-
-    /* Dark mode for info/tips boxes */
-    .obs-tips-box {
-        background-color: var(--secondary-color); /* Use a slightly darker grey */
-        color: var(--text-color);
-    }
-
-    .obs-info-box {
-        background-color: #1e3a1e; /* Darker green */
-        color: #c8e6c9; /* Lighter green text */
-        border-left-color: var(--success-color); /* Keep the success border */
-    }
-
-    .preview-info-box {
-        background-color: var(--secondary-color); /* Match tips box */
-    }
-
-    .preview-info-box p {
-        color: #aaa; /* Keep the lighter grey text */
-    }
     
     /* Dark mode notifications */
     .notification {
@@ -1029,66 +1009,6 @@ input:checked + .toggle-slider:before {
 @media (prefers-color-scheme: dark) {
     .card .button.secondary:hover {
         background-color: #404040;
-    }
-}
-
-/* Info boxes and notices */
-.settings-note {
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #fffde7;
-    border-left: 3px solid #ffd600;
-    font-size: 14px;
-    color: #5f4339;
-}
-
-.obs-tips-box {
-    margin-top: 10px; 
-    padding: 8px; 
-    background-color: #f5f5f5; 
-    border-radius: 4px; 
-    font-size: 13px;
-}
-
-.obs-info-box {
-    margin-top: 10px; 
-    padding: 10px; 
-    background-color: #e8f5e9; 
-    border-left: 3px solid #43a047; 
-    font-size: 13px; 
-    border-radius: 4px;
-}
-
-.preview-info-box {
-    margin-top: 20px; 
-    text-align: center; 
-    padding: 10px; 
-    background-color: #f0f0f0; 
-    border-radius: 4px;
-}
-
-.preview-info-box p {
-    margin: 0; 
-    color: #666;
-}
-
-.accordion-header-custom {
-    cursor: pointer; 
-    background-color: #f1f3f4; 
-    padding: 10px; 
-    border-radius: 6px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-}
-
-.accordion-content-custom {
-    padding: 15px; 
-    border: 1px solid #e0e0e0; 
-    border-top: none; 
-    border-radius: 0 0 6px 6px;
-}
-
 /* Responsive Design */
 @media (max-width: 1100px) {
     .config-layout {
