@@ -1312,6 +1312,10 @@
                 const scene = getUrlParameter('scene') || 'default';
                 localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config)); // Save to localStorage
                 closeConfigPanel(false); // Close panel without reverting
+                // Send a test message in popup mode after saving settings
+                if (config.chatMode === 'popup') {
+                    addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor });
+                }
 
             } catch (error) {
                 console.error("Error saving configuration:", error);
@@ -1453,6 +1457,10 @@
         // Initialize the application
         // updateFontDisplay(); // Called by loadSavedConfig -> applyConfiguration -> updateConfigPanelFromConfig
         loadSavedConfig(); // Load, apply, and update panel
+        // Send a test message in popup mode on initialization/refresh
+        if (config.chatMode === 'popup') {
+            addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor });
+        }
 
         // Listen for newly generated themes (from theme-generator.js)
         document.addEventListener('theme-generated-and-added', (event) => {
