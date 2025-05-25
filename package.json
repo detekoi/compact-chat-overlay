@@ -1,0 +1,21 @@
+{
+  "name": "twitch-badges-cache",
+  "version": "1.0.0",
+  "description": "Cloud Function to cache Twitch badges",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=getGlobalBadges",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/secret-manager": "^5.0.0",
+    "axios": "^1.6.0",
+    "redis": "^4.6.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
