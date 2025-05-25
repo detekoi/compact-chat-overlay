@@ -31,7 +31,8 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Initial Connection Prompt**: User-friendly setup guide for first-time users.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
-- **Emote Support**: Displays Twitch emotes in chat.
+- **Emote Support**: Displays Twitch emotes in chat with automatic quality fallback.
+- **Badge Support**: Shows Twitch subscriber, moderator, VIP, and other badges next to usernames.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See changes in real-time before applying them.
 - **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
@@ -47,6 +48,7 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
   - Window width and height.
   - Usernames - use original Twitch colors or pick a custom color.
   - Show/hide timestamps.
+  - Show/hide Twitch badges.
 - **Accessibility Options**: Disable background images for high contrast and better readability.
 - **Simple Interface**: Clean design that integrates well with OBS and other broadcasting software.
 - **Auto-Connect**: Remembers your channel and automatically connects on startup.
@@ -193,6 +195,7 @@ Select from various fonts including:
 - **Height**: Change the height of the chat window.
 - **Max Messages**: Control how many chat messages to show before removing older ones.
 - **Show Timestamps**: Toggle message timestamps on/off.
+- **Show Badges**: Toggle Twitch subscriber, moderator, VIP, and other badges on/off.
 
 ### Popup Mode Settings
 When using Popup mode, additional options become available:
@@ -274,7 +277,7 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - The overlay requires an internet connection to function.
 - Very high chat volume might cause performance issues on older systems.
 - Some custom/BTTV/FFZ emotes are not supported (only standard Twitch emotes).
-- Badges are not yet supported.
+- Badge display is dependent on external services and may occasionally be unavailable.
 
 ## License
 
