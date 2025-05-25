@@ -120,10 +120,9 @@ function transformBadgeData(twitchApiResponse) {
         badgeSet.versions.forEach(version => {
             transformed[badgeSet.set_id][version.id] = {
                 imageUrl: version.image_url_1x,
+                imageUrl2x: version.image_url_2x,
+                imageUrl4x: version.image_url_4x,
                 title: version.title,
-                // Potentially include other URLs if needed:
-                // imageUrl2x: version.image_url_2x,
-                // imageUrl4x: version.image_url_4x,
             };
         });
     });

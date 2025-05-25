@@ -528,7 +528,14 @@
                         if (badgeInfo && badgeInfo.imageUrl) {
                             const badgeImg = document.createElement('img');
                             badgeImg.className = 'chat-badge';
-                            badgeImg.src = badgeInfo.imageUrl;
+                            // Try 4x first, fallback to 2x, then 1x
+                            const fallback2x = badgeInfo.imageUrl2x || badgeInfo.imageUrl;
+                            const fallback1x = badgeInfo.imageUrl;
+                            badgeImg.src = badgeInfo.imageUrl4x || badgeInfo.imageUrl2x || badgeInfo.imageUrl;
+                            badgeImg.onerror = function() {
+                                this.onerror = function() { this.src = fallback1x; };
+                                this.src = fallback2x;
+                            };
                             badgeImg.alt = badgeInfo.title || setId;
                             badgeImg.title = badgeInfo.title || setId;
                             badgesContainer.appendChild(badgeImg);

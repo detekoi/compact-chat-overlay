@@ -6,9 +6,9 @@ A lightweight, customizable Twitch chat overlay for streamers using OBS or other
 ![Chat Interface](assets/images/screenshots/chat.png)
 ![AI Theme Generator](assets/images/screenshots/themegenerator.png)
 
-## ✨ NEW: AI Theme Generation with Background Images!
+## AI Theme Generation with Background Images
 
-**Create fully personalized chat themes with matching background images!** Our latest update makes creating unique chat themes even more powerful:
+**AI Generation Update** Google Gemini 2.0 Image Generation is only working sporadically in my testing. I am working on a solution.
 
 - **AI-Generated Backgrounds**: Get unique background images that perfectly match your theme's aesthetic.
 - **Theme Carousel**: Easily browse through all available themes with a visual preview carousel.
