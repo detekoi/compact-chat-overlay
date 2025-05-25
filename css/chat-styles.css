@@ -374,6 +374,7 @@ button:hover {
     color: var(--username-color);
     font-weight: bold;
     margin-right: 5px;
+    vertical-align: middle;
 }
 
 .emote {
@@ -1135,4 +1136,41 @@ body.chat-page:hover #popup-settings-btn {
     padding: 4px 8px; /* Reduced padding */
     font-size: 0.85em; /* Slightly smaller font */
     margin-top: 0; /* Remove default top margin */
+}
+
+/* Container for badges */
+.badges {
+    display: inline-flex; /* Changed from inline-block for better flex alignment */
+    align-items: center; /* Vertically align badges if they have different heights */
+    margin-right: 4px; /* Space between badges and username */
+    vertical-align: middle; /* Align the whole badge group with the text line */
+}
+
+/* Individual badge image */
+.chat-badge {
+    height: 18px; /* Consistent height as per spec */
+    width: auto;  /* Maintain aspect ratio */
+    margin-right: 3px; /* Space between multiple badges */
+    vertical-align: middle; /* Align with text/other badges, though parent flex align-items helps */
+}
+/* Remove margin from the last badge in a sequence */
+.chat-badge:last-child {
+    margin-right: 0;
+}
+
+/* Placeholder for badges if image fails or for testing */
+.chat-badge-placeholder {
+    display: inline-block;
+    padding: 0px 4px;
+    margin-right: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: var(--chat-text-color);
+    background-color: rgba(128, 128, 128, 0.3);
+    border: 1px solid rgba(128, 128, 128, 0.5);
+    border-radius: 3px;
+    vertical-align: middle;
+}
+.chat-badge-placeholder:last-child {
+    margin-right: 0;
 }

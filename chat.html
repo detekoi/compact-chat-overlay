@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Overlay for Twitch</title>
-    <!-- Added support for multiple chat scenes via URL parameters -->
     <meta name="description" content="Twitch chat overlay with support for multiple chat scenes via URL parameters (e.g., ?scene=gaming)">
     <link rel="stylesheet" href="css/chat-styles.css">
     <link rel="stylesheet" href="css/theme-carousel.css">
@@ -15,7 +14,6 @@
 ></script>
 </head>
 <body class="chat-page">
-    <!-- Initial Connection Prompt -->
     <div id="initial-connection-prompt">
         <div class="prompt-content">
             <h2>Enter a Channel</h2>
@@ -31,17 +29,11 @@
         <div class="popup-settings-area">
             <button id="popup-settings-btn">⚙️</button>
         </div>
-        <!-- Dedicated container for popup messages -->
         <div id="popup-messages"></div>
     </div>
     
-    <!-- New wrapper for background and overall shape -->
     <div id="chat-wrapper">
         <div id="chat-container">
-            <!-- Remove dedicated background layers if present -->
-            <!-- <div id="chat-bg-color-layer"></div> -->
-            <!-- <div id="chat-bg-image-layer"></div> -->
-            
             <button id="settings-btn">⚙️</button>
             <div id="chat-scroll-area">
                 <div id="chat-messages"></div>
@@ -52,35 +44,26 @@
     <div id="config-panel">
         <h3>Chat Settings</h3>
         
-        <!-- Moved Connection Controls to Top -->
         <div class="section-divider">Connection</div>
         <div class="config-row" id="connection-management" style="margin-top: 10px; padding-top: 10px;">
-            <!-- Channel Form (Initially Visible) -->
             <div id="channel-form" style="display: flex; gap: 10px; align-items: center; width: 100%;">
                 <label for="channel-input" style="flex-shrink: 0;">Channel:</label>
                 <input type="text" id="channel-input" placeholder="Enter Twitch channel" style="flex-grow: 1;">
                 <button id="connect-btn" style="flex-shrink: 0;">Connect</button>
             </div>
-            <!-- Disconnect Button (Initially Hidden) -->
             <button id="disconnect-btn" style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
         </div>
 
         <div class="config-row theme-section">
-            <!-- Using aria-labelledby instead of for, since this controls a non-form element -->
             <div class="theme-selector-label" id="theme-selector-label">Theme:</div>
-            <!-- Theme cards container -->
             <div class="theme-carousel-container" role="group" aria-labelledby="theme-selector-label">
                 <div class="theme-cards-wrapper">
-                    <!-- Individual theme cards will be inserted here by JS -->
-                </div>
+                    </div>
             </div>
-            <!-- Moved Theme Preview Container Here -->
             <div class="theme-preview-container">
                 <div class="theme-preview" id="theme-preview">
-                    <!-- The theme preview content will be dynamically populated by JavaScript -->
-                </div>
+                    </div>
             </div>
-            <!-- Info and navigation container below carousel -->
             <div id="theme-info-and-nav">
                 <button type="button" id="prev-theme" class="theme-nav-btn">◀</button>
                 <div id="theme-details">
@@ -120,7 +103,6 @@
             <div>Generated: <span id="generated-theme-name"></span></div>
         </div>
         
-        <!-- Generated themes are now integrated directly into the main theme carousel at the top -->
         <div style="font-size: 12px; margin-top: 10px; color: #888; text-align: center;">
             Generated themes will appear in your main theme collection above
         </div>
@@ -276,7 +258,29 @@
                 <button type="button" class="preset-btn" data-value="sharp">Sharp</button>
             </div>
         </div>
-        
+
+        <div class="section-divider">Badges</div>
+        <div class="config-row">
+            <label for="show-badges-toggle" style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="show-badges-toggle" checked>
+                Show Badges
+            </label>
+        </div>
+        <div class="config-row">
+            <label for="badge-endpoint-global">Global Badges URL:</label>
+            <input type="text" id="badge-endpoint-global" placeholder="Global badge proxy URL">
+        </div>
+        <div class="config-row">
+            <label for="badge-endpoint-channel">Channel Badges URL:</label>
+            <input type="text" id="badge-endpoint-channel" placeholder="Channel badge proxy URL">
+        </div>
+        <div class="config-row">
+            <label for="badge-fallback-hide" style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="badge-fallback-hide">
+                Hide if service/badge fails
+            </label>
+            <small style="color: #888; font-size: 0.8em;">If unchecked, will show [badge_name] text.</small>
+        </div>
         <div class="section-divider">Settings</div>
         
         <div class="config-row font-section">
@@ -313,7 +317,6 @@
             <input type="checkbox" id="show-timestamps" checked>
         </div>
         
-        <!-- Container for fixed action buttons -->
         <div id="config-panel-actions">
             <div>
                 <button id="save-config">Save Settings</button>
