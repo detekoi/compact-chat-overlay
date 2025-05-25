@@ -28,3 +28,34 @@ yarn-error.log*
 .aider*
 
 .env
+
+# Security: credentials, keys, secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.token
+*.secret
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+
+# Cleanliness: build output, dependencies, coverage, OS trash
+node_modules/
+dist/
+build/
+out/
+coverage/
+*.lcov
+.Trash-*
+
+# Optionally ignore lock files (uncomment if desired)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
