@@ -1,34 +1,22 @@
-// Copyright 2024 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// twitch-badge-proxy.js
 
 const axios = require('axios');
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const { createClient } = require('redis');
 const functions = require('@google-cloud/functions-framework');
 
-// --- Configuration (User needs to update placeholders) ---
-// Replace YOUR_PROJECT_ID with your actual Google Cloud Project ID
-const TWITCH_CLIENT_ID_SECRET_NAME = 'projects/YOUR_PROJECT_ID/secrets/TWITCH_CLIENT_ID/versions/latest';
-const TWITCH_CLIENT_SECRET_SECRET_NAME = 'projects/YOUR_PROJECT_ID/secrets/TWITCH_CLIENT_SECRET/versions/latest';
-const INTERNAL_REFRESH_TOKEN_SECRET_NAME = 'projects/YOUR_PROJECT_ID/secrets/INTERNAL_REFRESH_TOKEN/versions/latest'; // For refreshGlobalCache endpoint
+// --- Configuration ---
+const PROJECT_ID = process.env.PROJECT_ID ||
+const TWITCH_CLIENT_ID_SECRET_NAME = process.env.TWITCH_CLIENT_ID_SECRET_NAME || `projects/${PROJECT_ID}/secrets/TWITCH_CLIENT_ID/versions/latest`;
+const TWITCH_CLIENT_SECRET_SECRET_NAME = process.env.TWITCH_CLIENT_SECRET_SECRET_NAME || `projects/${PROJECT_ID}/secrets/TWITCH_CLIENT_SECRET/versions/latest`;
+const INTERNAL_REFRESH_TOKEN_SECRET_NAME = process.env.INTERNAL_REFRESH_TOKEN_SECRET_NAME || `projects/${PROJECT_ID}/secrets/INTERNAL_REFRESH_TOKEN/versions/latest`;
 
-// Replace with your Memorystore for Redis instance details
-const REDIS_HOST = 'YOUR_REDIS_HOST'; // e.g., '10.0.0.3'
-const REDIS_PORT = 6379; // Default Redis port
+// Memorystore for Redis instance details
+const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
+const REDIS_PORT = parseInt(process.env.REDIS_PORT) || 6379;
 
-const TWITCH_API_BASE_URL = 'https://api.twitch.tv/helix';
-const TWITCH_OAUTH_URL = 'https://id.twitch.tv/oauth2/token';
+const TWITCH_API_BASE_URL = process.env.TWITCH_API_BASE_URL || 'https://api.twitch.tv/helix';
+const TWITCH_OAUTH_URL = process.env.TWITCH_OAUTH_URL || 'https://id.twitch.tv/oauth2/token';
 
 // Cache Keys
 const TWITCH_APP_ACCESS_TOKEN_KEY = 'twitch_app_access_token';
@@ -36,9 +24,9 @@ const GLOBAL_BADGES_KEY = 'twitch_global_badges';
 const CHANNEL_BADGES_KEY_PREFIX = 'twitch_channel_badges:'; // Appended with broadcaster_id
 
 // Cache TTLs (in seconds)
-const APP_TOKEN_TTL = 50 * 24 * 60 * 60; // 50 days (Twitch app access tokens are long-lived)
-const GLOBAL_BADGES_TTL = 12 * 60 * 60; // 12 hours
-const CHANNEL_BADGES_TTL = 1 * 60 * 60; // 1 hour
+const APP_TOKEN_TTL = parseInt(process.env.APP_TOKEN_TTL) || 50 * 24 * 60 * 60; // 50 days
+const GLOBAL_BADGES_TTL = parseInt(process.env.GLOBAL_BADGES_TTL) || 12 * 60 * 60; // 12 hours
+const CHANNEL_BADGES_TTL = parseInt(process.env.CHANNEL_BADGES_TTL) || 1 * 60 * 60; // 1 hour
 
 // --- Initialize Clients ---
 const secretManagerClient = new SecretManagerServiceClient();
@@ -366,4 +354,3 @@ functions.http('refreshGlobalCache', async (req, res) => {
 // as connections are reused across invocations.
 // If issues arise or for 1st Gen, you might need to manage connections more explicitly.
 // However, for long-lived GCF instances, the top-level `redisClient.connect()` is preferred.
-```

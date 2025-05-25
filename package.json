@@ -2,7 +2,7 @@
   "name": "twitch-badges-cache",
   "version": "1.0.0",
   "description": "Cloud Function to cache Twitch badges",
-  "main": "index.js",
+  "main": "twitch-badge-proxy.js",
   "scripts": {
     "start": "functions-framework --target=getGlobalBadges",
     "test": "echo \"Error: no test specified\" && exit 1"
