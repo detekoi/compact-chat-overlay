@@ -74,11 +74,11 @@
             lastChannel: '',
             // Badge Configuration
             showBadges: true,
-            badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
-            badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
+            badgeEndpointUrlGlobal: 'https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges',
+            badgeEndpointUrlChannel: 'https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges',
             badgeCacheGlobalTTL: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             badgeCacheChannelTTL: 1 * 60 * 60 * 1000, // 1 hour in milliseconds
-            badgeFallbackHide: false, // If true, hide badges if service fails or not found
+            badgeFallbackHide: true, // Always hide if service fails or badge not found
             // bgColorOpacity and bgImageOpacity are derived/set later
         };
 
@@ -131,9 +131,6 @@
 
         // Badge Configuration DOM Elements
         const showBadgesToggle = document.getElementById('show-badges-toggle');
-        const badgeEndpointGlobalInput = document.getElementById('badge-endpoint-global');
-        const badgeEndpointChannelInput = document.getElementById('badge-endpoint-channel');
-        const badgeFallbackHideToggle = document.getElementById('badge-fallback-hide');
 
 
         // Connection and chat state
@@ -218,7 +215,7 @@
             } catch (error) {
                 console.error('Failed to initialize global badges:', error);
                 globalBadges = null;
-                if (!config.badgeFallbackHide) addSystemMessage('⚠️ Error loading global badges.');
+                // Always hide error messages for badge failures
             }
         }
 
@@ -245,7 +242,7 @@
                 .catch(error => {
                     console.error(`Failed to initialize channel badges for ${broadcasterId}:`, error);
                     channelBadges[broadcasterId] = null;
-                    if (!config.badgeFallbackHide) addSystemMessage(`⚠️ Error loading badges for channel ${channel || broadcasterId}.`);
+                    // Always hide error messages for badge failures
                 })
                 .finally(() => {
                     delete badgeFetchPromises[broadcasterId]; 
@@ -494,8 +491,11 @@
                     for (const emote of emotePositions) {
                         try {
                             const emoteCode = message.substring(emote.start, emote.end + 1);
-                            const emoteUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/1.0`;
-                            const emoteHtml = `<img class="emote" src="${emoteUrl}" alt="${emoteCode.replace(/"/g, '&quot;')}" title="${emoteCode.replace(/"/g, '&quot;')}" />`;
+                            const emoteBaseUrl = `https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark`;
+                            const emoteHtml = `<img class="emote" src="${emoteBaseUrl}/3.0" 
+                                onerror="this.onerror=function(){this.src='${emoteBaseUrl}/1.0';}; this.src='${emoteBaseUrl}/2.0';" 
+                                alt="${emoteCode.replace(/"/g, '&quot;')}" 
+                                title="${emoteCode.replace(/"/g, '&quot;')}" />`;
                             message = message.substring(0, emote.start) + emoteHtml + message.substring(emote.end + 1);
                         } catch (err) { console.error('Error replacing emote:', err); }
                     }
@@ -532,11 +532,6 @@
                             badgeImg.alt = badgeInfo.title || setId;
                             badgeImg.title = badgeInfo.title || setId;
                             badgesContainer.appendChild(badgeImg);
-                        } else if (!config.badgeFallbackHide) {
-                            const placeholder = document.createElement('span');
-                            placeholder.className = 'chat-badge-placeholder';
-                            placeholder.textContent = `[${setId}]`;
-                            badgesContainer.appendChild(placeholder);
                         }
                     });
                     if (badgesContainer.hasChildNodes()) {
@@ -1340,7 +1335,7 @@
                     previewBadgesHtml = `<img class="chat-badge" src="${firstGlobalBadgeInfo.imageUrl}" alt="${firstGlobalBadgeInfo.title || 'badge'}" title="${firstGlobalBadgeInfo.title || 'badge'}" style="height: calc(var(--font-size) * 0.9); vertical-align: middle; margin-right: 3px;">`;
                 } else {
                      // Use the badge fallback toggle from UI for preview
-                    const hideFallbackInPreview = badgeFallbackHideToggle?.checked ?? config.badgeFallbackHide;
+                    const hideFallbackInPreview = true; // Always hide badge failures
                     if (!hideFallbackInPreview) {
                         previewBadgesHtml = `<span class="chat-badge-placeholder" style="font-size:0.8em; opacity:0.7; margin-right:3px;">[B]</span>`;
                     }
@@ -1490,12 +1485,12 @@
                     lastChannel: config.lastChannel, 
                     // Badge settings from UI
                     showBadges: getValue(showBadgesToggle, config.showBadges, false, true),
-                    badgeEndpointUrlGlobal: getValue(badgeEndpointGlobalInput, config.badgeEndpointUrlGlobal).trim(),
-                    badgeEndpointUrlChannel: getValue(badgeEndpointChannelInput, config.badgeEndpointUrlChannel).trim(),
-                    // TTLs are not user-configurable in this iteration, so they retain their value from `config`
+                    badgeEndpointUrlGlobal: config.badgeEndpointUrlGlobal,
+                    badgeEndpointUrlChannel: config.badgeEndpointUrlChannel,
+                    // TTLs are not user-configurable, so they retain their value from `config`
                     badgeCacheGlobalTTL: config.badgeCacheGlobalTTL,
                     badgeCacheChannelTTL: config.badgeCacheChannelTTL,
-                    badgeFallbackHide: getValue(badgeFallbackHideToggle, config.badgeFallbackHide, false, true),
+                    badgeFallbackHide: true, // Always hide badge failures
                 };
 
                 config = newConfig; 
@@ -1532,11 +1527,11 @@
                 theme: 'default', lastChannel: '',
                 popup: { direction: 'from-bottom', duration: 5, maxMessages: 3 },
                 showBadges: true,
-                badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
-                badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
+                badgeEndpointUrlGlobal: 'https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges',
+                badgeEndpointUrlChannel: 'https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges',
                 badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
                 badgeCacheChannelTTL: 1 * 60 * 60 * 1000,
-                badgeFallbackHide: false,
+                badgeFallbackHide: true, // Always hide badge failures
             };
         }
 
@@ -1643,9 +1638,6 @@
 
             // Update Badge Configuration UI
             if (showBadgesToggle) showBadgesToggle.checked = config.showBadges;
-            if (badgeEndpointGlobalInput) badgeEndpointGlobalInput.value = config.badgeEndpointUrlGlobal || '';
-            if (badgeEndpointChannelInput) badgeEndpointChannelInput.value = config.badgeEndpointUrlChannel || '';
-            if (badgeFallbackHideToggle) badgeFallbackHideToggle.checked = config.badgeFallbackHide;
             
             updateThemePreview(); // Ensure preview is updated with all settings
         }
@@ -1789,11 +1781,11 @@
                     const loadedConfig = JSON.parse(savedConfig);
                     const defaultConfigForMerge = {
                         showBadges: true,
-                        badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
-                        badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
+                        badgeEndpointUrlGlobal: 'https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges',
+                        badgeEndpointUrlChannel: 'https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges',
                         badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
                         badgeCacheChannelTTL: 1 * 60 * 60 * 1000,
-                        badgeFallbackHide: false,
+                        badgeFallbackHide: true, // Always hide badge failures
                         ...config 
                     };
                     config = { ...defaultConfigForMerge, ...loadedConfig };
@@ -1889,12 +1881,9 @@
                 connectToChat(); 
             }, delay);
         }
-        // Add change listeners for new badge UI elements to update theme preview
+        // Add change listener for badge toggle to update theme preview
         if (showBadgesToggle) {
             showBadgesToggle.addEventListener('change', updateThemePreview);
-        }
-        if (badgeFallbackHideToggle) {
-            badgeFallbackHideToggle.addEventListener('change', updateThemePreview);
         }
 
     } // End of initApp
