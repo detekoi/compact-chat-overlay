@@ -6,7 +6,7 @@ const { createClient } = require('redis');
 const functions = require('@google-cloud/functions-framework');
 
 // --- Configuration ---
-const PROJECT_ID = process.env.PROJECT_ID ||
+const PROJECT_ID = process.env.PROJECT_ID || 'chat-themer';
 const TWITCH_CLIENT_ID_SECRET_NAME = process.env.TWITCH_CLIENT_ID_SECRET_NAME || `projects/${PROJECT_ID}/secrets/TWITCH_CLIENT_ID/versions/latest`;
 const TWITCH_CLIENT_SECRET_SECRET_NAME = process.env.TWITCH_CLIENT_SECRET_SECRET_NAME || `projects/${PROJECT_ID}/secrets/TWITCH_CLIENT_SECRET/versions/latest`;
 const INTERNAL_REFRESH_TOKEN_SECRET_NAME = process.env.INTERNAL_REFRESH_TOKEN_SECRET_NAME || `projects/${PROJECT_ID}/secrets/INTERNAL_REFRESH_TOKEN/versions/latest`;
@@ -40,7 +40,7 @@ const redisClient = createClient({
 // --- Redis Connection Handling ---
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 // Connect to Redis at the start. For 2nd Gen GCF, top-level connections persist.
-redisClient.connect().catch(console.error);
+// redisClient.connect().catch(console.error); // Disabled for now
 
 
 // --- Helper Function: Get Secret ---
@@ -61,11 +61,12 @@ async function getSecret(secretName) {
 async function getTwitchAppAccessToken(forceRefresh = false) {
     if (!forceRefresh) {
         try {
-            const cachedToken = await redisClient.get(TWITCH_APP_ACCESS_TOKEN_KEY);
-            if (cachedToken) {
-                console.log('Using cached Twitch app access token.');
-                return cachedToken;
-            }
+            // Skip Redis cache for now
+            // const cachedToken = await redisClient.get(TWITCH_APP_ACCESS_TOKEN_KEY);
+            // if (cachedToken) {
+            //     console.log('Using cached Twitch app access token.');
+            //     return cachedToken;
+            // }
         } catch (err) {
             console.warn('Redis GET error for app access token:', err);
             // Proceed to fetch a new token if Redis read fails
@@ -97,10 +98,11 @@ async function getTwitchAppAccessToken(forceRefresh = false) {
         // Use Twitch's expires_in if available, otherwise use our default TTL
         const effectiveTtl = expires_in ? Math.min(expires_in - 300, APP_TOKEN_TTL) : APP_TOKEN_TTL; // Subtract 5 mins as buffer
 
-        await redisClient.set(TWITCH_APP_ACCESS_TOKEN_KEY, access_token, {
-            EX: effectiveTtl,
-        });
-        console.log('Successfully fetched and cached new Twitch app access token.');
+        // Skip Redis caching for now
+        // await redisClient.set(TWITCH_APP_ACCESS_TOKEN_KEY, access_token, {
+        //     EX: effectiveTtl,
+        // });
+        console.log('Successfully fetched new Twitch app access token.');
         return access_token;
     } catch (error) {
         console.error('Error getting Twitch app access token:', error.response ? error.response.data : error.message);
@@ -156,13 +158,13 @@ functions.http('getGlobalBadges', async (req, res) => {
     // }
 
     try {
-        // Check Redis for cached global badges
-        const cachedBadges = await redisClient.get(GLOBAL_BADGES_KEY);
-        if (cachedBadges) {
-            console.log('Returning cached global badges.');
-            res.status(200).json(JSON.parse(cachedBadges));
-            return;
-        }
+        // Skip Redis cache for now
+        // const cachedBadges = await redisClient.get(GLOBAL_BADGES_KEY);
+        // if (cachedBadges) {
+        //     console.log('Returning cached global badges.');
+        //     res.status(200).json(JSON.parse(cachedBadges));
+        //     return;
+        // }
 
         console.log('Fetching global badges from Twitch API...');
         const accessToken = await getTwitchAppAccessToken();
@@ -183,10 +185,11 @@ functions.http('getGlobalBadges', async (req, res) => {
 
         const transformedData = transformBadgeData(response.data);
 
-        await redisClient.set(GLOBAL_BADGES_KEY, JSON.stringify(transformedData), {
-            EX: GLOBAL_BADGES_TTL,
-        });
-        console.log('Successfully fetched and cached global badges.');
+        // Skip Redis caching for now
+        // await redisClient.set(GLOBAL_BADGES_KEY, JSON.stringify(transformedData), {
+        //     EX: GLOBAL_BADGES_TTL,
+        // });
+        console.log('Successfully fetched global badges.');
 
         res.status(200).json(transformedData);
     } catch (error) {
@@ -224,13 +227,13 @@ functions.http('getChannelBadges', async (req, res) => {
     const cacheKey = `${CHANNEL_BADGES_KEY_PREFIX}${broadcasterId}`;
 
     try {
-        // Check Redis for cached channel badges
-        const cachedBadges = await redisClient.get(cacheKey);
-        if (cachedBadges) {
-            console.log(`Returning cached channel badges for broadcaster: ${broadcasterId}`);
-            res.status(200).json(JSON.parse(cachedBadges));
-            return;
-        }
+        // Skip Redis cache for now
+        // const cachedBadges = await redisClient.get(cacheKey);
+        // if (cachedBadges) {
+        //     console.log(`Returning cached channel badges for broadcaster: ${broadcasterId}`);
+        //     res.status(200).json(JSON.parse(cachedBadges));
+        //     return;
+        // }
 
         console.log(`Fetching channel badges from Twitch API for broadcaster: ${broadcasterId}...`);
         const accessToken = await getTwitchAppAccessToken();
@@ -252,10 +255,11 @@ functions.http('getChannelBadges', async (req, res) => {
 
         const transformedData = transformBadgeData(response.data);
 
-        await redisClient.set(cacheKey, JSON.stringify(transformedData), {
-            EX: CHANNEL_BADGES_TTL,
-        });
-        console.log(`Successfully fetched and cached channel badges for broadcaster: ${broadcasterId}`);
+        // Skip Redis caching for now
+        // await redisClient.set(cacheKey, JSON.stringify(transformedData), {
+        //     EX: CHANNEL_BADGES_TTL,
+        // });
+        console.log(`Successfully fetched channel badges for broadcaster: ${broadcasterId}`);
 
         res.status(200).json(transformedData);
     } catch (error) {

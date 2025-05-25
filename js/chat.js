@@ -74,8 +74,8 @@
             lastChannel: '',
             // Badge Configuration
             showBadges: true,
-            badgeEndpointUrlGlobal: '', // Set your actual default or leave empty for user to fill
-            badgeEndpointUrlChannel: '', // Set your actual default or leave empty for user to fill
+            badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
+            badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
             badgeCacheGlobalTTL: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             badgeCacheChannelTTL: 1 * 60 * 60 * 1000, // 1 hour in milliseconds
             badgeFallbackHide: false, // If true, hide badges if service fails or not found
@@ -1532,8 +1532,8 @@
                 theme: 'default', lastChannel: '',
                 popup: { direction: 'from-bottom', duration: 5, maxMessages: 3 },
                 showBadges: true,
-                badgeEndpointUrlGlobal: '', // Default to empty, user must provide
-                badgeEndpointUrlChannel: '', // Default to empty
+                badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
+                badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
                 badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
                 badgeCacheChannelTTL: 1 * 60 * 60 * 1000,
                 badgeFallbackHide: false,
@@ -1789,8 +1789,8 @@
                     const loadedConfig = JSON.parse(savedConfig);
                     const defaultConfigForMerge = {
                         showBadges: true,
-                        badgeEndpointUrlGlobal: '', // Ensure these have a default if not in saved
-                        badgeEndpointUrlChannel: '',
+                        badgeEndpointUrlGlobal: '{{BADGE_ENDPOINT_GLOBAL}}' || '', // Replaced during build
+                        badgeEndpointUrlChannel: '{{BADGE_ENDPOINT_CHANNEL}}' || '', // Replaced during build
                         badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
                         badgeCacheChannelTTL: 1 * 60 * 60 * 1000,
                         badgeFallbackHide: false,
