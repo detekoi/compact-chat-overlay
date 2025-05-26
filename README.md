@@ -24,13 +24,13 @@ Create and manage multiple chat styles for all of your OBS scenes in seconds!
 
 ## Features
 
-- **AI Theme Generator**: Create unique, perfectly coordinated themes with background images from a simple text prompt.
+- **AI Theme Generator**: Create unique, perfectly coordinated themes with background images from a simple text prompt. Uses the [Chat Theme Proxy](https://github.com/detekoi/chat-theme-proxy).
 - **Theme Carousel**: Visually browse through themes with intuitive navigation controls.
 - **Two Display Modes**: Choose between traditional Window mode or Toast Popup mode for chat messages.
 - **Initial Connection Prompt**: User-friendly setup guide for first-time users.
 - **Native Twitch or Custom Colors**: Uses each chatter's original Twitch username colors.
 - **Emote Support**: Displays Twitch emotes in chat with automatic quality fallback.
-- **Badge Support**: Shows Twitch subscriber, moderator, VIP, and other badges next to usernames.
+- **Badge Support**: See [Badge Support](#badge-support) for details on how Twitch badges are fetched and displayed.
 - **Multiple Pre-designed Themes**: Choose from Dark, Light, Natural, Transparent, Pink, and Cyberpunk themes.
 - **Live Theme Preview**: See changes in real-time before applying them.
 - **Multiple Chat Scenes**: Create different overlay styles for different parts of your stream.
@@ -270,12 +270,27 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 - No external libraries or dependencies required.
 - Settings are saved to your browser's localStorage.
 
+## Badge Support
+
+The overlay displays Twitch global and channel-specific badges next to usernames, such as subscriber, moderator, and VIP badges.
+
+**How it Works:**
+
+* **Proxy Service:** To securely fetch badge information, the overlay utilizes a backend proxy service (implemented in `js/twitch-badge-proxy.js`). This service handles authentication with the Twitch API using a Client ID and Client Secret, which are stored securely as secrets. The proxy fetches global badges from `https://api.twitch.tv/helix/chat/badges/global` and channel-specific badges from `https://api.twitch.tv/helix/chat/badges` using a Twitch App Access Token.
+* **Client-Side Fetching:** The client-side JavaScript (`js/chat.js`) requests badge data from configured proxy endpoints (defaulting to Google Cloud Functions URLs: `https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges` and `https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges`).
+* **Caching:**
+    * **App Access Token:** The proxy caches the Twitch App Access Token to minimize redundant OAuth requests, with a default TTL of 50 days.
+    * **Global Badges:** Global badge data is cached by the proxy with a default TTL of 12 hours. The client also caches this data in `localStorage`.
+    * **Channel Badges:** Channel-specific badges (linked to `broadcaster_id`) are cached by the proxy with a default TTL of 1 hour. The client also caches this data in `localStorage`.
+* **Display:** The client-side code parses the badge information from the `badges` tag in Twitch IRC messages and uses the cached badge image URLs (trying 4x, then 2x, then 1x resolution) to display them.
+* **Fallback/Error Handling:** If badge data cannot be fetched or an image fails to load, the overlay is configured to hide the badge by default to avoid broken images.
+
 ## Issues & Limitations
 
 - The overlay requires an internet connection to function.
 - Very high chat volume might cause performance issues on older systems.
 - Some custom/BTTV/FFZ emotes are not supported (only standard Twitch emotes).
-- Badge display is dependent on external services and may occasionally be unavailable.
+- Badge display is dependent on external services (the proxy and Twitch API) and may occasionally be unavailable.
 
 ## License
 
