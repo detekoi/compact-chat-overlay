@@ -18,7 +18,7 @@
     // Constants
     const MAX_RETRIES = 3;
     const INITIAL_DELAY = 1000; // ms
-    const PROXY_API_URL = 'https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme';
+    const PROXY_API_URL = 'https://theme-proxy-361545143046.us-west2.run.app/api/generate-theme';
 
     // --- Wait for theme carousel to be ready --- 
     document.addEventListener('theme-carousel-ready', initializeGenerator);
