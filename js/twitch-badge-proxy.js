@@ -2,7 +2,7 @@
 
 const axios = require('axios');
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
-const { createClient } = require('redis');
+const { Firestore, Timestamp } = require('@google-cloud/firestore'); // Added Firestore
 const functions = require('@google-cloud/functions-framework');
 
 // --- Configuration ---
@@ -11,36 +11,74 @@ const TWITCH_CLIENT_ID_SECRET_NAME = process.env.TWITCH_CLIENT_ID_SECRET_NAME ||
 const TWITCH_CLIENT_SECRET_SECRET_NAME = process.env.TWITCH_CLIENT_SECRET_SECRET_NAME || `projects/${PROJECT_ID}/secrets/TWITCH_CLIENT_SECRET/versions/latest`;
 const INTERNAL_REFRESH_TOKEN_SECRET_NAME = process.env.INTERNAL_REFRESH_TOKEN_SECRET_NAME || `projects/${PROJECT_ID}/secrets/INTERNAL_REFRESH_TOKEN/versions/latest`;
 
-// Memorystore for Redis instance details
-const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
-const REDIS_PORT = parseInt(process.env.REDIS_PORT) || 6379;
+// Firestore Configuration
+const FIRESTORE_COLLECTION_NAME = process.env.FIRESTORE_CACHE_COLLECTION || 'twitchBadgeCache';
 
 const TWITCH_API_BASE_URL = process.env.TWITCH_API_BASE_URL || 'https://api.twitch.tv/helix';
 const TWITCH_OAUTH_URL = process.env.TWITCH_OAUTH_URL || 'https://id.twitch.tv/oauth2/token';
 
-// Cache Keys
-const TWITCH_APP_ACCESS_TOKEN_KEY = 'twitch_app_access_token';
-const GLOBAL_BADGES_KEY = 'twitch_global_badges';
-const CHANNEL_BADGES_KEY_PREFIX = 'twitch_channel_badges:'; // Appended with broadcaster_id
+// Cache Document IDs in Firestore
+const TWITCH_APP_ACCESS_TOKEN_DOC_ID = 'twitch_app_access_token';
+const GLOBAL_BADGES_DOC_ID = 'twitch_global_badges';
+const CHANNEL_BADGES_DOC_ID_PREFIX = 'channelBadge_'; // Firestore safe prefix
 
 // Cache TTLs (in seconds)
-const APP_TOKEN_TTL = parseInt(process.env.APP_TOKEN_TTL) || 50 * 24 * 60 * 60; // 50 days
-const GLOBAL_BADGES_TTL = parseInt(process.env.GLOBAL_BADGES_TTL) || 12 * 60 * 60; // 12 hours
-const CHANNEL_BADGES_TTL = parseInt(process.env.CHANNEL_BADGES_TTL) || 1 * 60 * 60; // 1 hour
+const APP_TOKEN_TTL_SECONDS = parseInt(process.env.APP_TOKEN_TTL) || 50 * 24 * 60 * 60; // 50 days
+const GLOBAL_BADGES_TTL_SECONDS = parseInt(process.env.GLOBAL_BADGES_TTL) || 12 * 60 * 60; // 12 hours
+const CHANNEL_BADGES_TTL_SECONDS = parseInt(process.env.CHANNEL_BADGES_TTL) || 1 * 60 * 60; // 1 hour
 
 // --- Initialize Clients ---
 const secretManagerClient = new SecretManagerServiceClient();
-const redisClient = createClient({
-    socket: {
-        host: REDIS_HOST,
-        port: REDIS_PORT,
-    },
-});
+const firestore = new Firestore(); // Initialize Firestore
 
-// --- Redis Connection Handling ---
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-// Connect to Redis at the start. For 2nd Gen GCF, top-level connections persist.
-redisClient.connect().catch(console.error);
+// --- Firestore Cache Helper Functions ---
+
+/**
+ * Gets an item from Firestore cache.
+ * @param {string} docId The document ID to fetch.
+ * @returns {Promise<any|null>} The cached data or null if not found or expired.
+ */
+async function getFromCache(docId) {
+    try {
+        const docRef = firestore.collection(FIRESTORE_COLLECTION_NAME).doc(docId);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+            const cacheEntry = docSnap.data();
+            if (cacheEntry.expiresAt && cacheEntry.expiresAt.toMillis() > Date.now()) {
+                console.log(`Using cached data for Firestore doc: ${docId}`);
+                return JSON.parse(cacheEntry.data); // Assuming data is stored as JSON string
+            } else {
+                console.log(`Cache expired or missing expiresAt for Firestore doc: ${docId}`);
+                // Optionally delete expired doc
+                await docRef.delete().catch(err => console.warn(`Failed to delete expired doc ${docId}:`, err));
+            }
+        }
+    } catch (err) {
+        console.warn(`Firestore GET error for doc ${docId}:`, err);
+    }
+    return null;
+}
+
+/**
+ * Sets an item in Firestore cache.
+ * @param {string} docId The document ID to set.
+ * @param {any} value The value to cache (will be JSON stringified).
+ * @param {number} ttlSeconds Time to live in seconds.
+ */
+async function setInCache(docId, value, ttlSeconds) {
+    try {
+        const docRef = firestore.collection(FIRESTORE_COLLECTION_NAME).doc(docId);
+        const expiresAt = Timestamp.fromMillis(Date.now() + ttlSeconds * 1000);
+        await docRef.set({
+            data: JSON.stringify(value),
+            expiresAt: expiresAt,
+        });
+        console.log(`Successfully cached data for Firestore doc: ${docId} with TTL: ${ttlSeconds}s`);
+    } catch (err) {
+        console.error(`Firestore SET error for doc ${docId}:`, err);
+    }
+}
 
 
 // --- Helper Function: Get Secret ---
@@ -60,15 +98,9 @@ async function getSecret(secretName) {
 // --- Helper Function: Get Twitch App Access Token ---
 async function getTwitchAppAccessToken(forceRefresh = false) {
     if (!forceRefresh) {
-        try {
-            const cachedToken = await redisClient.get(TWITCH_APP_ACCESS_TOKEN_KEY);
-            if (cachedToken) {
-                console.log('Using cached Twitch app access token.');
-                return cachedToken;
-            }
-        } catch (err) {
-            console.warn('Redis GET error for app access token:', err);
-            // Proceed to fetch a new token if Redis read fails
+        const cachedTokenData = await getFromCache(TWITCH_APP_ACCESS_TOKEN_DOC_ID);
+        if (cachedTokenData && cachedTokenData.token) {
+            return cachedTokenData.token;
         }
     }
 
@@ -95,11 +127,9 @@ async function getTwitchAppAccessToken(forceRefresh = false) {
         }
 
         // Use Twitch's expires_in if available, otherwise use our default TTL
-        const effectiveTtl = expires_in ? Math.min(expires_in - 300, APP_TOKEN_TTL) : APP_TOKEN_TTL; // Subtract 5 mins as buffer
+        const effectiveTtlSeconds = expires_in ? Math.min(expires_in - 300, APP_TOKEN_TTL_SECONDS) : APP_TOKEN_TTL_SECONDS; // Subtract 5 mins as buffer
 
-        await redisClient.set(TWITCH_APP_ACCESS_TOKEN_KEY, access_token, {
-            EX: effectiveTtl,
-        });
+        await setInCache(TWITCH_APP_ACCESS_TOKEN_DOC_ID, { token: access_token }, effectiveTtlSeconds);
         console.log('Successfully fetched and cached new Twitch app access token.');
         return access_token;
     } catch (error) {
@@ -131,41 +161,29 @@ function transformBadgeData(twitchApiResponse) {
 
 // --- Cloud Function: Get Global Badges ---
 functions.http('getGlobalBadges', async (req, res) => {
-    // --- CORS Headers (User should restrict this in API Gateway or Cloud Function settings) ---
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'GET');
     res.set('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
 
     if (req.method === 'OPTIONS') {
-        // Handle preflight requests
         res.status(204).send('');
         return;
     }
 
-    // --- API Key Check (Placeholder - User should implement robust validation, e.g., via API Gateway) ---
-    // This is a basic check. For production, use API Gateway for proper API key validation.
     const apiKey = req.headers['x-api-key'];
-    if (!apiKey) {
-        console.warn('Missing x-api-key header');
-        // return res.status(401).send('API Key required.'); // Consider if this is needed if API Gateway handles it
-    }
-    // else {
-    //    console.log('Received API Key:', apiKey); // For debugging, remove in production
-    //    // Add actual key validation logic here if not handled by API Gateway
-    // }
+    // API Key check placeholder - implement robust validation if needed
 
     try {
-        // Check Redis for cached global badges
-        const cachedBadges = await redisClient.get(GLOBAL_BADGES_KEY);
+        const cachedBadges = await getFromCache(GLOBAL_BADGES_DOC_ID);
         if (cachedBadges) {
-            console.log('Returning cached global badges.');
-            res.status(200).json(JSON.parse(cachedBadges));
+            console.log('Returning cached global badges from Firestore.');
+            res.status(200).json(cachedBadges);
             return;
         }
 
         console.log('Fetching global badges from Twitch API...');
         const accessToken = await getTwitchAppAccessToken();
-        const clientId = await getSecret(TWITCH_CLIENT_ID_SECRET_NAME); // Twitch API requires Client-ID header
+        const clientId = await getSecret(TWITCH_CLIENT_ID_SECRET_NAME);
 
         const response = await axios.get(`${TWITCH_API_BASE_URL}/chat/badges/global`, {
             headers: {
@@ -182,10 +200,8 @@ functions.http('getGlobalBadges', async (req, res) => {
 
         const transformedData = transformBadgeData(response.data);
 
-        await redisClient.set(GLOBAL_BADGES_KEY, JSON.stringify(transformedData), {
-            EX: GLOBAL_BADGES_TTL,
-        });
-        console.log('Successfully fetched and cached global badges.');
+        await setInCache(GLOBAL_BADGES_DOC_ID, transformedData, GLOBAL_BADGES_TTL_SECONDS);
+        console.log('Successfully fetched and cached global badges to Firestore.');
 
         res.status(200).json(transformedData);
     } catch (error) {
@@ -198,7 +214,6 @@ functions.http('getGlobalBadges', async (req, res) => {
 
 // --- Cloud Function: Get Channel Badges ---
 functions.http('getChannelBadges', async (req, res) => {
-    // --- CORS Headers ---
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'GET');
     res.set('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
@@ -207,31 +222,25 @@ functions.http('getChannelBadges', async (req, res) => {
         res.status(204).send('');
         return;
     }
-
-    // --- API Key Check (Placeholder) ---
-    const apiKey = req.headers['x-api-key'];
-    if (!apiKey) {
-        console.warn('Missing x-api-key header for channel badges');
-        // return res.status(401).send('API Key required.');
-    }
+    
+    // API Key check placeholder
 
     const broadcasterId = req.query.broadcaster_id;
     if (!broadcasterId) {
         return res.status(400).send('Missing required query parameter: broadcaster_id');
     }
 
-    const cacheKey = `${CHANNEL_BADGES_KEY_PREFIX}${broadcasterId}`;
+    const cacheDocId = `${CHANNEL_BADGES_DOC_ID_PREFIX}${broadcasterId}`;
 
     try {
-        // Check Redis for cached channel badges
-        const cachedBadges = await redisClient.get(cacheKey);
+        const cachedBadges = await getFromCache(cacheDocId);
         if (cachedBadges) {
-            console.log(`Returning cached channel badges for broadcaster: ${broadcasterId}`);
-            res.status(200).json(JSON.parse(cachedBadges));
+            console.log(`Returning cached channel badges for broadcaster ${broadcasterId} from Firestore.`);
+            res.status(200).json(cachedBadges);
             return;
         }
 
-        console.log(`Fetching channel badges from Twitch API for broadcaster: ${broadcasterId}...`);
+        console.log(`Workspaceing channel badges from Twitch API for broadcaster: ${broadcasterId}...`);
         const accessToken = await getTwitchAppAccessToken();
         const clientId = await getSecret(TWITCH_CLIENT_ID_SECRET_NAME);
 
@@ -251,10 +260,8 @@ functions.http('getChannelBadges', async (req, res) => {
 
         const transformedData = transformBadgeData(response.data);
 
-        await redisClient.set(cacheKey, JSON.stringify(transformedData), {
-            EX: CHANNEL_BADGES_TTL,
-        });
-        console.log(`Successfully fetched and cached channel badges for broadcaster: ${broadcasterId}`);
+        await setInCache(cacheDocId, transformedData, CHANNEL_BADGES_TTL_SECONDS);
+        console.log(`Successfully fetched and cached channel badges for broadcaster ${broadcasterId} to Firestore.`);
 
         res.status(200).json(transformedData);
     } catch (error) {
@@ -279,28 +286,20 @@ functions.http('refreshGlobalCache', async (req, res) => {
         return res.status(405).send('Method Not Allowed');
     }
 
-    // --- Security Check ---
-    // Prefer X-CloudScheduler header for requests from Cloud Scheduler
-    // For other callers, use a secret token.
+    // --- Security Check (simplified for brevity, ensure robust auth for admin functions) ---
     const cloudSchedulerHeader = req.headers['x-cloudscheduler'];
     const internalTokenHeader = req.headers['x-internal-refresh-token'];
     let authorized = false;
 
     if (cloudSchedulerHeader === 'true') {
         authorized = true;
-        console.log('Authorized refreshGlobalCache call from Cloud Scheduler.');
     } else if (internalTokenHeader) {
         try {
             const expectedToken = await getSecret(INTERNAL_REFRESH_TOKEN_SECRET_NAME);
-            if (internalTokenHeader === expectedToken) {
-                authorized = true;
-                console.log('Authorized refreshGlobalCache call with internal token.');
-            } else {
-                console.warn('Invalid internal refresh token received.');
-            }
+            if (internalTokenHeader === expectedToken) authorized = true;
         } catch (secretError) {
             console.error('Error fetching internal refresh token for validation:', secretError);
-            return res.status(500).send('Internal error during authorization.');
+            // Do not authorize if secret fetching fails
         }
     }
 
@@ -310,13 +309,10 @@ functions.http('refreshGlobalCache', async (req, res) => {
     }
 
     try {
-        console.log('Force refreshing Twitch app access token...');
-        // Force refresh token by deleting it from cache first or by passing a flag to getTwitchAppAccessToken
-        // For simplicity, we'll use the flag approach if getTwitchAppAccessToken supports it.
-        // Current implementation of getTwitchAppAccessToken fetches new if forceRefresh = true
+        console.log('Force refreshing Twitch app access token (will use Firestore)...');
         await getTwitchAppAccessToken(true); // true to force refresh
 
-        console.log('Force re-fetching global badges from Twitch API...');
+        console.log('Force re-fetching global badges from Twitch API (will cache to Firestore)...');
         const accessToken = await getTwitchAppAccessToken(); // Get the newly refreshed token
         const clientId = await getSecret(TWITCH_CLIENT_ID_SECRET_NAME);
 
@@ -334,13 +330,10 @@ functions.http('refreshGlobalCache', async (req, res) => {
         }
 
         const transformedData = transformBadgeData(response.data);
+        await setInCache(GLOBAL_BADGES_DOC_ID, transformedData, GLOBAL_BADGES_TTL_SECONDS);
+        console.log('Successfully force-refreshed and cached global badges to Firestore.');
 
-        await redisClient.set(GLOBAL_BADGES_KEY, JSON.stringify(transformedData), {
-            EX: GLOBAL_BADGES_TTL,
-        });
-        console.log('Successfully force-refreshed and cached global badges.');
-
-        res.status(200).send('Global cache refreshed successfully.');
+        res.status(200).send('Global cache refreshed successfully (Firestore).');
     } catch (error) {
         console.error('Error in refreshGlobalCache:', error.message);
         if (!res.headersSent) {
@@ -348,8 +341,3 @@ functions.http('refreshGlobalCache', async (req, res) => {
         }
     }
 });
-
-// Note: No explicit redisClient.quit() is generally needed in GCF 2nd Gen,
-// as connections are reused across invocations.
-// If issues arise or for 1st Gen, you might need to manage connections more explicitly.
-// However, for long-lived GCF instances, the top-level `redisClient.connect()` is preferred.

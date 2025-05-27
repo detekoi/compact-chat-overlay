@@ -1,7 +1,7 @@
 {
   "name": "twitch-badges-cache",
   "version": "1.0.0",
-  "description": "Cloud Function to cache Twitch badges",
+  "description": "Cloud Function to cache Twitch badges using Firestore",
   "main": "js/twitch-badge-proxy.js",
   "scripts": {
     "start": "functions-framework --target=getGlobalBadges",
@@ -13,8 +13,8 @@
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
     "@google-cloud/secret-manager": "^5.0.0",
-    "axios": "^1.6.0",
-    "redis": "^4.6.0"
+    "@google-cloud/firestore": "^7.7.0",
+    "axios": "^1.6.0"
   },
   "author": "",
   "license": "ISC"

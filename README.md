@@ -265,10 +265,10 @@ If you prefer to manage your chat scenes manually, you can use URL parameters:
 
 ## Technical Details
 
-- Built with pure HTML, CSS, and JavaScript.
-- Uses WebSocket to connect to Twitch's IRC service.
-- No external libraries or dependencies required.
-- Settings are saved to your browser's localStorage.
+- Core client-side overlay built with vanilla HTML, CSS, and JavaScript.
+- Uses WebSocket to connect to Twitch's IRC service for chat messages.
+- Advanced features like Twitch badge display and AI theme generation are powered by backend services (deployed as Google Cloud Functions utilizing Firestore and Secret Manager).
+- User settings, some client-side cached data (like badge info), and the most recently AI-generated theme (including its background image) are saved to the browser's `localStorage`.
 
 ## Badge Support
 
@@ -276,13 +276,15 @@ The overlay displays Twitch global and channel-specific badges next to usernames
 
 **How it Works:**
 
-* **Proxy Service:** To securely fetch badge information, the overlay utilizes a backend proxy service (implemented in `js/twitch-badge-proxy.js`). This service handles authentication with the Twitch API using a Client ID and Client Secret, which are stored securely as secrets. The proxy fetches global badges from `https://api.twitch.tv/helix/chat/badges/global` and channel-specific badges from `https://api.twitch.tv/helix/chat/badges` using a Twitch App Access Token.
-* **Client-Side Fetching:** The client-side JavaScript (`js/chat.js`) requests badge data from configured proxy endpoints (defaulting to Google Cloud Functions URLs: `https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges` and `https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges`).
-* **Caching:**
-    * **App Access Token:** The proxy caches the Twitch App Access Token to minimize redundant OAuth requests, with a default TTL of 50 days.
-    * **Global Badges:** Global badge data is cached by the proxy with a default TTL of 12 hours. The client also caches this data in `localStorage`.
-    * **Channel Badges:** Channel-specific badges (linked to `broadcaster_id`) are cached by the proxy with a default TTL of 1 hour. The client also caches this data in `localStorage`.
-* **Display:** The client-side code parses the badge information from the `badges` tag in Twitch IRC messages and uses the cached badge image URLs (trying 4x, then 2x, then 1x resolution) to display them.
+* **Proxy Service:** To securely fetch badge information, the overlay utilizes a backend proxy service (implemented in `js/twitch-badge-proxy.js` and typically deployed as Google Cloud Functions). This service handles authentication with the Twitch API using a Client ID and Client Secret, which are stored securely (e.g., in Google Cloud Secret Manager). The proxy fetches global badges from `https://api.twitch.tv/helix/chat/badges/global` and channel-specific badges from `https://api.twitch.tv/helix/chat/badges` using a Twitch App Access Token.
+* **Caching with Firestore:** The backend proxy service uses **Google Cloud Firestore** for caching:
+    * **App Access Token:** Cached in Firestore with a default TTL of 50 days.
+    * **Global Badges:** Cached in Firestore with a default TTL of 12 hours.
+    * **Channel Badges:** Channel-specific badges (linked to `broadcaster_id`) are cached in Firestore with a default TTL of 1 hour.
+    * Cached items include an `expiresAt` timestamp to manage their lifecycle within Firestore.
+* **Client-Side Fetching:** The client-side JavaScript (`js/chat.js`) requests badge data from the configured proxy endpoints.
+* **Client-Side Caching:** The client (`js/chat.js`) also caches badge data in the browser's `localStorage` to reduce redundant calls to the proxy for badges it has already fetched.
+* **Display:** The client-side code parses the badge information from the `badges` tag in Twitch IRC messages and uses the fetched badge image URLs (trying 4x, then 2x, then 1x resolution) to display them.
 * **Fallback/Error Handling:** If badge data cannot be fetched or an image fails to load, the overlay is configured to hide the badge by default to avoid broken images.
 
 ## Issues & Limitations
