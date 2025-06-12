@@ -588,6 +588,7 @@ header p {
     font-family: var(--font-family);
     font-size: var(--font-size-md);
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .btn-primary {
