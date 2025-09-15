@@ -65,6 +65,7 @@
             overrideUsernameColors: false,
             borderRadius: '8px',
             boxShadow: 'none',
+            textShadow: 'none', // Added textShadow
             popup: {
                 direction: 'from-bottom',
                 duration: 5, // seconds
@@ -123,6 +124,7 @@
         const showTimestampsInput = document.getElementById('show-timestamps');
         const borderRadiusPresets = document.getElementById('border-radius-presets');
         const boxShadowPresets = document.getElementById('box-shadow-presets');
+        const textShadowPresets = document.getElementById('text-shadow-presets'); // Added for text shadow
         const prevFontBtn = document.getElementById('prev-font');
         const nextFontBtn = document.getElementById('next-font');
         const currentFontDisplay = document.getElementById('current-font');
@@ -355,6 +357,32 @@
                 const buttons = boxShadowPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === normalizedPreset);
+                });
+            }
+        }
+
+        /**
+         * Get text shadow CSS value from preset name.
+         */
+        function getTextShadowValue(preset) {
+            if (!preset) return 'none';
+            const textShadowMap = {
+                'none': 'none',
+                'soft': '1px 1px 2px rgba(0, 0, 0, 0.7)',
+                'sharp': '2px 2px 1px rgba(0, 0, 0, 0.9)',
+                'outline': '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+            };
+            return textShadowMap[preset.toLowerCase()] || 'none';
+        }
+
+        /**
+         * Highlight the active text shadow button based on preset name
+         */
+        function highlightTextShadowButton(presetName) {
+            if (textShadowPresets) {
+                const buttons = textShadowPresets.querySelectorAll('.preset-btn');
+                buttons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === presetName);
                 });
             }
         }
@@ -1176,6 +1204,7 @@
             config.usernameColor = theme.usernameColor || '#9147ff';
             config.borderRadius = theme.borderRadius || theme.borderRadiusValue || '8px';
             config.boxShadow = theme.boxShadow || theme.boxShadowValue || 'none';
+            config.textShadow = theme.textShadow || 'none'; // Added for text shadow
             config.bgImage = theme.backgroundImage || null;
             config.bgImageOpacity = theme.bgImageOpacity ?? 0.55;
 
@@ -1288,6 +1317,9 @@
             const activeBoxShadowBtn = boxShadowPresets?.querySelector('.preset-btn.active');
             const boxShadowValue = activeBoxShadowBtn?.dataset.value ?? config?.boxShadow ?? 'none';
             const boxShadow = getBoxShadowValue(boxShadowValue);
+            const activeTextShadowBtn = textShadowPresets?.querySelector('.preset-btn.active'); // Get active text shadow
+            const textShadowValue = activeTextShadowBtn?.dataset.value ?? config?.textShadow ?? 'none'; // Get text shadow value
+            const textShadow = getTextShadowValue(textShadowValue); // Convert to CSS
             const bgImage = config?.bgImage || 'none';
 
             // --- Background Image Opacity Logic ---
@@ -1329,6 +1361,7 @@
             previewStyle.fontFamily = fontFamily; 
             previewStyle.setProperty('--preview-border-radius', borderRadius);
             previewStyle.setProperty('--preview-box-shadow', boxShadow);
+            previewStyle.setProperty('--preview-text-shadow', textShadow); // Apply text shadow to preview
             previewStyle.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
 
             const fontSize = fontSizeSlider?.value || config?.fontSize || 14; 
@@ -1493,6 +1526,7 @@
                     bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
+                    textShadow: textShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.textShadow, // Added textShadow
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || config.chatMode || 'window',
                     chatWidth: getValue(chatWidthInput, config.chatWidth || 95, true),
                     chatHeight: getValue(chatHeightInput, config.chatHeight || 95, true),
@@ -1545,6 +1579,7 @@
                 fontFamily: "'Atkinson Hyperlegible', sans-serif", 
                 chatWidth: 95, chatHeight: 95, maxMessages: 50, showTimestamps: true,
                 overrideUsernameColors: false, borderRadius: '8px', boxShadow: 'soft', 
+                textShadow: 'none', // Added textShadow 
                 theme: 'default', lastChannel: '',
                 popup: { direction: 'from-bottom', duration: 5, maxMessages: 3 },
                 showBadges: true,
@@ -1581,6 +1616,19 @@
         boxShadowPresets?.querySelectorAll('.preset-btn')
             .forEach(btn => btn.addEventListener('click', () => applyBoxShadow(btn.dataset.value)));
 
+        // Apply text shadow visually and update config
+        function applyTextShadow(preset) {
+            const cssValue = getTextShadowValue(preset);
+            if (!cssValue) return;
+            document.documentElement.style.setProperty('--chat-text-shadow', cssValue);
+            config.textShadow = preset;
+            highlightTextShadowButton(preset);
+            updateThemePreview();
+        }
+
+        textShadowPresets?.querySelectorAll('.preset-btn')
+            .forEach(btn => btn.addEventListener('click', () => applyTextShadow(btn.dataset.value))); // Added for text shadow
+
         /**
          * Update all config panel controls to match the current config object.
          */
@@ -1602,6 +1650,7 @@
 
             highlightBorderRadiusButton(getBorderRadiusValue(config.borderRadius));
             highlightBoxShadowButton(config.boxShadow); 
+            highlightTextShadowButton(config.textShadow); // Added for text shadow
 
             if(overrideUsernameColorsInput) overrideUsernameColorsInput.checked = config.overrideUsernameColors;
             if(fontSizeSlider) fontSizeSlider.value = config.fontSize;
@@ -1701,6 +1750,7 @@
             rootStyle.setProperty('--chat-height', `${cfg.chatHeight || 95}%`);
             rootStyle.setProperty('--chat-border-radius', window.getBorderRadiusValue(cfg.borderRadius || '8px'));
             rootStyle.setProperty('--chat-box-shadow', window.getBoxShadowValue(cfg.boxShadow || 'none'));
+            rootStyle.setProperty('--chat-text-shadow', getTextShadowValue(cfg.textShadow || 'none')); // Added textShadow
 
             const bgImageURL = cfg.bgImage && cfg.bgImage !== 'none' ? `url("${cfg.bgImage}")` : 'none';
             rootStyle.setProperty('--chat-bg-image', bgImageURL);

@@ -1,5 +1,5 @@
 /* Font Face Declarations */
-@font-face {
+ @font-face {
     font-family: 'Press Start 2P';
     src: url('../assets/fonts/PressStart2P-Regular.txt.ttf') format('truetype');
     font-weight: normal;
@@ -7,7 +7,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Atkinson Hyperlegible';
     src: url('../assets/fonts/AtkinsonHyperlegible-Regular.ttf') format('truetype');
     font-weight: normal;
@@ -15,7 +15,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Atkinson Hyperlegible';
     src: url('../assets/fonts/AtkinsonHyperlegible-Bold.ttf') format('truetype');
     font-weight: bold;
@@ -23,7 +23,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Atkinson Hyperlegible';
     src: url('../assets/fonts/AtkinsonHyperlegible-Italic.ttf') format('truetype');
     font-weight: normal;
@@ -31,7 +31,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Atkinson Hyperlegible';
     src: url('../assets/fonts/AtkinsonHyperlegible-BoldItalic.ttf') format('truetype');
     font-weight: bold;
@@ -39,7 +39,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Jacquard';
     src: url('../assets/fonts/Jacquard12-Regular.ttf') format('truetype');
     font-weight: normal;
@@ -47,7 +47,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'EB Garamond';
     src: url('../assets/fonts/EBGaramond-VariableFont_wght.ttf') format('truetype-variations');
     font-weight: 400 800;
@@ -55,7 +55,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'EB Garamond';
     src: url('../assets/fonts/EBGaramond-Italic-VariableFont_wght.ttf') format('truetype-variations');
     font-weight: 400 800;
@@ -63,7 +63,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'MedievalSharp';
     src: url('../assets/fonts/MedievalSharp-Regular.ttf') format('truetype');
     font-weight: normal;
@@ -71,7 +71,7 @@
     font-display: swap;
 }
 
-@font-face {
+ @font-face {
     font-family: 'Tektur';
     src: url('../assets/fonts/Tektur-VariableFont_wdth,wght.ttf') format('truetype');
     font-weight: 100 900;
@@ -97,6 +97,7 @@
     --chat-font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     --username-color-override: none; /* Default: use Twitch colors */
     --show-timestamps: 1; /* 1 for true, 0 for false */
+    --chat-text-shadow: none; /* Default text shadow */
 
     /* Popup Specifics */
     --popup-animation-direction: from-bottom; /* from-top, from-left, from-bottom, from-right */
@@ -357,9 +358,10 @@ button:hover {
     word-wrap: break-word;
     animation: fadeIn 0.3s ease-in-out;
     font-family: inherit;
+    text-shadow: var(--chat-text-shadow);
 }
 
-@keyframes fadeIn {
+ @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -501,6 +503,7 @@ button:hover {
     opacity: 0;
     transform: translateY(0);
     transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    text-shadow: var(--chat-text-shadow);
 }
 
 .popup-message::before {
@@ -721,6 +724,7 @@ body.chat-page:hover #popup-settings-btn {
     word-wrap: break-word;
     position: relative; /* Ensure text is above background pseudo-element */
     z-index: 1;
+    text-shadow: var(--preview-text-shadow);
 }
 
 /* Renamed from .preview-message to avoid confusion */
@@ -796,13 +800,13 @@ body.chat-page:hover #popup-settings-btn {
     animation: spin 1s infinite linear, pulse 1.5s infinite ease-in-out;
 }
 
-@keyframes pulse {
+ @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(145, 71, 255, 0.4); }
     70% { box-shadow: 0 0 0 6px rgba(145, 71, 255, 0); }
     100% { box-shadow: 0 0 0 0 rgba(145, 71, 255, 0); }
 }
 
-@keyframes spin {
+ @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
