@@ -783,12 +783,26 @@
         function limitMessages() {
             if (!chatMessages) return;
             const max = config.maxMessages || 50;
-            const isAtBottom = Math.abs((chatMessages.scrollHeight - chatMessages.scrollTop) - chatMessages.clientHeight) < 5;
+
+            // Use the scrollable container for calculations
+            const scroller = scrollArea;
+            const wasAtBottom = isUserScrolledToBottom(scroller);
+            let distanceFromBottom = 0;
+            if (scroller) {
+                distanceFromBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
+            }
+
             while (chatMessages.children.length > max) {
                 chatMessages.removeChild(chatMessages.firstChild);
             }
-            if (isAtBottom) { // Maintain scroll position if user was at the bottom
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Restore scroll: if user was at bottom, stick to bottom; otherwise preserve relative offset
+            if (scroller) {
+                if (wasAtBottom) {
+                    scroller.scrollTop = scroller.scrollHeight;
+                } else {
+                    scroller.scrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight - distanceFromBottom);
+                }
             }
         }
 
