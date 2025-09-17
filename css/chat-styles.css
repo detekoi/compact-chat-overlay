@@ -337,6 +337,8 @@ button:hover {
     color: var(--chat-text-color); /* Apply text color here */
     font-family: var(--font-family); /* Apply font family here */
     font-size: var(--font-size); /* Apply font size here */
+    /* Disable browser scroll anchoring; we manage scroll manually */
+    overflow-anchor: none;
 }
 
 #chat-scroll-area::-webkit-scrollbar {

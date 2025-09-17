@@ -89,6 +89,38 @@
         const popupContainer = document.getElementById('popup-container');
         const chatMessages = document.getElementById('chat-messages');
         const scrollArea = document.getElementById('chat-scroll-area');
+        // Auto-follow state: keep pinned to bottom unless user scrolls up
+        let autoFollow = true;
+        let isProgrammaticScroll = false;
+        function setScrollTop(element, value) {
+            if (!element) return;
+            isProgrammaticScroll = true;
+            element.scrollTop = value;
+            requestAnimationFrame(() => { isProgrammaticScroll = false; });
+        }
+
+        if (scrollArea) {
+            const onUserScroll = () => {
+                if (isProgrammaticScroll) return;
+                const atBottom = isUserScrolledToBottom(scrollArea);
+                autoFollow = atBottom;
+            };
+            scrollArea.addEventListener('scroll', onUserScroll, { passive: true });
+            scrollArea.addEventListener('wheel', onUserScroll, { passive: true });
+            scrollArea.addEventListener('touchmove', onUserScroll, { passive: true });
+            scrollArea.addEventListener('touchstart', () => { if (!isProgrammaticScroll) autoFollow = false; }, { passive: true });
+            scrollArea.addEventListener('keydown', (e) => {
+                if (['ArrowUp','PageUp','Home'].includes(e.key)) { if (!isProgrammaticScroll) autoFollow = false; }
+            });
+        }
+        // Create a bottom sentinel to anchor scroll-to-bottom reliably
+        let bottomSentinel = document.getElementById('chat-bottom-sentinel');
+        if (!bottomSentinel && chatMessages) {
+            bottomSentinel = document.createElement('div');
+            bottomSentinel.id = 'chat-bottom-sentinel';
+            bottomSentinel.style.cssText = 'height:1px;width:100%; overflow-anchor: auto;';
+            chatMessages.appendChild(bottomSentinel);
+        }
         let statusIndicator;
         if (!document.getElementById('status-indicator')) {
             statusIndicator = document.createElement('div');
@@ -408,6 +440,16 @@
             attributeFilter: ['style']
         });
 
+        // Observe size changes to keep at bottom when appropriate
+        if ('ResizeObserver' in window && scrollArea) {
+            const resizeObserver = new ResizeObserver(() => {
+                if (autoFollow) {
+                    setScrollTop(scrollArea, scrollArea.scrollHeight);
+                }
+            });
+            resizeObserver.observe(chatMessages);
+        }
+
         // Show status indicators and messages
         function updateStatus(connected) {
             if (!statusIndicator) return; // Safety check
@@ -424,13 +466,23 @@
             return element.scrollHeight - element.clientHeight <= element.scrollTop + tolerance;
         }
 
+        // Force stick-to-bottom on next frame (used after async layout changes like images)
+        function stickToBottomSoon() {
+            if (!scrollArea) return;
+            requestAnimationFrame(() => {
+                if (autoFollow) {
+                    setScrollTop(scrollArea, scrollArea.scrollHeight);
+                }
+            });
+        }
+
         // Add a system message to the chat
         function addSystemMessage(message) {
             if (!chatMessages) {
                 console.error("Chat messages container not found for system message.");
                 return;
             }
-            const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(scrollArea);
+            const shouldScroll = config.chatMode === 'window' && autoFollow;
             const messageElement = document.createElement('div');
             messageElement.className = 'chat-message system-message';
 
@@ -443,12 +495,17 @@
             }
             messageElement.innerHTML = `<span class="timestamp">${timestamp}</span><span class="message-content">${message}</span>`;
             chatMessages.appendChild(messageElement);
+            // Keep sentinel as the last element
+            if (bottomSentinel && bottomSentinel.parentNode !== chatMessages) chatMessages.appendChild(bottomSentinel);
 
             if (config.chatMode === 'window') {
                 limitMessages();
             }
             if (shouldScroll && scrollArea) {
-                scrollArea.scrollTop = scrollArea.scrollHeight;
+                // Defer to next frame to ensure layout has updated
+                requestAnimationFrame(() => {
+                    setScrollTop(scrollArea, scrollArea.scrollHeight);
+                });
             }
         }
 
@@ -471,7 +528,7 @@
                 }
                 if (!targetContainer) { console.error('Target container could not be determined or found.'); return; }
 
-                const shouldScroll = config.chatMode === 'window' && isUserScrolledToBottom(currentScrollArea);
+                const shouldScroll = config.chatMode === 'window' && autoFollow;
                 const messageElement = document.createElement('div');
 
                 if (config.chatMode === 'popup') {
@@ -581,6 +638,20 @@
                     <span class="username" style="color: ${userColor}">${data.username}:</span>
                     <span class="message-content">${message}</span>`;
                 targetContainer.appendChild(messageElement);
+                // After message added, listen for image loads to adjust scroll if needed
+                if (config.chatMode !== 'popup' && scrollArea && isUserScrolledToBottom(scrollArea)) {
+                    const imgs = messageElement.querySelectorAll('img');
+                    imgs.forEach(img => {
+                        if (!img.complete) {
+                            img.addEventListener('load', stickToBottomSoon, { once: true });
+                            img.addEventListener('error', stickToBottomSoon, { once: true });
+                        }
+                    });
+                }
+                if (config.chatMode !== 'popup') {
+                    // Keep sentinel as the last element
+                    if (bottomSentinel && bottomSentinel.parentNode !== targetContainer) targetContainer.appendChild(bottomSentinel);
+                }
 
 
                 if (config.chatMode === 'popup') {
@@ -616,7 +687,9 @@
                 } else { // Window mode
                     limitMessages();
                     if (shouldScroll && currentScrollArea) {
-                        currentScrollArea.scrollTop = currentScrollArea.scrollHeight;
+                        requestAnimationFrame(() => {
+                            setScrollTop(currentScrollArea, currentScrollArea.scrollHeight);
+                        });
                     }
                 }
             } catch (error) {
@@ -812,7 +885,6 @@
             if (!chatMessages) return;
             const max = config.maxMessages || 50;
 
-            // Use the scrollable container for calculations
             const scroller = scrollArea;
             const wasAtBottom = isUserScrolledToBottom(scroller);
             let distanceFromBottom = 0;
@@ -820,17 +892,24 @@
                 distanceFromBottom = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
             }
 
-            while (chatMessages.children.length > max) {
-                chatMessages.removeChild(chatMessages.firstChild);
+            // Remove oldest messages but never remove the sentinel
+            while (chatMessages.children.length > max + (bottomSentinel ? 1 : 0)) {
+                const firstChild = chatMessages.firstChild;
+                if (firstChild === bottomSentinel) break;
+                chatMessages.removeChild(firstChild);
             }
+            // Keep sentinel last
+            if (bottomSentinel && bottomSentinel.parentNode !== chatMessages) chatMessages.appendChild(bottomSentinel);
 
-            // Restore scroll: if user was at bottom, stick to bottom; otherwise preserve relative offset
+            // Restore scroll on next frame after layout settles
             if (scroller) {
-                if (wasAtBottom) {
-                    scroller.scrollTop = scroller.scrollHeight;
-                } else {
-                    scroller.scrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight - distanceFromBottom);
-                }
+                requestAnimationFrame(() => {
+                    if (wasAtBottom && autoFollow) {
+                        setScrollTop(scroller, scroller.scrollHeight);
+                    } else {
+                        setScrollTop(scroller, Math.max(0, scroller.scrollHeight - scroller.clientHeight - distanceFromBottom));
+                    }
+                });
             }
         }
 
