@@ -462,6 +462,7 @@ button:hover {
     overflow: hidden;
 }
 
+
 #popup-container #channel-form,
 #popup-container input,
 #popup-container button {
@@ -504,9 +505,11 @@ button:hover {
     z-index: 1;
     opacity: 0;
     transform: translateY(0);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    transition: opacity 0.3s ease-out, transform 0.4s ease-out;
     text-shadow: var(--chat-text-shadow);
 }
+
+/* Note: Gliding animation now handled via inline styles for precise positioning */
 
 .popup-message::before {
     content: "";

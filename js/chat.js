@@ -477,7 +477,7 @@
         }
 
         // Add a system message to the chat
-        function addSystemMessage(message) {
+        function addSystemMessage(message, autoRemove = false) {
             if (!chatMessages) {
                 console.error("Chat messages container not found for system message.");
                 return;
@@ -506,6 +506,15 @@
                 requestAnimationFrame(() => {
                     setScrollTop(scrollArea, scrollArea.scrollHeight);
                 });
+            }
+
+            // Auto-remove temporary messages after 3 seconds
+            if (autoRemove) {
+                setTimeout(() => {
+                    if (messageElement && messageElement.parentNode) {
+                        messageElement.remove();
+                    }
+                }, 3000);
             }
         }
 
@@ -670,6 +679,7 @@
                         } catch (err) { console.error('Error removing excess popup messages:', err); }
                     }
 
+
                     // Auto-remove timer
                     const duration = (config.popup?.duration || 5) * 1000;
                     if (duration > 0 && duration < 60000) { // Validate duration
@@ -734,7 +744,7 @@
             }
             currentBroadcasterId = null; // Reset broadcaster ID on new connection
 
-            addSystemMessage(`Connecting to ${channel}'s chat...`);
+            addSystemMessage(`Connecting to ${channel}'s chat...`, true);
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
             window.socket = socket; // Debugging access
 
@@ -761,7 +771,7 @@
                         disconnectBtn.style.display = 'block';
                     }
 
-                    addSystemMessage(reconnectAttempts > 0 ? `Reconnected to ${channel}'s chat.` : `Connected to ${channel}'s chat`);
+                    addSystemMessage(reconnectAttempts > 0 ? `Reconnected to ${channel}'s chat.` : `Connected to ${channel}'s chat`, true);
                     reconnectAttempts = 0; // Reset on successful connection
                     isConnecting = false;
 
