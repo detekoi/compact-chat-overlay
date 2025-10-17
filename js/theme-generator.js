@@ -18,7 +18,20 @@
     // Constants
     const MAX_RETRIES = 3;
     const INITIAL_DELAY = 1000; // ms
-    const PROXY_API_URL = 'https://theme-proxy-361545143046.us-west2.run.app/api/generate-theme';
+
+    // Dynamically determine API URL based on environment
+    const CLOUD_RUN_API_URL = 'https://theme-proxy-361545143046.us-west2.run.app/api/generate-theme';
+    const LOCAL_API_URL = 'http://localhost:8091/api/generate-theme';
+
+    // Use local API if running on localhost, otherwise use Cloud Run
+    const isLocalhost = window.location.hostname === 'localhost' ||
+                        window.location.hostname === '127.0.0.1' ||
+                        window.location.hostname === '';
+
+    const PROXY_API_URL = isLocalhost ? LOCAL_API_URL : CLOUD_RUN_API_URL;
+
+    console.log(`[theme-generator] Environment: ${isLocalhost ? 'LOCAL' : 'PRODUCTION'}`);
+    console.log(`[theme-generator] API URL: ${PROXY_API_URL}`);
 
     // --- Wait for theme carousel to be ready --- 
     document.addEventListener('theme-carousel-ready', initializeGenerator);

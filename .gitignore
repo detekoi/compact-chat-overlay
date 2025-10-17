@@ -26,6 +26,7 @@ yarn-error.log*
 *.swo
 *~
 .aider*
+twitch-chat-overlay.code-workspace
 
 .env
 
