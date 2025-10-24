@@ -400,9 +400,11 @@
             if (!preset) return 'none';
             const textShadowMap = {
                 'none': 'none',
-                'soft': '1px 1px 2px rgba(0, 0, 0, 0.7)',
-                'sharp': '2px 2px 1px rgba(0, 0, 0, 0.9)',
-                'outline': '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
+                'soft': '1px 1px 2px rgba(0, 0, 0, 0.6), 0 0 4px rgba(0, 0, 0, 0.3)',
+                'sharp': '1px 1px 0 rgba(0, 0, 0, 0.7), 1px 1px 0 rgba(0, 0, 0, 0.5)',
+                'outline': '1px 1px 0 rgba(0, 0, 0, 0.9), -1px -1px 0 rgba(0, 0, 0, 0.9), 1px -1px 0 rgba(0, 0, 0, 0.9), -1px 1px 0 rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.7)',
+                'strong': '2px 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 0, 0, 0.4)',
+                'glow': '0 0 8px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 0, 0, 0.6), 0 0 24px rgba(0, 0, 0, 0.4)'
             };
             return textShadowMap[preset.toLowerCase()] || 'none';
         }

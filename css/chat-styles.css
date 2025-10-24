@@ -906,7 +906,7 @@ body.chat-page:hover #popup-settings-btn {
     background-size: cover;
     background-position: center;
     color: #ffffff;
-    text-shadow: 0 0 3px rgba(0,0,0,0.7);
+    text-shadow: 0 0 6px rgba(0,0,0,0.8), 0 0 12px rgba(0,0,0,0.6);
     font-weight: 500;
     cursor: pointer;
     outline: 2px solid transparent;

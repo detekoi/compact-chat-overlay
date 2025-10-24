@@ -139,7 +139,7 @@
     font-weight: bold;
     font-size: 0.9em; /* Slightly smaller name */
     color: #fff;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.6);
     margin-bottom: 3px; /* Reduced space */
     display: block; /* Ensure it takes its own line */
     white-space: nowrap; /* Prevent name wrapping */
@@ -151,7 +151,7 @@
 .theme-description {
     font-size: 0.75em; /* Smaller description */
     color: #ccc; /* Lighter gray */
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
     display: -webkit-box;
     line-clamp: 2; /* Add standard property */
     -webkit-line-clamp: 2; /* Limit description to 2 lines */
