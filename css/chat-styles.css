@@ -387,6 +387,12 @@ button:hover {
     margin: 0 2px;
 }
 
+/* Enlarged emotes for single-emote messages */
+.single-emote-message .emote {
+    height: calc(var(--font-size) * 4);
+    margin: 5px;
+}
+
 #channel-form {
     margin-bottom: 15px;
     order: -1;

@@ -80,6 +80,8 @@
             badgeCacheGlobalTTL: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
             badgeCacheChannelTTL: 1 * 60 * 60 * 1000, // 1 hour in milliseconds
             badgeFallbackHide: true, // Always hide if service fails or badge not found
+            // Emote Settings
+            enlargeSingleEmotes: false, // Enlarge messages that contain only a single emote
             // bgColorOpacity and bgImageOpacity are derived/set later
         };
 
@@ -166,6 +168,8 @@
         // Badge Configuration DOM Elements
         const showBadgesToggle = document.getElementById('show-badges-toggle');
 
+        // Emote Configuration DOM Elements
+        const enlargeSingleEmotesToggle = document.getElementById('enlarge-single-emotes-toggle');
 
         // Connection and chat state
         let socket = null;
@@ -549,6 +553,9 @@
                     messageElement.className = 'chat-message';
                 }
 
+                // Add single-emote class if applicable (set later after detection)
+                // This will be applied after isSingleEmote is determined
+
                 let timestamp = '';
                 if (config.showTimestamps) {
                     const now = new Date();
@@ -595,6 +602,18 @@
                             message = message.substring(0, emote.start) + emoteHtml + message.substring(emote.end + 1);
                         } catch (err) { console.error('Error replacing emote:', err); }
                     }
+                }
+
+                // Check if message contains only a single emote (for enlargement feature)
+                let isSingleEmote = false;
+                if (config.enlargeSingleEmotes && message.includes('<img class="emote"')) {
+                    // Create a temporary div to parse the HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = message;
+                    const emotes = tempDiv.querySelectorAll('img.emote');
+                    // Remove all whitespace and check if only one emote exists
+                    const textContent = tempDiv.textContent.trim();
+                    isSingleEmote = emotes.length === 1 && textContent === '';
                 }
 
                 // Process URLs only if message does not contain emotes
@@ -648,6 +667,12 @@
                     ${badgesHtml}
                     <span class="username" style="color: ${userColor}">${data.username}:</span>
                     <span class="message-content">${message}</span>`;
+
+                // Apply single-emote class if detected
+                if (isSingleEmote) {
+                    messageElement.classList.add('single-emote-message');
+                }
+
                 targetContainer.appendChild(messageElement);
                 // After message added, listen for image loads to adjust scroll if needed
                 if (config.chatMode !== 'popup' && scrollArea && isUserScrolledToBottom(scrollArea)) {
@@ -1628,7 +1653,7 @@
                         duration: getValue(document.getElementById('popup-duration'), config.popup?.duration || 5, true),
                         maxMessages: getValue(document.getElementById('popup-max-messages'), config.popup?.maxMessages || 3, true)
                     },
-                    lastChannel: config.lastChannel, 
+                    lastChannel: config.lastChannel,
                     // Badge settings from UI
                     showBadges: getValue(showBadgesToggle, config.showBadges, false, true),
                     badgeEndpointUrlGlobal: config.badgeEndpointUrlGlobal,
@@ -1637,6 +1662,8 @@
                     badgeCacheGlobalTTL: config.badgeCacheGlobalTTL,
                     badgeCacheChannelTTL: config.badgeCacheChannelTTL,
                     badgeFallbackHide: true, // Always hide badge failures
+                    // Emote settings from UI
+                    enlargeSingleEmotes: getValue(enlargeSingleEmotesToggle, config.enlargeSingleEmotes, false, true),
                 };
 
                 config = newConfig; 
@@ -1799,7 +1826,10 @@
 
             // Update Badge Configuration UI
             if (showBadgesToggle) showBadgesToggle.checked = config.showBadges;
-            
+
+            // Update Emote Configuration UI
+            if (enlargeSingleEmotesToggle) enlargeSingleEmotesToggle.checked = config.enlargeSingleEmotes;
+
             updateThemePreview(); // Ensure preview is updated with all settings
         }
 
