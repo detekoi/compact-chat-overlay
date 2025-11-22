@@ -689,6 +689,10 @@ import { ChatConnection } from './modules/chat-connection.js';
         // Window mode max messages input
         maxMessagesInput?.addEventListener('change', (e) => {
             configManager.updateConfig('maxMessages', parseInt(e.target.value));
+            chatRenderer.config = configManager.config;
+            if (configManager.config.chatMode === 'window') {
+                chatRenderer.limitMessages();
+            }
         });
 
         // Username color override toggle
