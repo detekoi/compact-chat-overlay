@@ -5,7 +5,7 @@
  * It includes logic for API calls, error handling, retries, image compression, and UI updates.
  */
 
-(function() {
+(function () {
     // DOM elements related to AI theme generation
     const themePromptInput = document.getElementById('theme-prompt');
     let generateThemeBtn = document.getElementById('generate-theme-btn');
@@ -25,8 +25,8 @@
 
     // Use local API if running on localhost, otherwise use Cloud Run
     const isLocalhost = window.location.hostname === 'localhost' ||
-                        window.location.hostname === '127.0.0.1' ||
-                        window.location.hostname === '';
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '';
 
     const PROXY_API_URL = isLocalhost ? LOCAL_API_URL : CLOUD_RUN_API_URL;
 
@@ -50,7 +50,7 @@
             generateThemeBtn = newBtn; // IMPORTANT: Update the reference
             console.log('[theme-generator] Cloned generate button to remove old listeners.');
             // --- End Force Re-attachment ---
-            
+
             generateThemeBtn.addEventListener('click', () => {
                 console.log('[theme-generator] Generate Theme button clicked. Checking prompt...'); // Log listener firing
                 if (themePromptInput) {
@@ -90,11 +90,11 @@
             console.error('Required UI elements for loading state not found.');
             return;
         }
-        
+
         // Get checkbox state
         const generateImage = generateImageCheckbox.checked;
         console.log(`[theme-generator] Generate background image checkbox checked: ${generateImage}`);
-        
+
         // Show loading indicator, hide tooltip
         themeLoadingIndicator.style.display = 'flex';
         generatedThemeResult.style.display = 'none';
@@ -122,12 +122,12 @@
                         processAndAddTheme(proxyResponse.themeData, null); // Add intermediate theme without image
                         previousThemeData = proxyResponse.themeData; // Store for next request
                     } else {
-                         // If no theme data came back with retry, keep any previous data
-                         previousThemeData = previousThemeData;
+                        // If no theme data came back with retry, keep any previous data
+                        previousThemeData = previousThemeData;
                     }
 
-                     // Wait and check retry limit
-                     if (currentAttempt < MAX_RETRIES) {
+                    // Wait and check retry limit
+                    if (currentAttempt < MAX_RETRIES) {
                         await new Promise(resolve => setTimeout(resolve, delay));
                         delay *= 2;
                         currentAttempt++;
@@ -143,7 +143,7 @@
                 console.log('[theme-generator] Theme generation via proxy successful on attempt', currentAttempt);
                 console.log('[theme-generator] Received themeData:', JSON.stringify(themeData));
                 console.log(`[theme-generator] Received backgroundImage? ${!!backgroundImage}`);
-                
+
                 // Compress image if present
                 let finalBackgroundImageDataUrl = null;
                 if (backgroundImage) {
@@ -157,7 +157,7 @@
                         // Proceed without the image if compression fails
                         finalBackgroundImageDataUrl = null;
                         if (typeof addSystemMessage === 'function') {
-                             addSystemMessage('⚠️ Warning: Background image compression failed.');
+                            addSystemMessage('⚠️ Warning: Background image compression failed.');
                         }
                     }
                 }
@@ -175,7 +175,7 @@
                         generatedThemeName.textContent = themeData.theme_name || 'Generated Theme';
                         generatedThemeResult.style.display = 'block';
                     }
-                    
+
                     // Optionally clear prompt
                     // themePromptInput.value = '';
                 }, 1000); // Show "Done!" for a second
@@ -197,8 +197,8 @@
                     console.error(`Max retries (${MAX_RETRIES}) reached. Theme generation failed.`, error);
                     themeLoadingIndicator.style.display = 'none';
                     generateThemeBtn.disabled = false;
-                     if (typeof addSystemMessage === 'function') {
-                         addSystemMessage(`❌ Error generating theme: ${error.message || 'Max retries reached.'}`);
+                    if (typeof addSystemMessage === 'function') {
+                        addSystemMessage(`❌ Error generating theme: ${error.message || 'Max retries reached.'}`);
                     }
                     return; // Exit loop after max retries
                 }
@@ -217,7 +217,7 @@
      */
     async function generateThemeViaProxy(userPrompt, generateImage, attempt = 0, previousThemeData = null) {
         console.log(`Calling Theme Proxy (Attempt ${attempt}). Requesting image: ${generateImage}`);
-        
+
         const requestBody = {
             prompt: userPrompt,
             attempt: attempt,
@@ -229,10 +229,10 @@
 
         const response = await fetch(PROXY_API_URL, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json' // Ensure we accept JSON
-             },
+            },
             body: JSON.stringify(requestBody)
         });
 
@@ -254,8 +254,8 @@
                 // If error body isn't JSON, try text
                 try {
                     const textBody = await response.text();
-                    errorDetails += `. ${textBody}`; 
-                } catch {}
+                    errorDetails += `. ${textBody}`;
+                } catch { }
             }
             console.error('Error response from proxy:', errorDetails);
             throw new Error(errorDetails);
@@ -264,7 +264,7 @@
         // If response is OK (200), parse the final theme data
         const data = await response.json();
         console.log("Theme Proxy Response (Final):", data);
-        
+
         // Basic validation of the proxy response structure
         if (!data || !data.themeData) {
             console.error('Invalid response structure from Proxy:', data);
@@ -276,97 +276,97 @@
             console.error('Missing required fields in themeData from Proxy:', data.themeData);
             throw new Error('Proxy returned incomplete theme data.');
         }
-        
+
         // Return the successful response, ensuring retry is false
         return { ...data, retry: false };
     }
 
-     /**
-      * Compresses an image from a base64 data URL to a JPEG base64 data URL.
-      * Reduces file size for localStorage.
-      * @param {string} base64DataUrl - The original base64 data URL (e.g., PNG).
-      * @param {number} quality - JPEG quality (0.0 to 1.0).
-      * @returns {Promise<string>} A Promise that resolves with the compressed JPEG base64 data URL.
-      */
-     function compressImageToBase64JPEG(base64DataUrl, quality = 0.85) { // Default quality 85%
-         return new Promise((resolve, reject) => {
-             if (!base64DataUrl) {
-                 return reject(new Error("No base64 data URL provided for compression."));
-             }
+    /**
+     * Compresses an image from a base64 data URL to a JPEG base64 data URL.
+     * Reduces file size for localStorage.
+     * @param {string} base64DataUrl - The original base64 data URL (e.g., PNG).
+     * @param {number} quality - JPEG quality (0.0 to 1.0).
+     * @returns {Promise<string>} A Promise that resolves with the compressed JPEG base64 data URL.
+     */
+    function compressImageToBase64JPEG(base64DataUrl, quality = 0.85) { // Default quality 85%
+        return new Promise((resolve, reject) => {
+            if (!base64DataUrl) {
+                return reject(new Error("No base64 data URL provided for compression."));
+            }
 
-             const img = new Image();
-             img.onload = () => {
-                 const canvas = document.createElement('canvas');
-                 // Optional: Limit canvas size for further compression and performance
-                 const MAX_DIMENSION = 1024; // Max width/height for the compressed image
-                 let width = img.width;
-                 let height = img.height;
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Optional: Limit canvas size for further compression and performance
+                const MAX_DIMENSION = 1024; // Max width/height for the compressed image
+                let width = img.width;
+                let height = img.height;
 
-                 if (width === 0 || height === 0) {
-                      return reject(new Error("Image has zero dimensions."));
-                 }
+                if (width === 0 || height === 0) {
+                    return reject(new Error("Image has zero dimensions."));
+                }
 
-                 if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-                     const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
-                     width = Math.round(width * ratio);
-                     height = Math.round(height * ratio);
-                     console.log(`Resizing image for compression to ${width}x${height}`);
-                 }
-                 canvas.width = width;
-                 canvas.height = height;
-                 const ctx = canvas.getContext('2d');
+                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                    const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                    console.log(`Resizing image for compression to ${width}x${height}`);
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
 
-                 // Draw the image onto the canvas (potentially resized)
-                 ctx.drawImage(img, 0, 0, width, height);
+                // Draw the image onto the canvas (potentially resized)
+                ctx.drawImage(img, 0, 0, width, height);
 
-                 try {
-                     // Export the canvas content as JPEG data URL
-                     const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                     if (!compressedDataUrl || compressedDataUrl === 'data:,') {
-                         throw new Error('Canvas toDataURL produced invalid output.');
-                     }
-                     console.log(`Image compressed from original size to ${compressedDataUrl.length} bytes (JPEG quality ${quality})`);
-                     resolve(compressedDataUrl);
-                 } catch (error) {
-                     console.error("Error converting canvas to JPEG:", error);
-                     // Attempt fallback to PNG if JPEG fails (e.g., transparency issues)
-                     try {
-                         console.log("Attempting PNG fallback for compression...");
-                         const pngDataUrl = canvas.toDataURL('image/png');
-                         if (!pngDataUrl || pngDataUrl === 'data:,') {
-                              throw new Error('Canvas toDataURL (PNG fallback) produced invalid output.');
-                         }
-                         console.warn("JPEG compression failed, falling back to PNG.", `PNG size: ${pngDataUrl.length} bytes`);
-                         resolve(pngDataUrl); // Resolve with PNG if JPEG failed
-                     } catch (pngError) {
-                         console.error("Error converting canvas to PNG (fallback):", pngError);
-                         reject(new Error(`Failed to convert canvas to JPEG or PNG: ${error.message}; ${pngError.message}`));
-                     }
-                 }
-             };
-             img.onerror = (errorEvent) => {
-                 // Attempt to get more specific error info if possible
-                 let errorMsg = "Failed to load image from base64 data for compression.";
-                 if (errorEvent && typeof errorEvent === 'string') {
-                     errorMsg += ` (${errorEvent})`;
-                 } else if (errorEvent && errorEvent.message) {
-                     errorMsg += ` (${errorEvent.message})`;
-                 } else if (img.src && img.src.length < 200) { // Log short (potentially invalid) src
-                     errorMsg += ` Invalid src? ${img.src}`;
-                 }
-                 console.error("Error loading image for compression:", errorMsg, errorEvent);
-                 reject(new Error(errorMsg));
-             };
+                try {
+                    // Export the canvas content as JPEG data URL
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    if (!compressedDataUrl || compressedDataUrl === 'data:,') {
+                        throw new Error('Canvas toDataURL produced invalid output.');
+                    }
+                    console.log(`Image compressed from original size to ${compressedDataUrl.length} bytes (JPEG quality ${quality})`);
+                    resolve(compressedDataUrl);
+                } catch (error) {
+                    console.error("Error converting canvas to JPEG:", error);
+                    // Attempt fallback to PNG if JPEG fails (e.g., transparency issues)
+                    try {
+                        console.log("Attempting PNG fallback for compression...");
+                        const pngDataUrl = canvas.toDataURL('image/png');
+                        if (!pngDataUrl || pngDataUrl === 'data:,') {
+                            throw new Error('Canvas toDataURL (PNG fallback) produced invalid output.');
+                        }
+                        console.warn("JPEG compression failed, falling back to PNG.", `PNG size: ${pngDataUrl.length} bytes`);
+                        resolve(pngDataUrl); // Resolve with PNG if JPEG failed
+                    } catch (pngError) {
+                        console.error("Error converting canvas to PNG (fallback):", pngError);
+                        reject(new Error(`Failed to convert canvas to JPEG or PNG: ${error.message}; ${pngError.message}`));
+                    }
+                }
+            };
+            img.onerror = (errorEvent) => {
+                // Attempt to get more specific error info if possible
+                let errorMsg = "Failed to load image from base64 data for compression.";
+                if (errorEvent && typeof errorEvent === 'string') {
+                    errorMsg += ` (${errorEvent})`;
+                } else if (errorEvent && errorEvent.message) {
+                    errorMsg += ` (${errorEvent.message})`;
+                } else if (img.src && img.src.length < 200) { // Log short (potentially invalid) src
+                    errorMsg += ` Invalid src? ${img.src}`;
+                }
+                console.error("Error loading image for compression:", errorMsg, errorEvent);
+                reject(new Error(errorMsg));
+            };
 
-             // Start loading the image
-             // Add check for valid base64 prefix
-             if (typeof base64DataUrl === 'string' && base64DataUrl.startsWith('data:image')) {
-                 img.src = base64DataUrl;
-             } else {
-                 reject(new Error("Invalid base64 data URL format provided."));
-             }
-         });
-     }
+            // Start loading the image
+            // Add check for valid base64 prefix
+            if (typeof base64DataUrl === 'string' && base64DataUrl.startsWith('data:image')) {
+                img.src = base64DataUrl;
+            } else {
+                reject(new Error("Invalid base64 data URL format provided."));
+            }
+        });
+    }
 
     /**
      * Processes the generated theme data and adds it to the carousel.
@@ -393,8 +393,8 @@
 
             // Check for existing themes with same name to add variant number
             const existingThemes = (window.themeCarousel && typeof window.themeCarousel.getThemes === 'function')
-                                 ? window.themeCarousel.getThemes()
-                                 : (window.availableThemes || []); // Fallback to availableThemes if carousel API missing
+                ? window.themeCarousel.getThemes()
+                : (window.availableThemes || []); // Fallback to availableThemes if carousel API missing
 
             const existingThemesWithSameName = existingThemes.filter(t =>
                 t.originalThemeName === themeData.theme_name);
@@ -417,6 +417,8 @@
                 description: themeData.description,
                 backgroundImage: compressedImageDataUrl, // Use compressed image
                 fontFamily: themeData.font_family,
+                isGoogleFont: themeData.isGoogleFont,
+                googleFontFamily: themeData.googleFontFamily,
                 isGenerated: true,
                 originalThemeName: themeData.theme_name,
                 variant: variantNum + 1
@@ -426,30 +428,30 @@
             const currentThemeCarousel = window.themeCarousel; // Get reference *now*
 
             if (currentThemeCarousel && typeof currentThemeCarousel.addTheme === 'function') {
-                 // Let the carousel handle its internal logic (like localStorage)
-                 const addedTheme = currentThemeCarousel.addTheme(theme); 
-                 console.log("Theme added to carousel internal state:", addedTheme.name);
+                // Let the carousel handle its internal logic (like localStorage)
+                const addedTheme = currentThemeCarousel.addTheme(theme);
+                console.log("Theme added to carousel internal state:", addedTheme.name);
 
-                 // Dispatch an event for chat.js to handle theme application and display update
-                 const applyThemeEvent = new CustomEvent('theme-generated-and-added', {
-                     detail: { themeValue: addedTheme.value },
-                     bubbles: true, // Allow event to bubble up if needed
-                     cancelable: true
-                 });
-                 console.log(`Dispatching theme-generated-and-added event for theme: ${addedTheme.value}`);
-                 document.dispatchEvent(applyThemeEvent);
+                // Dispatch an event for chat.js to handle theme application and display update
+                const applyThemeEvent = new CustomEvent('theme-generated-and-added', {
+                    detail: { themeValue: addedTheme.value },
+                    bubbles: true, // Allow event to bubble up if needed
+                    cancelable: true
+                });
+                console.log(`Dispatching theme-generated-and-added event for theme: ${addedTheme.value}`);
+                document.dispatchEvent(applyThemeEvent);
 
-                 // Now update the carousel UI to show the newly added theme (at index 0)
-                 if (typeof window.applyAndScrollToTheme === 'function') {
-                     window.applyAndScrollToTheme(0);
-                 }
+                // Now update the carousel UI to show the newly added theme (at index 0)
+                if (typeof window.applyAndScrollToTheme === 'function') {
+                    window.applyAndScrollToTheme(0);
+                }
 
-                 // Dispatch event AFTER applying and updating display
-                 const themeProcessedEvent = new CustomEvent('theme-data-processed', {
-                     detail: { theme }
-                 });
-                 document.dispatchEvent(themeProcessedEvent);
-                 console.log("Dispatched theme-data-processed event");
+                // Dispatch event AFTER applying and updating display
+                const themeProcessedEvent = new CustomEvent('theme-data-processed', {
+                    detail: { theme }
+                });
+                document.dispatchEvent(themeProcessedEvent);
+                console.log("Dispatched theme-data-processed event");
 
             } else {
                 console.error('Theme carousel API (window.themeCarousel.addTheme) not found or invalid. Cannot add generated theme.');

@@ -1,5 +1,5 @@
 // Wait for DOM ready to run this code
-(function() {
+(function () {
     // Check if DOM is already loaded
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initApp);
@@ -41,9 +41,9 @@
                 g = parseInt(hex[3] + hex[4], 16);
                 b = parseInt(hex[5] + hex[6], 16);
             } else {
-                 console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
-                 return `rgba(0, 0, 0, ${opacity})`;
-             }
+                console.warn(`Invalid hex format provided to hexToRgba: ${hex}`);
+                return `rgba(0, 0, 0, ${opacity})`;
+            }
 
             opacity = Math.max(0, Math.min(1, opacity)); // Ensure opacity is within bounds
             return `rgba(${r}, ${g}, ${b}, ${opacity.toFixed(2)})`;
@@ -112,7 +112,7 @@
             scrollArea.addEventListener('touchmove', onUserScroll, { passive: true });
             scrollArea.addEventListener('touchstart', () => { if (!isProgrammaticScroll) autoFollow = false; }, { passive: true });
             scrollArea.addEventListener('keydown', (e) => {
-                if (['ArrowUp','PageUp','Home'].includes(e.key)) { if (!isProgrammaticScroll) autoFollow = false; }
+                if (['ArrowUp', 'PageUp', 'Home'].includes(e.key)) { if (!isProgrammaticScroll) autoFollow = false; }
             });
         }
         // Create a bottom sentinel to anchor scroll-to-bottom reliably
@@ -233,7 +233,7 @@
             } catch (error) {
                 console.error(`Error fetching ${cacheKey}:`, error);
                 if (config.badgeFallbackHide) {
-                    return null; 
+                    return null;
                 }
                 return null; // Return null on error, upstream will handle placeholder or message
             }
@@ -249,7 +249,7 @@
                 const data = await fetchWithCache('twitchGlobalBadges', config.badgeCacheGlobalTTL, config.badgeEndpointUrlGlobal);
                 globalBadges = data ? { data, timestamp: Date.now() } : null; // Store in memory for faster access
                 console.log('Global badges fetched/loaded from cache:', globalBadges);
-                 updateThemePreview(); // Update preview in case badges are now available
+                updateThemePreview(); // Update preview in case badges are now available
             } catch (error) {
                 console.error('Failed to initialize global badges:', error);
                 globalBadges = null;
@@ -283,7 +283,7 @@
                     // Always hide error messages for badge failures
                 })
                 .finally(() => {
-                    delete badgeFetchPromises[broadcasterId]; 
+                    delete badgeFetchPromises[broadcasterId];
                 });
 
             badgeFetchPromises[broadcasterId] = fetchPromise;
@@ -335,7 +335,7 @@
         /**
          * Get border radius CSS value from preset name or direct value
          */
-        window.getBorderRadiusValue = function(value) { // Make global
+        window.getBorderRadiusValue = function (value) { // Make global
             if (!value) return '8px'; // Default
             const borderRadiusMap = {
                 'None': '0px', 'none': '0px',
@@ -353,7 +353,7 @@
         /**
          * Get box shadow CSS value from preset name or direct value
          */
-        window.getBoxShadowValue = function(preset) { // Make global
+        window.getBoxShadowValue = function (preset) { // Make global
             if (!preset) return 'none';
             const boxShadowMap = {
                 'none': 'none',
@@ -374,7 +374,7 @@
          * Highlight the active border radius button based on CSS value
          */
         function highlightBorderRadiusButton(cssValue) {
-             if (borderRadiusPresets) {
+            if (borderRadiusPresets) {
                 const buttons = borderRadiusPresets.querySelectorAll('.preset-btn');
                 buttons.forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.value === cssValue);
@@ -386,7 +386,7 @@
          * Highlight the active box shadow button based on preset name
          */
         function highlightBoxShadowButton(presetName) {
-             if (boxShadowPresets) {
+            if (boxShadowPresets) {
                 const normalizedPreset = typeof presetName === 'string'
                     ? presetName.toLowerCase().replace(/\s+/g, '')
                     : 'none';
@@ -626,7 +626,7 @@
                 if (config.showBadges && data.tags && data.tags.badges) {
                     const badgesContainer = document.createElement('span'); // Temporary container
                     badgesContainer.className = 'badges'; // Not strictly needed here, but for consistency
-                    const badgeStrings = data.tags.badges.split(','); 
+                    const badgeStrings = data.tags.badges.split(',');
 
                     badgeStrings.forEach(badgeStr => {
                         if (!badgeStr.includes('/')) return;
@@ -647,8 +647,8 @@
                             const fallback2x = badgeInfo.imageUrl2x || badgeInfo.imageUrl;
                             const fallback1x = badgeInfo.imageUrl;
                             badgeImg.src = badgeInfo.imageUrl4x || badgeInfo.imageUrl2x || badgeInfo.imageUrl;
-                            badgeImg.onerror = function() {
-                                this.onerror = function() { this.src = fallback1x; };
+                            badgeImg.onerror = function () {
+                                this.onerror = function () { this.src = fallback1x; };
                                 this.src = fallback2x;
                             };
                             badgeImg.alt = badgeInfo.title || setId;
@@ -754,17 +754,17 @@
 
             let channelToConnect = channelInput?.value.trim().toLowerCase();
             if (!channelToConnect && initialConnectionPrompt?.style.display !== 'none' && initialChannelInput?.value) {
-                 channelToConnect = initialChannelInput.value.trim().toLowerCase();
-                 if (channelInput) channelInput.value = channelToConnect; // Sync back
+                channelToConnect = initialChannelInput.value.trim().toLowerCase();
+                if (channelInput) channelInput.value = channelToConnect; // Sync back
             }
 
             channel = channelToConnect;
             if (!channel) {
                 if (initialConnectionPrompt?.style.display !== 'none') {
-                     console.error('Please enter a channel name in the prompt.');
-                     initialChannelInput?.focus();
+                    console.error('Please enter a channel name in the prompt.');
+                    initialChannelInput?.focus();
                 } else {
-                     addSystemMessage('Please enter a valid channel name in the settings panel');
+                    addSystemMessage('Please enter a valid channel name in the settings panel');
                 }
                 isConnecting = false; // Reset flag if no channel
                 return;
@@ -775,7 +775,7 @@
             socket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
             window.socket = socket; // Debugging access
 
-            socket.onopen = function() {
+            socket.onopen = function () {
                 // Use timeout to ensure socket is ready before sending commands
                 setTimeout(async () => { // Added async here
                     if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -809,7 +809,7 @@
                 }, 50); // Small delay can sometimes help ensure readiness
             };
 
-            socket.onclose = function(event) {
+            socket.onclose = function (event) {
                 console.log(`WebSocket connection closed. Code: ${event.code}, Reason: ${event.reason}, Clean: ${event.wasClean}`);
                 isConnecting = false;
                 const lastConnectedChannel = channel; // Store before clearing
@@ -836,14 +836,14 @@
                 }
             };
 
-            socket.onerror = function(error) {
+            socket.onerror = function (error) {
                 console.error('WebSocket Error:', error);
                 addSystemMessage('Error connecting to chat. Check console for details.');
                 isConnecting = false;
                 // Let socket.onclose handle potential reconnection logic
             };
 
-            socket.onmessage = function(event) {
+            socket.onmessage = function (event) {
                 const messages = event.data.split('\r\n');
                 messages.forEach(message => {
                     if (!message) return;
@@ -1026,10 +1026,10 @@
                 switch (target) {
                     case 'bg':
                         if (color === 'transparent') {
-                            if(bgColorInput) bgColorInput.value = '#000000'; // Use black base for transparent
+                            if (bgColorInput) bgColorInput.value = '#000000'; // Use black base for transparent
                             if (bgOpacityInput) bgOpacityInput.value = 0; // Set opacity to 0
                         } else {
-                            if(bgColorInput) bgColorInput.value = color;
+                            if (bgColorInput) bgColorInput.value = color;
                             // Optionally reset opacity to default? For now, let it keep current value.
                         }
                         updateBgColor(); // Update visual background
@@ -1109,10 +1109,10 @@
             if (!configPanel) return;
             initialConfigBeforeEdit = null; // Clear previous state
             try {
-                 initialConfigBeforeEdit = JSON.parse(JSON.stringify(config)); // Store current state
+                initialConfigBeforeEdit = JSON.parse(JSON.stringify(config)); // Store current state
             } catch (error) {
-                 console.error("Error storing config state for revert:", error);
-                 addSystemMessage("Error: Could not store settings state for revert.");
+                console.error("Error storing config state for revert:", error);
+                addSystemMessage("Error: Could not store settings state for revert.");
             }
 
             // Update connection controls visibility inside panel
@@ -1153,13 +1153,13 @@
 
         // Reset Button
         if (resetConfigBtn && !resetConfigBtn.dataset.listenerAttached) {
-             resetConfigBtn.addEventListener('click', () => {
-                 applyDefaultSettings(); // Reset config object
-                 applyConfiguration(config); // Apply defaults visually
-                 updateConfigPanelFromConfig(); // Update panel controls
-                 addSystemMessage("Settings reset to default.");
-             });
-             resetConfigBtn.dataset.listenerAttached = 'true';
+            resetConfigBtn.addEventListener('click', () => {
+                applyDefaultSettings(); // Reset config object
+                applyConfiguration(config); // Apply defaults visually
+                updateConfigPanelFromConfig(); // Update panel controls
+                addSystemMessage("Settings reset to default.");
+            });
+            resetConfigBtn.dataset.listenerAttached = 'true';
         }
 
         // Close settings panel function
@@ -1170,8 +1170,8 @@
                     applyConfiguration(config); // Apply restored visuals
                     updateConfigPanelFromConfig(); // Update controls to match
                 } catch (error) {
-                     console.error("Error during revert:", error);
-                     addSystemMessage("Error: Could not revert settings.");
+                    console.error("Error during revert:", error);
+                    addSystemMessage("Error: Could not revert settings.");
                 }
             }
             initialConfigBeforeEdit = null; // Clear stored state
@@ -1214,12 +1214,12 @@
             // Text color
             const textColorValue = textColorInput?.value || '#efeff1';
             document.querySelectorAll('.color-btn[data-target="text"]')
-                    .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === textColorValue));
+                .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === textColorValue));
 
             // Username color
             const usernameColorValue = usernameColorInput?.value || '#9147ff';
             document.querySelectorAll('.color-btn[data-target="username"]')
-                    .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === usernameColorValue));
+                .forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-color') === usernameColorValue));
         }
 
         // Toggle between window and popup modes
@@ -1327,8 +1327,8 @@
             // Update font family from theme
             if (theme.fontFamily) {
                 let fontIndex = window.availableFonts?.findIndex(f => {
-                   const themeFont = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
-                   return (f.name?.trim().toLowerCase() === themeFont.toLowerCase()) || (f.value?.trim() === themeFont);
+                    const themeFont = typeof theme.fontFamily === 'string' ? theme.fontFamily.trim() : '';
+                    return (f.name?.trim().toLowerCase() === themeFont.toLowerCase()) || (f.value?.trim() === themeFont);
                 }) ?? -1;
 
                 if (fontIndex === -1) { // Fallback if font not found
@@ -1348,17 +1348,17 @@
             // Update UI controls in the panel to reflect the applied theme
             if (bgColorInput) bgColorInput.value = config.bgColor; // Set hex value
             if (bgOpacityInput && bgOpacityValue) {
-                 const opacityPercent = Math.round(config.bgColorOpacity * 100);
-                 bgOpacityInput.value = opacityPercent;
-                 bgOpacityValue.textContent = `${opacityPercent}%`;
+                const opacityPercent = Math.round(config.bgColorOpacity * 100);
+                bgOpacityInput.value = opacityPercent;
+                bgOpacityValue.textContent = `${opacityPercent}%`;
             }
             if (borderColorInput) borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; // Input needs a color
             if (textColorInput) textColorInput.value = config.textColor;
             if (usernameColorInput) usernameColorInput.value = config.usernameColor;
             if (bgImageOpacityInput && bgImageOpacityValue) {
-                 const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
-                 bgImageOpacityInput.value = imageOpacityPercent;
-                 bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
+                const imageOpacityPercent = Math.round(config.bgImageOpacity * 100);
+                bgImageOpacityInput.value = imageOpacityPercent;
+                bgImageOpacityValue.textContent = `${imageOpacityPercent}%`;
             }
 
             // Update preset button highlights
@@ -1375,7 +1375,7 @@
         function updateFontDisplay() {
             if (!window.availableFonts?.length) {
                 console.error('Available fonts not initialized yet.');
-                if(currentFontDisplay) currentFontDisplay.textContent = 'Error';
+                if (currentFontDisplay) currentFontDisplay.textContent = 'Error';
                 return;
             }
             // Ensure index is valid
@@ -1390,7 +1390,7 @@
                 return;
             }
 
-            if(currentFontDisplay) currentFontDisplay.textContent = currentFont.name;
+            if (currentFontDisplay) currentFontDisplay.textContent = currentFont.name;
             config.fontFamily = currentFont.value; // Update config
             document.documentElement.style.setProperty('--font-family', config.fontFamily); // Apply visually
             updateThemePreview(); // Refresh preview
@@ -1407,6 +1407,18 @@
         if (nextFontBtn && !nextFontBtn.dataset.listenerAttached) {
             nextFontBtn.addEventListener('click', () => {
                 currentFontIndex = (currentFontIndex + 1) % (window.availableFonts?.length || 1);
+                updateFontDisplay();
+                applyFont();
+            });
+
+            // Listen for font updates from theme-carousel.js
+            document.addEventListener('fonts-updated', () => {
+                console.log('Fonts updated event received in chat.js');
+                // Re-sync current font index based on current config
+                const fontIndex = window.availableFonts?.findIndex(f => f.value === config.fontFamily) ?? -1;
+                if (fontIndex !== -1) {
+                    currentFontIndex = fontIndex;
+                }
                 updateFontDisplay();
             });
             nextFontBtn.dataset.listenerAttached = 'true';
@@ -1458,13 +1470,13 @@
             let finalBgColor;
             const bgTransparentButton = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]');
             if (bgTransparentButton?.classList.contains('active')) {
-                 finalBgColor = 'transparent'; 
+                finalBgColor = 'transparent';
             } else {
-                 try { finalBgColor = hexToRgba(bgColor, bgColorOpacity); }
-                 catch (e) {
-                     console.error(`Error converting hex ${bgColor} for preview:`, e);
-                     finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`; // Fallback
-                 }
+                try { finalBgColor = hexToRgba(bgColor, bgColorOpacity); }
+                catch (e) {
+                    console.error(`Error converting hex ${bgColor} for preview:`, e);
+                    finalBgColor = `rgba(30, 30, 30, ${bgColorOpacity.toFixed(2)})`; // Fallback
+                }
             }
 
             const previewStyle = themePreview.style;
@@ -1474,13 +1486,13 @@
             previewStyle.setProperty('--preview-username-color', usernameColor);
             previewStyle.setProperty('--preview-timestamp-color', timestampColor);
             previewStyle.setProperty('--preview-font-family', fontFamily);
-            previewStyle.fontFamily = fontFamily; 
+            previewStyle.fontFamily = fontFamily;
             previewStyle.setProperty('--preview-border-radius', borderRadius);
             previewStyle.setProperty('--preview-box-shadow', boxShadow);
             previewStyle.setProperty('--preview-text-shadow', textShadow); // Apply text shadow to preview
             previewStyle.setProperty('--preview-bg-image', bgImage === 'none' ? 'none' : `url("${bgImage}")`);
 
-            const fontSize = fontSizeSlider?.value || config?.fontSize || 14; 
+            const fontSize = fontSizeSlider?.value || config?.fontSize || 14;
             previewStyle.fontSize = `${fontSize}px`;
 
             const ts1 = showTimestamps ? '<span class="timestamp">12:34 </span>' : '';
@@ -1504,7 +1516,7 @@
                 if (firstGlobalBadgeInfo?.imageUrl) {
                     previewBadgesHtml = `<img class="chat-badge" src="${firstGlobalBadgeInfo.imageUrl}" alt="${firstGlobalBadgeInfo.title || 'badge'}" title="${firstGlobalBadgeInfo.title || 'badge'}" style="height: calc(var(--font-size) * 0.9); vertical-align: middle; margin-right: 3px;">`;
                 } else {
-                     // Use the badge fallback toggle from UI for preview
+                    // Use the badge fallback toggle from UI for preview
                     const hideFallbackInPreview = true; // Always hide badge failures
                     if (!hideFallbackInPreview) {
                         previewBadgesHtml = `<span class="chat-badge-placeholder" style="font-size:0.8em; opacity:0.7; margin-right:3px;">[B]</span>`;
@@ -1551,16 +1563,16 @@
         document.querySelectorAll('input[name="popup-direction"]').forEach(input => {
             input.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    if(config.popup) config.popup.direction = e.target.value;
+                    if (config.popup) config.popup.direction = e.target.value;
                     if (config.chatMode === 'popup') {
                         const popupMessages = document.getElementById('popup-messages');
                         if (popupMessages && config.popup) {
                             const direction = config.popup.direction || 'from-bottom';
-                            const position = { top: 'auto', bottom: '10px' }; 
+                            const position = { top: 'auto', bottom: '10px' };
                             if (['from-top', 'from-left', 'from-right'].includes(direction)) {
                                 position.top = '10px'; position.bottom = 'auto';
                             }
-                            popupMessages.removeAttribute('style'); 
+                            popupMessages.removeAttribute('style');
                             popupMessages.style.top = position.top;
                             popupMessages.style.bottom = position.bottom;
                         }
@@ -1571,14 +1583,14 @@
 
         // Listener for popup duration slider
         document.getElementById('popup-duration')?.addEventListener('input', (e) => {
-            if(config.popup) config.popup.duration = parseInt(e.target.value);
+            if (config.popup) config.popup.duration = parseInt(e.target.value);
             const valueDisplay = document.getElementById('popup-duration-value');
-            if(valueDisplay && config.popup) valueDisplay.textContent = `${config.popup.duration}s`;
+            if (valueDisplay && config.popup) valueDisplay.textContent = `${config.popup.duration}s`;
         });
 
         // Listener for popup max messages input
         document.getElementById('popup-max-messages')?.addEventListener('change', (e) => {
-            if(config.popup) config.popup.maxMessages = parseInt(e.target.value);
+            if (config.popup) config.popup.maxMessages = parseInt(e.target.value);
         });
 
         /**
@@ -1602,15 +1614,15 @@
                     if (targetType === 'bg') {
                         const hexFromInput = inputElement?.value;
                         const isTransparentActive = document.querySelector('.color-btn[data-target="bg"][data-color="transparent"]')?.classList.contains('active');
-                        const currentOpacity = getOpacity(bgOpacityInput, -1); 
+                        const currentOpacity = getOpacity(bgOpacityInput, -1);
                         if (isTransparentActive && currentOpacity === 0) return '#000000';
                         if (hexFromInput) return hexFromInput;
                         console.warn("[getColor/bg] Background color input was empty, falling back.");
-                        return defaultColor; 
-                    } else { 
+                        return defaultColor;
+                    } else {
                         if (activeButton) {
                             if (targetType === 'border' && activeColor === 'transparent') return 'transparent';
-                            return activeColor; 
+                            return activeColor;
                         }
                         return inputElement?.value || defaultColor;
                     }
@@ -1622,11 +1634,11 @@
                 };
 
                 const currentFontValue = window.availableFonts?.[currentFontIndex]?.value || config.fontFamily;
-                const currentThemeValue = lastAppliedThemeValue; 
+                const currentThemeValue = lastAppliedThemeValue;
                 const bgImageOpacityValue = getOpacity(bgImageOpacityInput, config.bgImageOpacity ?? 0.55);
                 const currentBgColorHex = getColor(bgColorInput, '.color-buttons [data-target="bg"]', config.bgColor || '#121212');
                 const currentBgOpacity = getOpacity(bgOpacityInput, config.bgColorOpacity ?? 0.85);
-                const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {}; 
+                const currentFullTheme = window.availableThemes?.find(t => t.value === currentThemeValue) || {};
 
                 const newConfig = {
                     theme: currentThemeValue,
@@ -1638,7 +1650,7 @@
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', config.textColor || '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', config.usernameColor || '#9147ff'),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, config.overrideUsernameColors || false, false, true),
-                    bgImage: currentFullTheme.backgroundImage || config.bgImage || null, 
+                    bgImage: currentFullTheme.backgroundImage || config.bgImage || null,
                     bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
@@ -1666,14 +1678,14 @@
                     enlargeSingleEmotes: getValue(enlargeSingleEmotesToggle, config.enlargeSingleEmotes, false, true),
                 };
 
-                config = newConfig; 
-                applyConfiguration(config); 
+                config = newConfig;
+                applyConfiguration(config);
 
                 const scene = getUrlParameter('scene') || 'default';
-                localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config)); 
-                closeConfigPanel(false); 
+                localStorage.setItem(`chatConfig-${scene}`, JSON.stringify(config));
+                closeConfigPanel(false);
                 if (config.chatMode === 'popup') {
-                    addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor, tags: {} }); 
+                    addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor, tags: {} });
                 }
                 // After saving, if badge URLs changed or showBadges toggled, re-fetch badges
                 fetchGlobalBadges();
@@ -1684,7 +1696,7 @@
 
             } catch (error) {
                 console.error("Error saving configuration:", error);
-                 addSystemMessage("Error saving settings. Check console.");
+                addSystemMessage("Error saving settings. Check console.");
             }
         }
 
@@ -1694,9 +1706,9 @@
                 chatMode: 'window', bgColor: '#121212', bgColorOpacity: 0.85,
                 bgImage: null, bgImageOpacity: 0.55, borderColor: '#9147ff',
                 textColor: '#efeff1', usernameColor: '#9147ff', fontSize: 14,
-                fontFamily: "'Atkinson Hyperlegible', sans-serif", 
+                fontFamily: "'Atkinson Hyperlegible', sans-serif",
                 chatWidth: 95, chatHeight: 95, maxMessages: 50, showTimestamps: true,
-                overrideUsernameColors: false, borderRadius: '8px', boxShadow: 'soft', 
+                overrideUsernameColors: false, borderRadius: '8px', boxShadow: 'soft',
                 textShadow: 'none', // Added textShadow 
                 theme: 'default', lastChannel: '',
                 popup: { direction: 'from-bottom', duration: 5, maxMessages: 3 },
@@ -1711,22 +1723,22 @@
 
         // Apply border radius visually and update config
         function applyBorderRadius(value) {
-             const cssValue = window.getBorderRadiusValue(value); 
-             if (!cssValue) return;
-             document.documentElement.style.setProperty('--chat-border-radius', cssValue);
-             config.borderRadius = value; 
-             highlightBorderRadiusButton(cssValue); 
-             updateThemePreview();
+            const cssValue = window.getBorderRadiusValue(value);
+            if (!cssValue) return;
+            document.documentElement.style.setProperty('--chat-border-radius', cssValue);
+            config.borderRadius = value;
+            highlightBorderRadiusButton(cssValue);
+            updateThemePreview();
         }
 
         // Apply box shadow visually and update config
         function applyBoxShadow(preset) {
-             const cssValue = window.getBoxShadowValue(preset); 
-             if (!cssValue) return;
-             document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
-             config.boxShadow = preset; 
-             highlightBoxShadowButton(preset); 
-             updateThemePreview();
+            const cssValue = window.getBoxShadowValue(preset);
+            if (!cssValue) return;
+            document.documentElement.style.setProperty('--chat-box-shadow', cssValue);
+            config.boxShadow = preset;
+            highlightBoxShadowButton(preset);
+            updateThemePreview();
         }
 
         borderRadiusPresets?.querySelectorAll('.preset-btn')
@@ -1751,7 +1763,7 @@
          * Update all config panel controls to match the current config object.
          */
         function updateConfigPanelFromConfig() {
-            if (!configPanel) return; 
+            if (!configPanel) return;
 
             const hexColor = config.bgColor || '#121212';
             const opacityPercent = Math.round((config.bgColorOpacity ?? 0.85) * 100);
@@ -1761,43 +1773,43 @@
                 bgOpacityValue.textContent = `${opacityPercent}%`;
             }
 
-            if(borderColorInput) borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor; 
-            if(textColorInput) textColorInput.value = config.textColor || '#efeff1';
-            if(usernameColorInput) usernameColorInput.value = config.usernameColor || '#9147ff';
-            highlightActiveColorButtons(); 
+            if (borderColorInput) borderColorInput.value = config.borderColor === 'transparent' ? '#000000' : config.borderColor;
+            if (textColorInput) textColorInput.value = config.textColor || '#efeff1';
+            if (usernameColorInput) usernameColorInput.value = config.usernameColor || '#9147ff';
+            highlightActiveColorButtons();
 
             highlightBorderRadiusButton(getBorderRadiusValue(config.borderRadius));
-            highlightBoxShadowButton(config.boxShadow); 
+            highlightBoxShadowButton(config.boxShadow);
             highlightTextShadowButton(config.textShadow); // Added for text shadow
 
-            if(overrideUsernameColorsInput) overrideUsernameColorsInput.checked = config.overrideUsernameColors;
-            if(fontSizeSlider) fontSizeSlider.value = config.fontSize;
-            if(fontSizeValue) fontSizeValue.textContent = `${config.fontSize}px`;
-            if(chatWidthInput) chatWidthInput.value = config.chatWidth;
-            if(chatWidthValue) chatWidthValue.textContent = `${config.chatWidth}%`;
-            if(chatHeightInput) chatHeightInput.value = config.chatHeight;
-            if(chatHeightValue) chatHeightValue.textContent = `${config.chatHeight}%`;
-            if(maxMessagesInput) maxMessagesInput.value = config.maxMessages;
-            if(showTimestampsInput) showTimestampsInput.checked = config.showTimestamps;
+            if (overrideUsernameColorsInput) overrideUsernameColorsInput.checked = config.overrideUsernameColors;
+            if (fontSizeSlider) fontSizeSlider.value = config.fontSize;
+            if (fontSizeValue) fontSizeValue.textContent = `${config.fontSize}px`;
+            if (chatWidthInput) chatWidthInput.value = config.chatWidth;
+            if (chatWidthValue) chatWidthValue.textContent = `${config.chatWidth}%`;
+            if (chatHeightInput) chatHeightInput.value = config.chatHeight;
+            if (chatHeightValue) chatHeightValue.textContent = `${config.chatHeight}%`;
+            if (maxMessagesInput) maxMessagesInput.value = config.maxMessages;
+            if (showTimestampsInput) showTimestampsInput.checked = config.showTimestamps;
 
             const fontIndex = window.availableFonts?.findIndex(f => f.value === config.fontFamily) ?? -1;
             currentFontIndex = (fontIndex !== -1) ? fontIndex : (window.availableFonts?.findIndex(f => f.value?.includes('Atkinson')) ?? 0);
             if (fontIndex === -1 && config.fontFamily !== window.availableFonts?.[currentFontIndex]?.value) {
-                 console.warn(`Font from config ("${config.fontFamily}") not found or mismatch, defaulting.`);
-                 config.fontFamily = window.availableFonts?.[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif"; 
+                console.warn(`Font from config ("${config.fontFamily}") not found or mismatch, defaulting.`);
+                config.fontFamily = window.availableFonts?.[currentFontIndex]?.value || "'Atkinson Hyperlegible', sans-serif";
             }
-            updateFontDisplay(); 
+            updateFontDisplay();
 
             const themeIndex = window.availableThemes?.findIndex(t => t.value === config.theme) ?? -1;
             const currentThemeIdx = (themeIndex !== -1) ? themeIndex : (window.availableThemes?.findIndex(t => t.value === 'default') ?? 0);
             if (themeIndex === -1 && config.theme !== window.availableThemes?.[currentThemeIdx]?.value) {
                 console.warn(`Theme from config ("${config.theme}") not found or mismatch, defaulting.`);
-                config.theme = window.availableThemes?.[currentThemeIdx]?.value || 'default'; 
+                config.theme = window.availableThemes?.[currentThemeIdx]?.value || 'default';
             }
             if (typeof window.updateThemeDetails === 'function') window.updateThemeDetails(window.availableThemes?.[currentThemeIdx]);
             if (typeof window.highlightActiveCard === 'function') window.highlightActiveCard(window.availableThemes?.[currentThemeIdx]?.value);
-            
-            if(channelInput) channelInput.value = config.lastChannel || '';
+
+            if (channelInput) channelInput.value = config.lastChannel || '';
             const isConnected = socket && socket.readyState === WebSocket.OPEN;
             if (channelForm) channelForm.style.display = isConnected ? 'none' : 'flex';
             if (disconnectBtn) {
@@ -1833,9 +1845,9 @@
             updateThemePreview(); // Ensure preview is updated with all settings
         }
 
-        loadSavedConfig(); 
+        loadSavedConfig();
         if (config.chatMode === 'popup') {
-            addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor, tags: {} }); 
+            addChatMessage({ username: 'Test', message: 'Test message', color: config.usernameColor, tags: {} });
         }
 
         document.addEventListener('theme-generated-and-added', (event) => {
@@ -1855,8 +1867,8 @@
             let finalRgbaColor;
             try { finalRgbaColor = hexToRgba(baseBgColor, bgOpacity); }
             catch (e) {
-                 console.error(`[applyConfiguration] Error converting hex ${baseBgColor} with opacity ${bgOpacity}:`, e);
-                 finalRgbaColor = `rgba(18, 18, 18, ${bgOpacity.toFixed(2)})`; 
+                console.error(`[applyConfiguration] Error converting hex ${baseBgColor} with opacity ${bgOpacity}:`, e);
+                finalRgbaColor = `rgba(18, 18, 18, ${bgOpacity.toFixed(2)})`;
             }
 
             const rootStyle = document.documentElement.style;
@@ -1897,17 +1909,17 @@
             if (cfg.theme && cfg.theme !== 'default') rootClassList.add(cfg.theme);
             rootClassList.toggle('override-username-colors', !!cfg.overrideUsernameColors);
 
-            rootClassList.toggle('hide-timestamps', !cfg.showTimestamps); 
-            switchChatMode(cfg.chatMode || 'window', true); 
+            rootClassList.toggle('hide-timestamps', !cfg.showTimestamps);
+            switchChatMode(cfg.chatMode || 'window', true);
 
-            updateColorPreviews(); 
+            updateColorPreviews();
         }
 
         if (showTimestampsInput) {
             if (!showTimestampsInput.dataset.listenerAttachedPreview) {
                 showTimestampsInput.addEventListener('change', () => {
                     config.showTimestamps = showTimestampsInput.checked;
-                    updateThemePreview(); 
+                    updateThemePreview();
                 });
                 showTimestampsInput.dataset.listenerAttachedPreview = 'true';
             }
@@ -1924,45 +1936,45 @@
 
         if (initialConnectBtn && initialChannelInput) {
             initialConnectBtn.addEventListener('click', () => {
-                if (channelInput) channelInput.value = initialChannelInput.value; 
+                if (channelInput) channelInput.value = initialChannelInput.value;
                 connectToChat();
             });
-            initialChannelInput.addEventListener('keypress', (e) => { 
+            initialChannelInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    if (channelInput) channelInput.value = initialChannelInput.value; 
+                    if (channelInput) channelInput.value = initialChannelInput.value;
                     connectToChat();
                 }
             });
-            initialChannelInput.addEventListener('input', () => { 
-                 if (channelInput) channelInput.value = initialChannelInput.value;
+            initialChannelInput.addEventListener('input', () => {
+                if (channelInput) channelInput.value = initialChannelInput.value;
             });
         } else { console.error("Initial connection prompt elements not found."); }
 
         if (openSettingsFromPromptBtn && configPanel) {
-             openSettingsFromPromptBtn.addEventListener('click', () => {
-                 if (initialChannelInput && channelInput) channelInput.value = initialChannelInput.value; 
-                 openSettingsPanel();
-             });
-         }
+            openSettingsFromPromptBtn.addEventListener('click', () => {
+                if (initialChannelInput && channelInput) channelInput.value = initialChannelInput.value;
+                openSettingsPanel();
+            });
+        }
 
-        if (connectBtn && channelInput) { 
-            if (!connectBtn.dataset.listenerAttachedPanel) { 
+        if (connectBtn && channelInput) {
+            if (!connectBtn.dataset.listenerAttachedPanel) {
                 connectBtn.addEventListener('click', connectToChat);
                 connectBtn.dataset.listenerAttachedPanel = 'true';
             }
-             channelInput.addEventListener('keydown', (e) => {
+            channelInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); e.stopPropagation(); 
+                    e.preventDefault(); e.stopPropagation();
                     connectToChat();
                 }
-             });
-             channelInput.addEventListener('input', () => {
+            });
+            channelInput.addEventListener('input', () => {
                 if (initialChannelInput) initialChannelInput.value = channelInput.value;
-             });
+            });
         }
 
-        if (disconnectBtn) { 
-             disconnectBtn.addEventListener('click', disconnectChat);
+        if (disconnectBtn) {
+            disconnectBtn.addEventListener('click', disconnectChat);
         }
 
         function loadSavedConfig() {
@@ -1978,31 +1990,31 @@
                         badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
                         badgeCacheChannelTTL: 1 * 60 * 60 * 1000,
                         badgeFallbackHide: true, // Always hide badge failures
-                        ...config 
+                        ...config
                     };
                     config = { ...defaultConfigForMerge, ...loadedConfig };
-                } 
+                }
                 applyConfiguration(config);
                 updateConfigPanelFromConfig();
 
-                 if (config.lastChannel) {
-                     if (channelInput) channelInput.value = config.lastChannel;
-                     if (initialChannelInput) initialChannelInput.value = config.lastChannel;
-                     connectToChat(); 
-                 } else {
-                     updateConnectionStateUI(false);
-                     if (channelInput) channelInput.value = '';
-                     if (initialChannelInput) initialChannelInput.value = '';
-                 }
+                if (config.lastChannel) {
+                    if (channelInput) channelInput.value = config.lastChannel;
+                    if (initialChannelInput) initialChannelInput.value = config.lastChannel;
+                    connectToChat();
+                } else {
+                    updateConnectionStateUI(false);
+                    if (channelInput) channelInput.value = '';
+                    if (initialChannelInput) initialChannelInput.value = '';
+                }
 
             } catch (e) {
                 console.error("Error loading or parsing configuration:", e);
-                applyDefaultSettings(); 
-                applyConfiguration(config); 
-                updateConfigPanelFromConfig(); 
-                updateConnectionStateUI(false); 
-                 if (channelInput) channelInput.value = '';
-                 if (initialChannelInput) initialChannelInput.value = '';
+                applyDefaultSettings();
+                applyConfiguration(config);
+                updateConfigPanelFromConfig();
+                updateConnectionStateUI(false);
+                if (channelInput) channelInput.value = '';
+                if (initialChannelInput) initialChannelInput.value = '';
             }
         }
 
@@ -2015,7 +2027,7 @@
                 const scene = getUrlParameter('scene') || 'default';
                 const configKey = `chatConfig-${scene}`;
                 let currentFullConfig = {};
-                try { 
+                try {
                     const saved = localStorage.getItem(configKey);
                     if (saved) currentFullConfig = JSON.parse(saved);
                 } catch (parseError) { console.error("[saveLastChannelOnly] Error parsing existing config:", parseError); }
@@ -2030,25 +2042,25 @@
 
         function disconnectChat() {
             if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
-                isExplicitDisconnect = true; 
-                clearTimeout(reconnectTimer); 
+                isExplicitDisconnect = true;
+                clearTimeout(reconnectTimer);
                 reconnectTimer = null;
                 reconnectAttempts = 0;
-                socket.close(); 
+                socket.close();
             } else {
-                 updateConnectionStateUI(false);
-                 if (disconnectBtn) disconnectBtn.style.display = 'none';
-                 if (channelForm) channelForm.style.display = 'flex';
-                 isExplicitDisconnect = false; 
+                updateConnectionStateUI(false);
+                if (disconnectBtn) disconnectBtn.style.display = 'none';
+                if (channelForm) channelForm.style.display = 'flex';
+                isExplicitDisconnect = false;
             }
         }
 
         function scheduleReconnect(channelToReconnect) {
             if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
                 addSystemMessage("Failed to reconnect after multiple attempts.");
-                updateConnectionStateUI(false); 
-                reconnectAttempts = 0; 
-                 if (initialChannelInput) initialChannelInput.value = channelToReconnect || config.lastChannel || '';
+                updateConnectionStateUI(false);
+                reconnectAttempts = 0;
+                if (initialChannelInput) initialChannelInput.value = channelToReconnect || config.lastChannel || '';
                 return;
             }
 
@@ -2057,20 +2069,20 @@
             reconnectAttempts++;
             addSystemMessage(`Reconnecting in ${Math.round(delay / 1000)}s... (Attempt ${reconnectAttempts})`);
 
-             if (channelInput) channelInput.value = channelToReconnect;
-             if (initialChannelInput) initialChannelInput.value = channelToReconnect;
+            if (channelInput) channelInput.value = channelToReconnect;
+            if (initialChannelInput) initialChannelInput.value = channelToReconnect;
 
             clearTimeout(reconnectTimer);
 
             reconnectTimer = setTimeout(() => {
-                 if (channelInput && channelInput.value !== channelToReconnect) {
+                if (channelInput && channelInput.value !== channelToReconnect) {
                     console.warn(`Channel input changed during reconnect delay. Using original: ${channelToReconnect}`);
                     channelInput.value = channelToReconnect;
-                 }
-                 if (initialChannelInput && initialChannelInput.value !== channelToReconnect) {
-                     initialChannelInput.value = channelToReconnect;
-                 }
-                connectToChat(); 
+                }
+                if (initialChannelInput && initialChannelInput.value !== channelToReconnect) {
+                    initialChannelInput.value = channelToReconnect;
+                }
+                connectToChat();
             }, delay);
         }
         // Add change listener for badge toggle to update theme preview
