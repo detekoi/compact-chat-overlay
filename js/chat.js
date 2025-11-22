@@ -898,8 +898,11 @@ import { ChatConnection } from './modules/chat-connection.js';
 
             const themeIndex = window.availableThemes?.findIndex(t => t.value === configManager.config.theme) ?? -1;
             const currentThemeIdx = (themeIndex !== -1) ? themeIndex : (window.availableThemes?.findIndex(t => t.value === 'default') ?? 0);
-            if (typeof window.updateThemeDetails === 'function') window.updateThemeDetails(window.availableThemes?.[currentThemeIdx]);
-            if (typeof window.highlightActiveCard === 'function') window.highlightActiveCard(window.availableThemes?.[currentThemeIdx]?.value);
+            const currentTheme = window.availableThemes?.[currentThemeIdx];
+            if (currentTheme) {
+                if (typeof window.updateThemeDetails === 'function') window.updateThemeDetails(currentTheme);
+                if (typeof window.highlightActiveCard === 'function') window.highlightActiveCard(currentTheme.value);
+            }
 
             if (channelInput) channelInput.value = configManager.config.lastChannel || '';
             const isConnected = chatConnection.isConnected();
