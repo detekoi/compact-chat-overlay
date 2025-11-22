@@ -1457,6 +1457,16 @@
             const textShadow = getTextShadowValue(textShadowValue); // Convert to CSS
             const bgImage = config?.bgImage || 'none';
 
+            // Update both the main chat wrapper and the preview
+            // Note: We update the wrapper here because updateThemePreview is often called as a side effect
+            // of setting changes, and we want to ensure the real chat stays in sync visually.
+            if (chatWrapper) {
+                // Ensure the URL is properly formatted with url() if it's not 'none'
+                const bgImageValue = bgImage === 'none' ? 'none' : (bgImage.startsWith('url') ? bgImage : `url("${bgImage}")`);
+                document.documentElement.style.setProperty('--chat-bg-image', bgImageValue);
+                document.documentElement.style.setProperty('--popup-bg-image', bgImageValue);
+            }
+
             // --- Background Image Opacity Logic ---
             let currentPreviewOpacity = themePreview.style.getPropertyValue('--preview-bg-image-opacity');
             let bgImageOpacity;
@@ -1860,7 +1870,10 @@
         document.addEventListener('theme-generated-and-added', (event) => {
             if (!(event.detail && event.detail.themeValue)) {
                 console.warn("[Event Listener] Received theme-generated-and-added event without valid themeValue.");
+                return;
             }
+            // Apply the newly generated theme
+            applyTheme(event.detail.themeValue);
         });
 
 
