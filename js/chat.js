@@ -1657,8 +1657,7 @@
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', config.textColor || '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', config.usernameColor || '#9147ff'),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, config.overrideUsernameColors || false, false, true),
-                    // Correctly resolve background image: use current if available, otherwise fall back to config or null
-                    bgImage: config.bgImage || currentFullTheme.backgroundImage || null,
+                    bgImage: currentFullTheme.backgroundImage || config.bgImage || null,
                     bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
