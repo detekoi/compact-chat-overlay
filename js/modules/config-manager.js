@@ -10,6 +10,14 @@ export class ConfigManager {
         this.config = this.getDefaultConfig();
         this.lastAppliedThemeValue = 'default';
         this.currentFontIndex = 0;
+        this.switchChatModeCallback = null;
+    }
+
+    /**
+     * Set callback for switching chat mode
+     */
+    setSwitchChatModeCallback(callback) {
+        this.switchChatModeCallback = callback;
     }
 
     /**
@@ -18,7 +26,7 @@ export class ConfigManager {
     getDefaultConfig() {
         return {
             chatMode: 'window',
-            bgColor: 'rgba(18, 18, 18, 0.8)',
+            bgColor: '#121212',
             borderColor: '#9147ff',
             textColor: '#efeff1',
             usernameColor: '#9147ff',
@@ -114,6 +122,11 @@ export class ConfigManager {
         if (cfg.theme && cfg.theme !== 'default') rootClassList.add(cfg.theme);
         rootClassList.toggle('override-username-colors', !!cfg.overrideUsernameColors);
         rootClassList.toggle('hide-timestamps', !cfg.showTimestamps);
+
+        // Apply chat mode if callback is set
+        if (this.switchChatModeCallback && typeof this.switchChatModeCallback === 'function') {
+            this.switchChatModeCallback(cfg.chatMode || 'window', true);
+        }
 
         this.config = cfg;
     }

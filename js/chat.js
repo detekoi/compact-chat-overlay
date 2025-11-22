@@ -81,6 +81,9 @@ import { ChatConnection } from './modules/chat-connection.js';
         const chatRenderer = new ChatRenderer(configManager.config, scrollManager, badgeManager);
         const chatConnection = new ChatConnection(configManager, chatRenderer, badgeManager);
 
+        // Wire up switchChatMode callback to ConfigManager (defined later)
+        // This will be set after switchChatMode function is defined
+
         // Update connection state UI handler
         chatConnection.onConnectionChange((isConnected, channelName) => {
             updateConnectionStateUI(isConnected);
@@ -286,6 +289,9 @@ import { ChatConnection } from './modules/chat-connection.js';
             document.querySelectorAll('.popup-setting').forEach(el => el.style.display = isPopup ? 'flex' : 'none');
             document.querySelectorAll('.window-only-setting').forEach(el => el.style.display = isPopup ? 'none' : 'flex');
         }
+
+        // Register switchChatMode callback with ConfigManager
+        configManager.setSwitchChatModeCallback(switchChatMode);
 
         /**
          * Update the theme preview display
