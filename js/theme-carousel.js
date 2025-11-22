@@ -730,7 +730,7 @@
             const isLocalhost = window.location.hostname === 'localhost' ||
                 window.location.hostname === '127.0.0.1' ||
                 window.location.hostname === '';
-            const API_URL = isLocalhost ? 'http://localhost:8091/api/fonts' : 'https://theme-proxy-361545143046.us-west2.run.app/api/fonts';
+            const API_URL = isLocalhost ? 'http://localhost:8091/api/fonts' : 'https://theme-proxy-361545143046.us-central1.run.app/api/fonts';
 
             console.log(`Fetching fonts from: ${API_URL}`);
             const response = await fetch(API_URL);

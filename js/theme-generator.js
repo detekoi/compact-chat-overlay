@@ -20,7 +20,7 @@
     const INITIAL_DELAY = 1000; // ms
 
     // Dynamically determine API URL based on environment
-    const CLOUD_RUN_API_URL = 'https://theme-proxy-361545143046.us-west2.run.app/api/generate-theme';
+    const CLOUD_RUN_API_URL = 'https://theme-proxy-361545143046.us-central1.run.app/api/generate-theme';
     const LOCAL_API_URL = 'http://localhost:8091/api/generate-theme';
 
     // Use local API if running on localhost, otherwise use Cloud Run
