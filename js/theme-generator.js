@@ -146,9 +146,14 @@
 
                 // Compress image if present
                 let finalBackgroundImageDataUrl = null;
-                if (backgroundImage) {
+                if (backgroundImage && backgroundImage.data) {
                     loadingStatus.textContent = 'Compressing image...';
-                    const backgroundImageDataUrl = `data:${backgroundImage.mimeType};base64,${backgroundImage.data}`;
+                    
+                    // Ensure clean base64 data
+                    const cleanBase64 = backgroundImage.data.replace(/[\r\n\s]+/g, '');
+                    const mimeType = backgroundImage.mimeType || 'image/png';
+                    const backgroundImageDataUrl = `data:${mimeType};base64,${cleanBase64}`;
+                    
                     try {
                         finalBackgroundImageDataUrl = await compressImageToBase64JPEG(backgroundImageDataUrl, 0.85); // Use 85% quality
                         console.log('Image compression successful.');
