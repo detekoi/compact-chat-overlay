@@ -1321,7 +1321,9 @@
             config.borderRadius = theme.borderRadius || theme.borderRadiusValue || '8px';
             config.boxShadow = theme.boxShadow || theme.boxShadowValue || 'none';
             config.textShadow = theme.textShadow || 'none'; // Added for text shadow
-            config.bgImage = theme.backgroundImage || null;
+            // Fix: Use the theme's backgroundImage if available, otherwise default to null.
+            // Previous logic might have been overwriting it or not prioritizing the theme's new image.
+            config.bgImage = theme.backgroundImage || null; 
             config.bgImageOpacity = theme.bgImageOpacity ?? 0.55;
 
             // Update font family from theme
@@ -1655,7 +1657,8 @@
                     textColor: getColor(textColorInput, '.color-buttons [data-target="text"]', config.textColor || '#efeff1'),
                     usernameColor: getColor(usernameColorInput, '.color-buttons [data-target="username"]', config.usernameColor || '#9147ff'),
                     overrideUsernameColors: getValue(overrideUsernameColorsInput, config.overrideUsernameColors || false, false, true),
-                    bgImage: currentFullTheme.backgroundImage || config.bgImage || null,
+                    // Correctly resolve background image: use current if available, otherwise fall back to config or null
+                    bgImage: config.bgImage || currentFullTheme.backgroundImage || null,
                     bgImageOpacity: bgImageOpacityValue,
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || config.boxShadow,
