@@ -146,12 +146,12 @@
 
                 // Compress image if present
                 let finalBackgroundImageDataUrl = null;
-                if (backgroundImage && backgroundImage.data) {
+                if (backgroundImage && backgroundImage.inlineData && backgroundImage.inlineData.data) {
                     loadingStatus.textContent = 'Compressing image...';
                     
                     // Ensure clean base64 data
-                    const cleanBase64 = backgroundImage.data.replace(/[\r\n\s]+/g, '');
-                    const mimeType = backgroundImage.mimeType || 'image/png';
+                    const cleanBase64 = backgroundImage.inlineData.data.replace(/[\r\n\s]+/g, '');
+                    const mimeType = backgroundImage.inlineData.mimeType || 'image/png';
                     const backgroundImageDataUrl = `data:${mimeType};base64,${cleanBase64}`;
                     
                     try {
