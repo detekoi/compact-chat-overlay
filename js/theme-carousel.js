@@ -61,6 +61,7 @@
     window.highlightActiveCard = highlightActiveCard;
     window.applyAndScrollToTheme = applyAndScrollToTheme;
     window.scrollToThemeCard = scrollToThemeCard;
+    window.loadGoogleFont = null; // Will be set after loadGoogleFont is defined
 
     // Initialize the carousel when DOM is ready
     if (document.readyState === 'loading') {
@@ -765,6 +766,9 @@
         document.head.appendChild(link);
         console.log(`Loaded Google Font: ${fontFamily}`);
     }
+
+    // Expose loadGoogleFont globally
+    window.loadGoogleFont = loadGoogleFont;
 
     // Return the carousel API for modules that load this script directly
     return carouselAPI;

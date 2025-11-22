@@ -1393,6 +1393,12 @@
             if (currentFontDisplay) currentFontDisplay.textContent = currentFont.name;
             config.fontFamily = currentFont.value; // Update config
             document.documentElement.style.setProperty('--font-family', config.fontFamily); // Apply visually
+
+            // Load Google Font if applicable
+            if (currentFont.isGoogleFont && currentFont.googleFontFamily && window.loadGoogleFont) {
+                window.loadGoogleFont(currentFont.googleFontFamily);
+            }
+
             updateThemePreview(); // Refresh preview
         }
 
@@ -1408,7 +1414,6 @@
             nextFontBtn.addEventListener('click', () => {
                 currentFontIndex = (currentFontIndex + 1) % (window.availableFonts?.length || 1);
                 updateFontDisplay();
-                applyFont();
             });
 
             // Listen for font updates from theme-carousel.js
