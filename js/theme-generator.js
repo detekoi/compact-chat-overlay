@@ -446,9 +446,29 @@
                 console.log(`Dispatching theme-generated-and-added event for theme: ${addedTheme.value}`);
                 document.dispatchEvent(applyThemeEvent);
 
-                // Now update the carousel UI to show the newly added theme (at index 0)
-                if (typeof window.applyAndScrollToTheme === 'function') {
-                    window.applyAndScrollToTheme(0);
+                // Update the carousel UI to show the newly added theme (at index 0)
+                // Note: We don't call applyAndScrollToTheme() here because the event listener
+                // above already calls applyTheme(). We only need to update the UI.
+                const themeIndex = 0; // New themes are added at index 0
+                if (window.availableThemes && window.availableThemes[themeIndex]) {
+                    // Update current theme index
+                    window.currentThemeIndex = themeIndex;
+                    
+                    // Update theme details
+                    if (typeof window.updateThemeDetails === 'function') {
+                        window.updateThemeDetails(window.availableThemes[themeIndex]);
+                    }
+                    
+                    // Update active state on cards
+                    const cards = document.querySelectorAll('.theme-card');
+                    cards.forEach((card, i) => {
+                        card.classList.toggle('active', i === themeIndex);
+                    });
+                    
+                    // Scroll the card into view
+                    if (typeof window.scrollToThemeCard === 'function') {
+                        window.scrollToThemeCard(themeIndex);
+                    }
                 }
 
                 // Dispatch event AFTER applying and updating display
