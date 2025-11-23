@@ -276,7 +276,8 @@ export class ChatRenderer {
 
         // Remove oldest messages but never remove the sentinel
         const sentinel = this.scrollManager.bottomSentinel;
-        while (this.chatMessages.children.length > max + (sentinel ? 1 : 0)) {
+        const targetCount = max + (sentinel ? 1 : 0);
+        while (this.chatMessages.children.length > targetCount) {
             const firstChild = this.chatMessages.firstChild;
             if (firstChild === sentinel) break;
             this.chatMessages.removeChild(firstChild);

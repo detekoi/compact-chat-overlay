@@ -686,6 +686,18 @@ import { ChatConnection } from './modules/chat-connection.js';
             }
         });
 
+        // Window mode max messages input
+        maxMessagesInput?.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            if (!isNaN(value) && value >= 1) {
+                configManager.updateConfig('maxMessages', value);
+                chatRenderer.config = configManager.config;
+                if (configManager.config.chatMode === 'window') {
+                    chatRenderer.limitMessages();
+                }
+            }
+        });
+
         // Username color override toggle
         overrideUsernameColorsInput?.addEventListener('change', () => {
             const isChecked = overrideUsernameColorsInput.checked;
