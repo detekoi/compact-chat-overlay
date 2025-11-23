@@ -689,16 +689,11 @@ import { ChatConnection } from './modules/chat-connection.js';
         // Window mode max messages input
         maxMessagesInput?.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
-            console.log('[Max Messages] Input changed:', value, 'Chat mode:', configManager.config.chatMode);
             if (!isNaN(value) && value >= 1) {
                 configManager.updateConfig('maxMessages', value);
                 chatRenderer.config = configManager.config;
-                console.log('[Max Messages] Config updated. chatRenderer.config.maxMessages:', chatRenderer.config.maxMessages);
                 if (configManager.config.chatMode === 'window') {
-                    console.log('[Max Messages] Calling limitMessages()');
                     chatRenderer.limitMessages();
-                } else {
-                    console.log('[Max Messages] Not in window mode, skipping limitMessages()');
                 }
             }
         });

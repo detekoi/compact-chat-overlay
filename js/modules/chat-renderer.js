@@ -266,7 +266,6 @@ export class ChatRenderer {
     limitMessages() {
         if (!this.chatMessages) return;
         const max = this.config.maxMessages || 50;
-        console.log('[limitMessages] Called with max:', max, 'Current children count:', this.chatMessages.children.length);
 
         const scroller = this.scrollManager.scrollArea;
         const wasAtBottom = this.scrollManager.isUserScrolledToBottom(scroller);
@@ -278,14 +277,11 @@ export class ChatRenderer {
         // Remove oldest messages but never remove the sentinel
         const sentinel = this.scrollManager.bottomSentinel;
         const targetCount = max + (sentinel ? 1 : 0);
-        console.log('[limitMessages] Target count:', targetCount, 'Sentinel exists:', !!sentinel);
         while (this.chatMessages.children.length > targetCount) {
             const firstChild = this.chatMessages.firstChild;
             if (firstChild === sentinel) break;
-            console.log('[limitMessages] Removing child:', firstChild.className);
             this.chatMessages.removeChild(firstChild);
         }
-        console.log('[limitMessages] Final children count:', this.chatMessages.children.length);
 
         // Keep sentinel last
         this.scrollManager.ensureSentinelLast();

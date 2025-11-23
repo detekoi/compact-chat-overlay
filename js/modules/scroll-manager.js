@@ -114,7 +114,7 @@ export class ScrollManager {
      * Ensure sentinel is the last element
      */
     ensureSentinelLast() {
-        if (this.bottomSentinel && this.bottomSentinel.parentNode !== this.chatMessages) {
+        if (this.bottomSentinel && this.chatMessages && this.chatMessages.lastChild !== this.bottomSentinel) {
             this.chatMessages.appendChild(this.bottomSentinel);
         }
     }
