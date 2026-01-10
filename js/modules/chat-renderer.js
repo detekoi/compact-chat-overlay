@@ -6,10 +6,11 @@
 import { UIHelpers } from './ui-helpers.js';
 
 export class ChatRenderer {
-    constructor(config, scrollManager, badgeManager) {
+    constructor(config, scrollManager, badgeManager, pronounManager) {
         this.config = config;
         this.scrollManager = scrollManager;
         this.badgeManager = badgeManager;
+        this.pronounManager = pronounManager;
         this.chatMessages = document.getElementById('chat-messages');
         this.currentBroadcasterId = null;
     }
@@ -123,9 +124,31 @@ export class ChatRenderer {
                 ? this.badgeManager.generateBadgeHTML(data.tags.badges, this.currentBroadcasterId)
                 : '';
 
+            // Pronouns
+            const boxId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            let pronounHtml = `<span class="pronoun-badge" id="pronoun-${boxId}" style="display: none;"></span>`;
+
+            // Check cache immediately
+            const cachedPronoun = this.pronounManager?.getPronounDisplay(data.username);
+            if (cachedPronoun) {
+                pronounHtml = `<span class="pronoun-badge">${cachedPronoun}</span>`;
+            } else if (this.pronounManager) {
+                // Fetch async
+                this.pronounManager.getUserPronoun(data.username).then(pronoun => {
+                    if (pronoun) {
+                        const el = document.getElementById(`pronoun-${boxId}`);
+                        if (el) {
+                            el.textContent = pronoun;
+                            el.style.display = 'inline';
+                        }
+                    }
+                });
+            }
+
             messageElement.innerHTML = `
                 <span class="timestamp">${timestamp}</span>
                 ${badgesHtml}
+                ${pronounHtml}
                 <span class="username" style="color: ${userColor}">${data.username}:</span>
                 <span class="message-content">${message}</span>`;
 
