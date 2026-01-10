@@ -7,7 +7,7 @@ export class PronounManager {
     constructor() {
         this.pronounsMap = new Map(); // pronoun_id -> display_string (e.g. "hehim" -> "He/Him")
         this.userPronounsCache = new Map(); // username -> pronoun_id
-        this.pendingRequests = new Set(); // usernames currently being fetched
+        this.pendingRequests = new Map(); // username -> Promise
         this.hasLoadedDefinitions = false;
         this.BASE_URL = 'https://pronouns.alejo.io/api';
     }
@@ -51,42 +51,44 @@ export class PronounManager {
             return this.pronounsMap.get(pronounId) || null;
         }
 
-        // 2. If already fetching, don't trigger another request immediately
+        // 2. If already fetching, return the existing promise
         if (this.pendingRequests.has(lowerUser)) {
-            return null;
+            return this.pendingRequests.get(lowerUser);
         }
 
-        // 3. Trigger fetch (fire and forget from caller's perspective, but we await internally)
-        this.pendingRequests.add(lowerUser);
+        // 3. Trigger fetch
+        const fetchPromise = (async () => {
+            try {
+                const response = await fetch(`${this.BASE_URL}/users/${lowerUser}`);
+                if (response.ok) {
+                    const rawData = await response.json();
+                    const data = Array.isArray(rawData) ? rawData[0] : rawData;
 
-        try {
-            const response = await fetch(`${this.BASE_URL}/users/${lowerUser}`);
-            if (response.ok) {
-                const rawData = await response.json();
-                // Format: [{ "id": "...", "login": "...", "pronoun_id": "hehim" }]
-                const data = Array.isArray(rawData) ? rawData[0] : rawData;
-
-                if (data && data.pronoun_id) {
-                    this.userPronounsCache.set(lowerUser, data.pronoun_id);
-                    // Ensure definitions are loaded or try fallback
-                    if (!this.hasLoadedDefinitions) {
-                        await this.loadDefinitions();
+                    if (data && data.pronoun_id) {
+                        this.userPronounsCache.set(lowerUser, data.pronoun_id);
+                        if (!this.hasLoadedDefinitions) {
+                            await this.loadDefinitions();
+                        }
+                        return this.pronounsMap.get(data.pronoun_id) || data.pronoun_id;
+                    } else {
+                        this.userPronounsCache.set(lowerUser, null);
+                        return null;
                     }
-                    return this.pronounsMap.get(data.pronoun_id) || data.pronoun_id;
-                } else {
-                    // Cache null result to avoid repeated 404s for users without pronouns
+                } else if (response.status === 404) {
                     this.userPronounsCache.set(lowerUser, null);
+                    return null;
                 }
-            } else if (response.status === 404) {
-                this.userPronounsCache.set(lowerUser, null);
+            } catch (error) {
+                console.warn(`[PronounManager] Error fetching for ${lowerUser}:`, error);
+                return null;
+            } finally {
+                this.pendingRequests.delete(lowerUser);
             }
-        } catch (error) {
-            console.warn(`[PronounManager] Error fetching for ${lowerUser}:`, error);
-        } finally {
-            this.pendingRequests.delete(lowerUser);
-        }
+            return null;
+        })();
 
-        return this.userPronounsCache.get(lowerUser) ? this.pronounsMap.get(this.userPronounsCache.get(lowerUser)) : null;
+        this.pendingRequests.set(lowerUser, fetchPromise);
+        return fetchPromise;
     }
 
     /**
