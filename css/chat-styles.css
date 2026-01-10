@@ -387,6 +387,20 @@ button:hover {
     margin: 0 2px;
 }
 
+.pronoun-badge {
+    color: var(--timestamp-color);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.8em;
+    margin-right: 5px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: inline-block;
+    line-height: 1;
+}
+
 /* Enlarged emotes for single-emote messages */
 .single-emote-message .emote {
     height: calc(var(--font-size) * 4);

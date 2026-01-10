@@ -2,6 +2,7 @@
 import { UIHelpers } from './modules/ui-helpers.js';
 import { ScrollManager } from './modules/scroll-manager.js';
 import { BadgeManager } from './modules/badge-manager.js';
+import { PronounManager } from './modules/pronoun-manager.js';
 import { ConfigManager } from './modules/config-manager.js';
 import { ChatRenderer } from './modules/chat-renderer.js';
 import { ChatConnection } from './modules/chat-connection.js';
@@ -78,7 +79,10 @@ import { ChatConnection } from './modules/chat-connection.js';
         const configManager = new ConfigManager();
         const scrollManager = new ScrollManager(scrollArea, chatMessages);
         const badgeManager = new BadgeManager(configManager.config);
-        const chatRenderer = new ChatRenderer(configManager.config, scrollManager, badgeManager);
+        const pronounManager = new PronounManager();
+        pronounManager.loadDefinitions(); // Start loading definitions immediately
+
+        const chatRenderer = new ChatRenderer(configManager.config, scrollManager, badgeManager, pronounManager);
         const chatConnection = new ChatConnection(configManager, chatRenderer, badgeManager);
 
         // Wire up switchChatMode callback to ConfigManager (defined later)
