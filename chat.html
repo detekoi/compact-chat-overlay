@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html lang="en" class="chat-page">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Overlay for Twitch</title>
-    <meta name="description" content="Twitch chat overlay with support for multiple chat scenes via URL parameters (e.g., ?scene=gaming)">
+    <meta name="description"
+        content="Twitch chat overlay with support for multiple chat scenes via URL parameters (e.g., ?scene=gaming)">
     <link rel="stylesheet" href="css/chat-styles.css">
     <link rel="stylesheet" href="css/theme-carousel.css">
-    <script
-    src="https://app.rybbit.io/api/script.js"
-    data-site-id="102"
-    defer
-></script>
+    <script src="https://app.rybbit.io/api/script.js" data-site-id="102" defer></script>
 </head>
+
 <body class="chat-page">
     <div id="initial-connection-prompt">
         <div class="prompt-content">
             <h2>Enter a Channel</h2>
-            
+
             <input type="text" id="initial-channel-input" placeholder="Twitch Channel Name">
             <button id="initial-connect-btn">Connect</button>
-            
+
             <button id="open-settings-from-prompt" class="secondary-button">Settings ⚙️</button>
         </div>
     </div>
-    
+
     <div id="popup-container">
         <div class="popup-settings-area">
             <button id="popup-settings-btn">⚙️</button>
         </div>
         <div id="popup-messages"></div>
     </div>
-    
+
     <div id="chat-wrapper">
         <div id="chat-container">
             <button id="settings-btn">⚙️</button>
@@ -43,7 +42,7 @@
 
     <div id="config-panel">
         <h3>Chat Settings</h3>
-        
+
         <div class="section-divider">Connection</div>
         <div class="config-row" id="connection-management" style="margin-top: 10px; padding-top: 10px;">
             <div id="channel-form" style="display: flex; gap: 10px; align-items: center; width: 100%;">
@@ -51,24 +50,25 @@
                 <input type="text" id="channel-input" placeholder="Enter Twitch channel" style="flex-grow: 1;">
                 <button id="connect-btn" style="flex-shrink: 0;">Connect</button>
             </div>
-            <button id="disconnect-btn" style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
+            <button id="disconnect-btn"
+                style="background-color: #aa5555; display: none; width: 100%; margin-top: 5px;">Disconnect</button>
         </div>
 
         <div class="config-row theme-section">
             <div class="theme-selector-label" id="theme-selector-label">Theme:</div>
             <div class="theme-carousel-container" role="group" aria-labelledby="theme-selector-label">
                 <div class="theme-cards-wrapper">
-                    </div>
+                </div>
             </div>
             <div class="theme-preview-container">
                 <div class="theme-preview" id="theme-preview">
-                    </div>
+                </div>
             </div>
             <div id="theme-info-and-nav">
                 <button type="button" id="prev-theme" class="theme-nav-btn">◀</button>
                 <div id="theme-details">
                     <span id="selected-theme-name">Theme Name</span>
-                    <details class="theme-description-details"> 
+                    <details class="theme-description-details">
                         <summary>Description</summary>
                         <span id="selected-theme-description">Theme description goes here.</span>
                     </details>
@@ -78,12 +78,12 @@
         </div>
 
         <div class="section-divider">AI Theme Generator</div>
-        
+
         <div class="config-row">
             <label for="theme-prompt">Game or Vibe:</label>
             <input type="text" id="theme-prompt" placeholder="e.g., Minecraft, Cozy Vibes">
         </div>
-        
+
         <div class="config-row">
             <button id="generate-theme-btn">Generate Theme</button>
             <div id="theme-loading-indicator" style="display: none;">
@@ -91,27 +91,29 @@
                 <div id="loading-status">Generating...</div>
             </div>
         </div>
-        
+
         <div class="config-row">
-            <label for="generate-bg-image" style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.9em;">
+            <label for="generate-bg-image"
+                style="display: flex; align-items: center; gap: 5px; font-weight: normal; font-size: 0.9em;">
                 <input type="checkbox" id="generate-bg-image" checked>
                 Generate background image
             </label>
         </div>
-        
+
         <div class="config-row" id="generated-theme-result" style="display: none;">
             <div>Generated: <span id="generated-theme-name"></span></div>
         </div>
-        
+
         <div style="font-size: 12px; margin-top: 10px; color: #888; text-align: center;">
             Generated themes will appear in your main theme collection above
         </div>
-        
+
         <div class="section-divider">Display Mode</div>
-        
+
         <div class="config-row">
             <div id="chat-mode-label">Chat Mode:</div>
-            <div style="display: flex; flex-direction: column; gap: 5px;" role="radiogroup" aria-labelledby="chat-mode-label">
+            <div style="display: flex; flex-direction: column; gap: 5px;" role="radiogroup"
+                aria-labelledby="chat-mode-label">
                 <label>
                     <input type="radio" name="chat-mode" value="window" checked>
                     Window
@@ -122,10 +124,11 @@
                 </label>
             </div>
         </div>
-        
+
         <div class="config-row popup-setting">
             <div id="animation-direction-label">Animation Direction:</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;" role="radiogroup" aria-labelledby="animation-direction-label">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;" role="radiogroup"
+                aria-labelledby="animation-direction-label">
                 <label>
                     <input type="radio" name="popup-direction" value="from-top">
                     From Top
@@ -144,7 +147,7 @@
                 </label>
             </div>
         </div>
-        
+
         <div class="config-row popup-setting">
             <label for="popup-duration">Duration (seconds):</label>
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -152,14 +155,14 @@
                 <span id="popup-duration-value">5s</span>
             </div>
         </div>
-        
+
         <div class="config-row popup-setting">
             <label for="popup-max-messages">Max Messages:</label>
             <input type="number" id="popup-max-messages" value="3" min="1" max="10">
         </div>
 
         <div class="section-divider">Colors</div>
-        
+
         <div class="config-row">
             <label for="bg-color">Background Color</label>
             <div class="color-picker">
@@ -179,7 +182,7 @@
                 <input type="color" id="bg-color" value="#121212" style="visibility: hidden; width: 0; height: 0;">
             </div>
         </div>
-        
+
         <div class="config-row">
             <label for="bg-image-opacity">Background Image</label>
             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
@@ -223,21 +226,23 @@
             <div class="color-picker">
                 <div style="font-size: 12px; color: #888; margin-bottom: 8px;">
                     Use custom color instead of Twitch's colors for all usernames
-                </div>    
+                </div>
                 <div class="color-buttons">
-                    <button type="button" class="color-btn" data-color="#9147ff" data-target="username">Purple.tv</button>
+                    <button type="button" class="color-btn" data-color="#9147ff"
+                        data-target="username">Purple.tv</button>
                     <button type="button" class="color-btn" data-color="#508d69" data-target="username">Forest</button>
                     <button type="button" class="color-btn" data-color="#ff9800" data-target="username">Amber</button>
                     <button type="button" class="color-btn" data-color="#b81670" data-target="username">Magenta</button>
                     <button type="button" class="color-btn" data-color="#ff2e97" data-target="username">Neon</button>
                 </div>
-                <input type="color" id="username-color" value="#9147ff" style="visibility: hidden; width: 0; height: 0;">
+                <input type="color" id="username-color" value="#9147ff"
+                    style="visibility: hidden; width: 0; height: 0;">
             </div>
         </div>
 
-        
+
         <div class="section-divider">Appearance</div>
-        
+
         <div class="config-row">
             <label for="border-radius">Corner Roundness:</label>
             <div class="preset-buttons-container" id="border-radius-presets">
@@ -247,7 +252,7 @@
                 <button type="button" class="preset-btn" data-value="24px">Pill</button>
             </div>
         </div>
-        
+
         <div class="config-row">
             <label for="box-shadow">Window Shadow:</label>
             <div class="preset-buttons-container" id="box-shadow-presets">
@@ -279,6 +284,16 @@
             </label>
         </div>
 
+        <div class="config-row">
+            <label for="show-pronouns-toggle" style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="show-pronouns-toggle" checked>
+                Show Pronouns
+            </label>
+            <div class="help-text" style="margin-left: 20px; font-size: 0.8em; opacity: 0.7;">Users can set theirs at <a
+                    href="https://pr.alejo.io/" target="_blank"
+                    style="color: inherit; text-decoration: underline;">pr.alejo.io</a></div>
+        </div>
+
         <div class="section-divider">Emotes</div>
         <div class="config-row">
             <label for="enlarge-single-emotes-toggle" style="display: flex; align-items: center; gap: 5px;">
@@ -288,7 +303,7 @@
         </div>
 
         <div class="section-divider">Settings</div>
-        
+
         <div class="config-row font-section">
             <div class="font-selector-label" id="font-selector-label">Font:</div>
             <div id="font-buttons" class="font-buttons-container" role="group" aria-labelledby="font-selector-label">
@@ -324,7 +339,7 @@
                 Show Timestamps
             </label>
         </div>
-        
+
         <div id="config-panel-actions">
             <div>
                 <button id="save-config">Save Settings</button>
@@ -339,4 +354,5 @@
     <script src="js/theme-generator.js"></script>
     <script src="js/bg-opacity-handler.js"></script>
 </body>
+
 </html>

@@ -62,6 +62,7 @@ import { ChatConnection } from './modules/chat-connection.js';
         const themePreview = document.getElementById('theme-preview');
         const channelForm = document.getElementById('channel-form');
         const showBadgesToggle = document.getElementById('show-badges-toggle');
+        const showPronounsToggle = document.getElementById('show-pronouns-toggle');
         const enlargeSingleEmotesToggle = document.getElementById('enlarge-single-emotes-toggle');
         const bgImageOpacityInput = document.getElementById('bg-image-opacity');
         const bgImageOpacityValue = document.getElementById('bg-image-opacity-value');
@@ -716,6 +717,18 @@ import { ChatConnection } from './modules/chat-connection.js';
             showBadgesToggle.addEventListener('change', updateThemePreview);
         }
 
+        // Pronoun toggle
+        if (showPronounsToggle) {
+            showPronounsToggle.addEventListener('change', () => {
+                configManager.updateConfig('showPronouns', showPronounsToggle.checked);
+                chatRenderer.config = configManager.config;
+                // No need to updateThemePreview specifically for this unless we want to show it in preview, 
+                // but currently preview logic might not render real messages. 
+                // However, let's keep it consistent.
+                updateThemePreview();
+            });
+        }
+
         // --- SETTINGS PANEL HANDLERS ---
 
         /**
@@ -839,6 +852,7 @@ import { ChatConnection } from './modules/chat-connection.js';
                     },
                     lastChannel: configManager.config.lastChannel,
                     showBadges: getValue(showBadgesToggle, configManager.config.showBadges, false, true),
+                    showPronouns: getValue(showPronounsToggle, configManager.config.showPronouns, false, true),
                     badgeEndpointUrlGlobal: configManager.config.badgeEndpointUrlGlobal,
                     badgeEndpointUrlChannel: configManager.config.badgeEndpointUrlChannel,
                     badgeCacheGlobalTTL: configManager.config.badgeCacheGlobalTTL,
@@ -913,6 +927,9 @@ import { ChatConnection } from './modules/chat-connection.js';
             if (chatHeightValue) chatHeightValue.textContent = `${configManager.config.chatHeight}%`;
             if (maxMessagesInput) maxMessagesInput.value = configManager.config.maxMessages;
             if (showTimestampsInput) showTimestampsInput.checked = configManager.config.showTimestamps;
+
+            const showPronounsToggle = document.getElementById('show-pronouns-toggle');
+            if (showPronounsToggle) showPronounsToggle.checked = configManager.config.showPronouns;
 
             const fontIndex = window.availableFonts?.findIndex(f => f.value === configManager.config.fontFamily) ?? -1;
             currentFontIndex = (fontIndex !== -1) ? fontIndex : (window.availableFonts?.findIndex(f => f.value?.includes('Atkinson')) ?? 0);

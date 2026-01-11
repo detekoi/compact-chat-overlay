@@ -48,6 +48,7 @@ export class ConfigManager {
             theme: 'default',
             lastChannel: '',
             showBadges: true,
+            showPronouns: true,
             badgeEndpointUrlGlobal: 'https://us-central1-chat-themer.cloudfunctions.net/getGlobalBadges',
             badgeEndpointUrlChannel: 'https://us-central1-chat-themer.cloudfunctions.net/getChannelBadges',
             badgeCacheGlobalTTL: 12 * 60 * 60 * 1000,
