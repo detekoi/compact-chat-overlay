@@ -276,7 +276,7 @@
             </div>
         </div>
 
-        <div class="section-divider">Badges</div>
+        <div class="section-divider">Message Elements</div>
         <div class="config-row">
             <label for="show-badges-toggle" style="display: flex; align-items: center; gap: 5px;">
                 <input type="checkbox" id="show-badges-toggle" checked>
@@ -294,7 +294,13 @@
                     style="color: inherit; text-decoration: underline;">pr.alejo.io</a></div>
         </div>
 
-        <div class="section-divider">Emotes</div>
+        <div class="config-row">
+            <label for="show-timestamps" style="display: flex; align-items: center; gap: 5px;">
+                <input type="checkbox" id="show-timestamps" checked>
+                Show Timestamps
+            </label>
+        </div>
+
         <div class="config-row">
             <label for="enlarge-single-emotes-toggle" style="display: flex; align-items: center; gap: 5px;">
                 <input type="checkbox" id="enlarge-single-emotes-toggle">
@@ -302,7 +308,7 @@
             </label>
         </div>
 
-        <div class="section-divider">Settings</div>
+        <div class="section-divider">Typography</div>
 
         <div class="config-row font-section">
             <div class="font-selector-label" id="font-selector-label">Font:</div>
@@ -319,6 +325,9 @@
             <input type="range" id="font-size" min="10" max="36" value="14">
             <span id="font-size-value">14px</span>
         </div>
+
+        <div class="section-divider">Layout</div>
+
         <div class="config-row">
             <label for="chat-width">Width:</label>
             <input type="range" id="chat-width" min="3" max="100" value="95">
@@ -332,12 +341,6 @@
         <div class="config-row window-only-setting">
             <label for="max-messages">Max Messages:</label>
             <input type="number" id="max-messages" min="5" max="100" value="50">
-        </div>
-        <div class="config-row">
-            <label for="show-timestamps" style="display: flex; align-items: center; gap: 5px;">
-                <input type="checkbox" id="show-timestamps" checked>
-                Show Timestamps
-            </label>
         </div>
 
         <div id="config-panel-actions">
