@@ -99,7 +99,7 @@
         themeLoadingIndicator.style.display = 'flex';
         generatedThemeResult.style.display = 'none';
         generateThemeBtn.disabled = true;
-        loadingStatus.textContent = 'Generating... (Attempt 1)';
+        loadingStatus.textContent = 'Generating...';
 
         let currentAttempt = 1;
         let delay = INITIAL_DELAY;
@@ -113,7 +113,7 @@
                 // Check for retry instruction from proxy
                 if (proxyResponse.retry) {
                     console.log(`Proxy requested retry (Attempt ${currentAttempt}). Message: ${proxyResponse.message}`);
-                    loadingStatus.textContent = proxyResponse.message || `Retrying... (${currentAttempt + 1}/${MAX_RETRIES})`;
+                    loadingStatus.textContent = proxyResponse.message || 'Generating...';
 
                     // Process intermediate theme data if provided
                     if (proxyResponse.themeData && proxyResponse.includesThemeData) {
@@ -148,12 +148,12 @@
                 let finalBackgroundImageDataUrl = null;
                 if (backgroundImage && backgroundImage.inlineData && backgroundImage.inlineData.data) {
                     loadingStatus.textContent = 'Compressing image...';
-                    
+
                     // Ensure clean base64 data
                     const cleanBase64 = backgroundImage.inlineData.data.replace(/[\r\n\s]+/g, '');
                     const mimeType = backgroundImage.inlineData.mimeType || 'image/png';
                     const backgroundImageDataUrl = `data:${mimeType};base64,${cleanBase64}`;
-                    
+
                     try {
                         finalBackgroundImageDataUrl = await compressImageToBase64JPEG(backgroundImageDataUrl, 0.85); // Use 85% quality
                         console.log('Image compression successful.');
@@ -191,19 +191,19 @@
                 console.error(`Theme generation attempt ${currentAttempt} failed:`, error);
 
                 if (currentAttempt < MAX_RETRIES) {
-                    loadingStatus.textContent = `Retrying... (${currentAttempt + 1}/${MAX_RETRIES})`;
+                    loadingStatus.textContent = 'Retrying...';
                     console.log(`Waiting ${delay / 1000}s before retrying...`);
                     await new Promise(resolve => setTimeout(resolve, delay));
                     delay *= 2; // Exponential backoff
                 } else {
                     // Max retries reached, show error
                     loadingStatus.textContent = 'Failed to generate theme.';
-                    alert(`Error generating theme after ${MAX_RETRIES} attempts: ${error.message || 'Unknown error'}`);
+                    alert(`Error generating theme: ${error.message || 'Unknown error'}`);
                     console.error(`Max retries (${MAX_RETRIES}) reached. Theme generation failed.`, error);
                     themeLoadingIndicator.style.display = 'none';
                     generateThemeBtn.disabled = false;
                     if (typeof addSystemMessage === 'function') {
-                        addSystemMessage(`❌ Error generating theme: ${error.message || 'Max retries reached.'}`);
+                        addSystemMessage(`❌ Error generating theme: ${error.message || 'Unknown error.'}`);
                     }
                     return; // Exit loop after max retries
                 }
@@ -453,18 +453,18 @@
                 if (window.availableThemes && window.availableThemes[themeIndex]) {
                     // Update current theme index
                     window.currentThemeIndex = themeIndex;
-                    
+
                     // Update theme details
                     if (typeof window.updateThemeDetails === 'function') {
                         window.updateThemeDetails(window.availableThemes[themeIndex]);
                     }
-                    
+
                     // Update active state on cards
                     const cards = document.querySelectorAll('.theme-card');
                     cards.forEach((card, i) => {
                         card.classList.toggle('active', i === themeIndex);
                     });
-                    
+
                     // Scroll the card into view
                     if (typeof window.scrollToThemeCard === 'function') {
                         window.scrollToThemeCard(themeIndex);
