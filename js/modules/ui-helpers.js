@@ -172,10 +172,8 @@ export class UIHelpers {
      * Helper function to get URL parameters
      */
     static getUrlParameter(name) {
-        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-        const results = regex.exec(location.search);
-        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name) || '';
     }
 
     /**

@@ -90,8 +90,8 @@ async function getSecret(secretName) {
         const payload = version.payload.data.toString('utf8');
         return payload;
     } catch (error) {
-        console.error(`Error fetching secret ${secretName}:`, error);
-        throw new Error(`Failed to retrieve secret: ${secretName}`);
+        console.error('Error fetching secret:', error.message);
+        throw new Error('Failed to retrieve secret.');
     }
 }
 
@@ -133,7 +133,7 @@ async function getTwitchAppAccessToken(forceRefresh = false) {
         console.log('Successfully fetched and cached new Twitch app access token.');
         return access_token;
     } catch (error) {
-        console.error('Error getting Twitch app access token:', error.response ? error.response.data : error.message);
+        console.error('Error getting Twitch app access token:', error.message);
         throw new Error('Failed to get Twitch app access token.');
     }
 }
@@ -205,7 +205,7 @@ functions.http('getGlobalBadges', async (req, res) => {
 
         res.status(200).json(transformedData);
     } catch (error) {
-        console.error('Error in getGlobalBadges:', error.message);
+        console.error('Error in getGlobalBadges.');
         if (!res.headersSent) {
             res.status(500).send('Internal Server Error.');
         }
@@ -222,7 +222,7 @@ functions.http('getChannelBadges', async (req, res) => {
         res.status(204).send('');
         return;
     }
-    
+
     // API Key check placeholder
 
     const broadcasterId = req.query.broadcaster_id;
@@ -265,7 +265,7 @@ functions.http('getChannelBadges', async (req, res) => {
 
         res.status(200).json(transformedData);
     } catch (error) {
-        console.error(`Error in getChannelBadges for ${broadcasterId}:`, error.message);
+        console.error('Error in getChannelBadges.');
         if (!res.headersSent) {
             res.status(500).send('Internal Server Error.');
         }
@@ -298,7 +298,7 @@ functions.http('refreshGlobalCache', async (req, res) => {
             const expectedToken = await getSecret(INTERNAL_REFRESH_TOKEN_SECRET_NAME);
             if (internalTokenHeader === expectedToken) authorized = true;
         } catch (secretError) {
-            console.error('Error fetching internal refresh token for validation:', secretError);
+            console.error('Error fetching internal refresh token for validation.');
             // Do not authorize if secret fetching fails
         }
     }
@@ -335,7 +335,7 @@ functions.http('refreshGlobalCache', async (req, res) => {
 
         res.status(200).send('Global cache refreshed successfully (Firestore).');
     } catch (error) {
-        console.error('Error in refreshGlobalCache:', error.message);
+        console.error('Error in refreshGlobalCache.');
         if (!res.headersSent) {
             res.status(500).send('Internal Server Error during cache refresh.');
         }
