@@ -169,6 +169,18 @@ export class UIHelpers {
     }
 
     /**
+     * Highlight the active font weight button based on weight value
+     */
+    static highlightFontWeightButton(weightValue, fontWeightPresets) {
+        if (fontWeightPresets) {
+            const buttons = fontWeightPresets.querySelectorAll('.preset-btn');
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === weightValue);
+            });
+        }
+    }
+
+    /**
      * Helper function to get URL parameters
      */
     static getUrlParameter(name) {

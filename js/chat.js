@@ -56,6 +56,7 @@ import { ChatConnection } from './modules/chat-connection.js';
         const borderRadiusPresets = document.getElementById('border-radius-presets');
         const boxShadowPresets = document.getElementById('box-shadow-presets');
         const textShadowPresets = document.getElementById('text-shadow-presets');
+        const fontWeightPresets = document.getElementById('font-weight-presets');
         const prevFontBtn = document.getElementById('prev-font');
         const nextFontBtn = document.getElementById('next-font');
         const currentFontDisplay = document.getElementById('current-font');
@@ -643,6 +644,16 @@ import { ChatConnection } from './modules/chat-connection.js';
         textShadowPresets?.querySelectorAll('.preset-btn')
             .forEach(btn => btn.addEventListener('click', () => applyTextShadow(btn.dataset.value)));
 
+        // Font weight presets
+        function applyFontWeight(value) {
+            document.documentElement.style.setProperty('--font-weight', value);
+            configManager.updateConfig('fontWeight', value);
+            UIHelpers.highlightFontWeightButton(value, fontWeightPresets);
+            updateThemePreview();
+        }
+        fontWeightPresets?.querySelectorAll('.preset-btn')
+            .forEach(btn => btn.addEventListener('click', () => applyFontWeight(btn.dataset.value)));
+
         // Chat mode radio buttons
         document.querySelectorAll('input[name="chat-mode"]').forEach(input => {
             input.addEventListener('change', (e) => {
@@ -840,6 +851,7 @@ import { ChatConnection } from './modules/chat-connection.js';
                     borderRadius: borderRadiusPresets?.querySelector('.preset-btn.active')?.dataset.value || configManager.config.borderRadius,
                     boxShadow: boxShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || configManager.config.boxShadow,
                     textShadow: textShadowPresets?.querySelector('.preset-btn.active')?.dataset.value || configManager.config.textShadow,
+                    fontWeight: fontWeightPresets?.querySelector('.preset-btn.active')?.dataset.value || configManager.config.fontWeight || 'normal',
                     chatMode: document.querySelector('input[name="chat-mode"]:checked')?.value || configManager.config.chatMode || 'window',
                     chatWidth: getValue(chatWidthInput, configManager.config.chatWidth || 95, true),
                     chatHeight: getValue(chatHeightInput, configManager.config.chatHeight || 95, true),
@@ -917,6 +929,7 @@ import { ChatConnection } from './modules/chat-connection.js';
             UIHelpers.highlightBorderRadiusButton(UIHelpers.getBorderRadiusValue(configManager.config.borderRadius), borderRadiusPresets);
             UIHelpers.highlightBoxShadowButton(configManager.config.boxShadow, boxShadowPresets);
             UIHelpers.highlightTextShadowButton(configManager.config.textShadow, textShadowPresets);
+            UIHelpers.highlightFontWeightButton(configManager.config.fontWeight || 'normal', fontWeightPresets);
 
             if (overrideUsernameColorsInput) overrideUsernameColorsInput.checked = configManager.config.overrideUsernameColors;
             if (fontSizeSlider) fontSizeSlider.value = configManager.config.fontSize;

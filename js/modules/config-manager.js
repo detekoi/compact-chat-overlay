@@ -32,6 +32,7 @@ export class ConfigManager {
             usernameColor: '#9147ff',
             fontSize: 14,
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            fontWeight: 'normal',
             chatWidth: 95,
             chatHeight: 95,
             maxMessages: 50,
@@ -90,6 +91,7 @@ export class ConfigManager {
         rootStyle.setProperty('--timestamp-color', cfg.timestampColor || '#adadb8');
         rootStyle.setProperty('--font-size', `${cfg.fontSize || 14}px`);
         rootStyle.setProperty('--font-family', cfg.fontFamily || "'Inter', 'Helvetica Neue', Arial, sans-serif");
+        rootStyle.setProperty('--font-weight', cfg.fontWeight || 'normal');
         rootStyle.setProperty('--chat-width', `${cfg.chatWidth || 95}%`);
         rootStyle.setProperty('--chat-height', `${cfg.chatHeight || 95}%`);
         rootStyle.setProperty('--chat-border-radius', UIHelpers.getBorderRadiusValue(cfg.borderRadius || '8px'));

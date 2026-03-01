@@ -337,6 +337,7 @@ button:hover {
     color: var(--chat-text-color); /* Apply text color here */
     font-family: var(--font-family); /* Apply font family here */
     font-size: var(--font-size); /* Apply font size here */
+    font-weight: var(--font-weight, normal); /* Apply font weight here */
     /* Disable browser scroll anchoring; we manage scroll manually */
     overflow-anchor: none;
 }
@@ -527,6 +528,7 @@ button:hover {
     transform: translateY(0);
     transition: opacity 0.3s ease-out, transform 0.4s ease-out;
     text-shadow: var(--chat-text-shadow);
+    font-weight: var(--font-weight, normal);
 }
 
 /* Note: Gliding animation now handled via inline styles for precise positioning */
