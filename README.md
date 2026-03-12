@@ -1,5 +1,11 @@
 # Chat Overlay for Twitch and OBS
 
+> [!WARNING]
+> **THIS REPOSITORY IS NO LONGER MAINTAINED.** 
+> The Chat Overlay has been moved to the [wildcat-home](https://github.com/detekoi/wildcat-home) monorepo.
+> 
+> **New Hosting URL:** [https://wildcat.chat/chat-overlay/](https://wildcat.chat/chat-overlay/)
+
 A lightweight, customizable Twitch chat overlay for streamers using OBS or other broadcasting software.
 
 ![Initial Connection Screen](assets/images/screenshots/initialization.png)
@@ -18,7 +24,7 @@ Simply describe any game, aesthetic, or mood (like `Minecraft`, `cyberpunk night
 
 ## Try It Now
 
-**[➜ Online Version](https://detekoi.github.io/compact-chat-overlay/)**
+**[➜ Online Version](https://wildcat.chat/chat-overlay/)**
 
 Create and manage multiple chat styles for all of your OBS scenes in seconds!
 
