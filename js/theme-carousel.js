@@ -724,6 +724,8 @@
     /**
      * Fetches available fonts from the proxy and updates the global list.
      */
+    let fontFetchRetried = false;
+
     async function fetchAvailableFonts() {
         try {
             // Determine API URL
@@ -742,6 +744,13 @@
 
                     // Dispatch event to notify that fonts have changed
                     document.dispatchEvent(new CustomEvent('fonts-updated'));
+
+                    // If no Google Fonts received (server may be mid-cold-start), retry once
+                    if (!fontFetchRetried && !fonts.some(f => f.isGoogleFont)) {
+                        fontFetchRetried = true;
+                        console.log('No Google Fonts received, retrying in 3s...');
+                        setTimeout(() => fetchAvailableFonts(), 3000);
+                    }
                 }
             }
         } catch (error) {
