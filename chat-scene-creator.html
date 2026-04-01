@@ -15,6 +15,13 @@
     <div class="container">
         <header>
             <h1>Twitch Chat Overlay - Chat Scene Creator</h1>
+            <div id="migration-notice" style="position: relative; background-color: #ffeb3b; color: #1a1a1a; padding: 15px; margin: 15px auto; max-width: 600px; border-radius: 8px; font-weight: bold; text-align: center; border: 2px solid #d4af37; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <button title="Dismiss" onclick="this.parentElement.style.display='none'; localStorage.setItem('hideMigrationNotice', 'true');" style="position: absolute; top: 5px; right: 5px; background: none; border: none; font-size: 16px; cursor: pointer; color: #1a1a1a; padding: 5px; line-height: 1; opacity: 0.6;">✕</button>
+                MIGRATION NOTICE<br>
+                The Chat Overlay has moved and is receiving all future updates at its new home.<br>
+                <a href="https://wildcat.chat/chat-overlay/" style="color: #1a1a1a; text-decoration: underline; display: inline-block; margin-top: 8px; font-size: 1.1em;">Visit wildcat.chat/chat-overlay to try the new version</a>
+            </div>
+            <script>if(localStorage.getItem('hideMigrationNotice') === 'true') document.getElementById('migration-notice').style.display = 'none';</script>
             <p>Create and manage chat scenes for different parts of your stream</p>
             <p style="margin-top: 10px; font-size: 14px;">
                 <a href="https://github.com/detekoi/compact-chat-overlay" target="_blank" style="color: var(--link-color); text-decoration: none;">
