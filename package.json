@@ -11,7 +11,7 @@
     "node": "22.x"
   },
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.0.0",
+    "@google-cloud/functions-framework": "^5.0.5",
     "@google-cloud/secret-manager": "^5.0.0",
     "@google-cloud/firestore": "^7.7.0",
     "axios": "^1.18.0"
