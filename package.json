@@ -14,7 +14,7 @@
     "@google-cloud/functions-framework": "^5.0.5",
     "@google-cloud/secret-manager": "^5.0.0",
     "@google-cloud/firestore": "^7.7.0",
-    "axios": "^1.18.0"
+    "axios": "^1.20.0"
   },
   "author": "",
   "license": "ISC"
